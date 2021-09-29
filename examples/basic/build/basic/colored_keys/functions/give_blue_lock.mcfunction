@@ -1,0 +1,1 @@
+execute as @p[] run function colored_keys:mcl/macro_give_lock_8

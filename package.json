@@ -1,0 +1,21 @@
+{
+  "name": "mcl",
+  "version": "1.0.0",
+  "description": "Scripting transpiler for Minecraft",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Zoran Obradović",
+  "license": "ISC",
+  "keywords": [
+    "minecraft",
+    "script",
+    "transpiler"
+  ],
+  "dependencies": {
+    "optant": "^2.0.0",
+    "parcel": "*",
+    "peggy": "^1.2.0"
+  }
+}

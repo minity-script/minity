@@ -1,0 +1,105 @@
+namespace colored_keys
+
+function enable {
+  $enabled = 1b
+}
+
+function disable {
+  remove $enabled
+}
+
+
+macro update_locks(?color,?up=1) {
+  for @s."is_{?color}_lock" {
+    up ?up if @p[distance=..2, nbt={Inventory:[{tag:{"is_{?color}_key":1b}}]}]  {
+      down ?up /setblock ~ ~ ~ minecraft:{?color}_concrete
+    } else {
+      down ?up /setblock ~ ~-1 ~ minecraft:redstone_block
+    } 
+  }
+}
+
+function update_all_locks {
+  if $enabled {
+    for @slime.is_lock {
+      update_locks(blue)
+      update_locks(red)
+    }
+  }
+}
+
+macro give_lock(?color,?Color,?textColor=white) {
+  give @s command_block {
+    display: {
+      Name:  '[ {
+        color: "{?textColor}",
+        text: "Place {?Color} Lock",
+        italic: 0b
+      }]',
+      Lore: [
+        '[{
+          text: "Place this command block to create a {?color} lock.",
+          italic: false
+        }]' 
+      ]
+    },
+    BlockEntityTag:{
+      auto:1b,
+      Command:"function colored_keys:summon_{?color}_lock"
+    }
+  } 
+}
+
+function give_blue_lock {
+  as @p give_lock(blue,Blue,aqua)
+}
+
+function give_red_lock {
+  give_lock(red,Red,red)
+}
+macro summon_lock(?color,?Color) {
+  /summon minecraft:slime ~ ~-0.5 ~ {CustomName:"{?Color} Lock",Invulnerable:1b,NoAI:1b,Silent:1b,Tags:["is_lock","is_{?color}_lock"]}
+}
+
+function summon_blue_lock {
+  summon_lock(blue, Blue)
+}
+
+function summon_red_lock {
+  summon_lock(red, Red)
+}
+
+macro give_key(?color, ?Color, ?baseColor) {
+  give @s shield{
+    display:{
+      Name: '[{
+        "text":"{?Color} Key",
+        "italic":false
+      }]',
+      Lore: [ 
+        '[{
+          "text":"This key opens {?color} doors.",
+          "italic":false
+        }]'
+      ]
+    },
+    is_key:1b,
+    "is_{?color}_key":1b,
+    BlockEntityTag: {
+      Base: ?baseColor,
+      Patterns:[
+        {Color:15,Pattern:"mc"},
+        {Color:15,Pattern:"bt"},
+        {Color:14,Pattern:"bo"}
+      ]
+    }
+  }
+}
+
+function give_blue_key {
+  give_key(blue,Blue,14)
+}
+
+function give_red_key {
+  give_key(red,Red,3)
+}

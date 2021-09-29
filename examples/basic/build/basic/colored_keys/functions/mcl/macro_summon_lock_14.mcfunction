@@ -1,0 +1,1 @@
+summon minecraft:slime ~ ~-0.5 ~ {CustomName:"Red Lock",Invulnerable:1b,NoAI:1b,Silent:1b,Tags:["is_lock","is_red_lock"]}

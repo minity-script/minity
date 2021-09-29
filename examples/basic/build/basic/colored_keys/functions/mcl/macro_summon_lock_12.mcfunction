@@ -1,0 +1,1 @@
+summon minecraft:slime ~ ~-0.5 ~ {CustomName:"Blue Lock",Invulnerable:1b,NoAI:1b,Silent:1b,Tags:["is_lock","is_blue_lock"]}
