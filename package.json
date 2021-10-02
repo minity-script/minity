@@ -4,7 +4,8 @@
   "description": "Scripting transpiler for Minecraft",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "debug": "nodemon --inspect src/index.js -e .js,.pegjs,.mcl,.json -w src -w examples/basic build examples/basic build/basic"
   },
   "author": "Zoran Obradović",
   "license": "ISC",
@@ -14,6 +15,8 @@
     "transpiler"
   ],
   "dependencies": {
+    "merge": "^2.1.1",
+    "merge-anything": "^4.0.1",
     "optant": "^2.0.0",
     "parcel": "*",
     "peggy": "^1.2.0"

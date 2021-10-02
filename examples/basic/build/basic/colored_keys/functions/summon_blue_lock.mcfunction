@@ -1,1 +1,0 @@
-function colored_keys:mcl/macro_summon_lock_12

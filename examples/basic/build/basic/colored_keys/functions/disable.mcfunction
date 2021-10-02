@@ -1,1 +1,0 @@
-data remove mcl_vars:colored_keys enabled

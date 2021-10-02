@@ -1,2 +1,0 @@
-function colored_keys:mcl/macro_update_locks_3
-function colored_keys:mcl/macro_update_locks_5

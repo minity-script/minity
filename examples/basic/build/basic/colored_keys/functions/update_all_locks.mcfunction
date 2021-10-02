@@ -1,1 +1,0 @@
-execute if data mcl_vars:colored_keys enabled run execute as @e[type=minecraft:slime,tag=is_lock] at @s run function colored_keys:mcl/block_6

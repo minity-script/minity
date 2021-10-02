@@ -1,1 +1,0 @@
-function colored_keys:mcl/macro_give_lock_10

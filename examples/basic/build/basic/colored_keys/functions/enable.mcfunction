@@ -1,1 +1,0 @@
-data modify mcl_vars:colored_keys enabled set value 1b

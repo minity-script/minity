@@ -1,1 +1,0 @@
-give @s[] shield{display:{"Name":"[{\"text\":\"Red Key\",\"italic\":false}]","Lore":["[{\"text\":\"This key opens red doors.\",\"italic\":false}]"]},is_key:1b,is_red_key:1b,"BlockEntityTag":{"Base":3,"Patterns":[{"Color":15,"Pattern":mc},{"Color":15,"Pattern":bt},{"Color":14,"Pattern":bo}]}}
