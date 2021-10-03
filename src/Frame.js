@@ -15,6 +15,8 @@ const Frame = exports.Frame =
 
     transform = node => {
       if (!node?.transform) {
+        console.log(node);
+        throw new Error("WTF")
         debugger;
       }
       return node.transform(this);
@@ -42,11 +44,11 @@ const Frame = exports.Frame =
       const constant = this.result.addConstant(value);
       return constant.id;
     }
+
     declareVar = (v) => {
-      const name = "#" + [...this.scopes, v].join(".")
+      const name = this.scopedName(v,{prefix:"#"});
       const objective = "mcl." + this.ns;
       this.vars[v] = { v, name, objective };
-      this.variables[name] = objective;
     }
     varExists = name => !!this.vars[name];
     varName = (name) => this.vars[name].name
@@ -54,14 +56,24 @@ const Frame = exports.Frame =
     varId = (name) => this.varName(name) + " " + this.varObjective(name)
 
     declareScore = (s, criterion) => {
-      const objective = [...this.scopes, s].join(".");
+      const objective = this.scopedName(s);
       this.scores[s] = { objective, criterion, ns: this.ns };
-      this.objectives[objective] = this.scores[s];
       this.namespace.addObjective(objective, criterion);
     }
     scoreExists = name => !!this.scores[name];
     scoreObjective = name => this.scores[name].objective;
     scoreCriterion = name => this.scores[name].criterion;
+    
+    declareTag = (t) => {
+      const name = this.scopedName(t);
+      this.tags[t] = { name, ns: this.ns };
+    }
+    tagExists = name => !!this.tags[name];
+    tagId = name=> this.tags[name];
+
+    scopedName(name,{prefix="",joiner=".",suffix=""}={}) {
+      return prefix + [...this.scopes, name].join(joiner) + suffix;
+    }
 
     get namespace() {
       return this.result.getNamespace(this.ns)
@@ -78,16 +90,11 @@ Frame.Root = class FrameRoot extends Frame {
     this.result = result ?? new Result();
   }
 
-  namespaces = {}
   macros = {};
-  files = { mcfunction: {}, json: {} };
   constants = {};
   scores = {};
-  vars = {}
-
-  objectives = {};
-  variables = {}
-
+  vars = {};
+  tags = {};
 }
 
 Frame.Child = class FrameChild extends Frame {
@@ -102,30 +109,20 @@ Frame.Child = class FrameChild extends Frame {
     if (scope) {
       this.vars = Object.assign({}, parent.vars)
       this.scores = Object.assign({}, parent.scores)
+      this.tags = Object.assign({}, parent.tags)
       this.scopes.push(scope);
     } else {
       this.vars = parent.vars;
       this.scores = parent.scores;
+      this.tags = parent.tags;
     }
   }
 
   get macros() {
     return this.root.macros;
   }
-  get files() {
-    return this.root.files;
-  }
   get constants() {
     return this.root.constants;
-  }
-  get objectives() {
-    return this.root.objectives;
-  }
-  get variables() {
-    return this.root.variables;
-  }
-  get namespaces() {
-    return this.root.namespaces;
   }
   get result() {
     return this.root.result;

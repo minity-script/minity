@@ -1,1 +1,0 @@
-scoreboard players set #mcl#3 mcl.mcl 3

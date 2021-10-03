@@ -1,13 +1,25 @@
 namespace basic
 
+
+macro hello(?who="world") {
+  /say hello {?who}
+}
+
 var $foo = 2
-/say hello dear world
-as @a test1()
+hello("world")
+
+as @a[dx=3] test1()
 
 score baz
 
 function test1 {
-
+  tag welcomed
+  unless @s.welcomed {
+    tag @s welcomed
+    hello("new player")
+  } else {
+    hello("old friend")
+  }
   score bad
   var $bar = 3
   print $bar "=" 3 $foo "=" 2
@@ -21,6 +33,12 @@ function test1 {
   print $bar "=" 12 $foo "=" 5
   $bar *= $foo
   print $bar "=" 60 $foo "=" 5
+  if $bar>30 {
+    print $bar "> 30"
+    $bar = 20
+  } else {
+    print $bar "<= 30"
+  }
 }
 
 
