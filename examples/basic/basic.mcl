@@ -24,7 +24,7 @@ tag is_book
 
 macro update_locks(?color,?delta=1) {
   for @s."is_{?color}_lock" {
-    up ?delta
+    up ?delta 
     if @p[ distance=..2, nbt = {
       Inventory:[{
         tag:{ "{.is_{?color}_key}":1b }
@@ -40,7 +40,7 @@ macro update_locks(?color,?delta=1) {
 
 function update_all_locks #minecraft:tick {
   if $enabled > 0 {
-    for @slime.is_lock {
+    for @slime.is_lock left 20deg {
       unless air {
         update_locks(blue)
         update_locks(red)

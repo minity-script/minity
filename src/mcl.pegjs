@@ -197,6 +197,17 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   mod_arg_resloc 
     = OPEN @resloc CLOSE
     / __ @resloc
+  
+  dir_number = @untyped_float !"deg"
+  rot_angle = @untyped_float "deg"
+  
+  mod_arg_number
+  	= OPEN @dir_number CLOSE
+    / __ @dir_number
+    
+  mod_arg_angle
+  	= OPEN @rot_angle CLOSE
+    / __ @rot_angle
     
   mod 
   = "align" axes:mod_arg_axes {
@@ -220,11 +231,20 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   / "pos" "itioned"? __ "as" mod_arg_selector:selector {
     return N( 'mod_pos_as', { selector } )
   } 
-  / "pos" "itioned"? __ pos:pos_any {
+  / "pos" "itioned"? _ pos:pos_any {
     return N( 'mod_pos', { pos } )
   }
-  / head:mod_dir tail:_mod_dir* {
-    return N( "mod_dir", { mods:[head,...tail] } )
+  / "rot" "ated"? __ "as" mod_arg_selector:selector {
+    return N( 'mod_rot_as', { selector } )
+  } 
+  / "rot" "ated"? _ rot:rot_any {
+    return N( 'mod_rotated', { rot } )
+  }
+  / mods:mod_rots tail:(__ @mod_rot)* {
+    return N( "mod_rot", { mods } )
+  }
+  / mods:mod_dirs {
+    return N( "mod_dir", { mods } )
   }
   / "if" test:mod_arg_test !(_ code else) {
     return N( "mod_if", { test } )
@@ -233,50 +253,81 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     return N( "mod_unless", { test } )
   }
 
-  _mod_dir = __ mod:mod_dir {
-    return mod
-  }
+  mod_dirs
+    = head:mod_dir tail:(__ @mod_dir)* {
+      return [head,...tail]
+    }
+  
   mod_dir 
-  = ("up"/"U") _ n:number {
-    return {dir:"y",off:n,f:1}
-  }
-  / ("down"/"D") _ n:number {
-    return {dir:"y",off:n,f:-1}
-  }
-  / ("north"/"N") _ n:number {
-    return {dir:"z",off:n,f:-1}
-  }
-  / ("south"/"S") _ n:number {
-    return {dir:"z",off:n,f:1}
-  }
-  / ("east"/"E") _ n:number {
-    return {dir:"z",off:n,f:1}
-  }
-  / ("west"/"W") _ n:number {
-    return {dir:"z",off:n,f:1}
-  }
+    = direction:direction off:mod_arg_number {
+      return {...direction,off}
+    }
+  
+  direction 
+    = "up"    { return {dir:"y",f: 1} }
+    / "down"  { return {dir:"y",f:-1} }
+    / "north" { return {dir:"z",f:-1} }
+    / "south" { return {dir:"z",f: 1} }
+    / "east"  { return {dir:"x",f: 1} }
+    / "west"  { return {dir:"x",f: 1} }
+    
+	mod_rots
+    = head:mod_rot tail:(__ @mod_rot)* {
+      return [head,...tail]
+    }
+    
+  	mod_rot 
+    = direction:rot_direction off:mod_arg_angle {
+      return {...direction,off}
+    }
+  
+    rot_direction 
+    = "up"    { return {dir:"y",f: 1} }
+    / "down"  { return {dir:"y",f:-1} }
+    / "left"  { return {dir:"x",f: 1} }
+    / "right" { return {dir:"x",f:-1} }
+      
+  
 
-  pos_any = pos_abs/pos_rel/pos_from
+  pos_any = pos_abs/pos_mod/pos_from
 
   pos_abs
-  = "[" _ x:coord_abs __ y:coord_abs __ z:coord_abs _ "]" {
+  = "(" _ x:coord_abs __ y:coord_abs __ z:coord_abs _ ")" {
     return N( "pos_abs", { x,y,z } )
-  }
-
-  pos_rel
-  = "(" _ x:number __ y:number __ z:number _ ")" {
-    return N( "pos_rel", { x,y,z } )
   }
 
   pos_from
   = "<" _ x:number __ y:number __ z:number _ ">" {
     return N( "pos_from", { x,y,z } )
   }
-
+  
+  pos_mod
+   = "(" _ mods:mod_dirs _ ")" {
+   	return N( "pos_mod", {mods} )
+   }
+  
   coord_abs 
-  = "~" number:number {
-    return "~"+number
-  } / number
+  = "~" number:dir_number {
+    return N("tilde",{number})
+  } / dir_number
+
+  angle_abs 
+  = "~" number:rot_angle {
+    return N("tilde",{number})
+  } / rot_angle
+
+  rot_any = rot_abs/rot_mod
+
+  rot_abs
+  = "(" _ x:angle_abs __ y:angle_abs  _ ")" {
+    return N( "rot_abs", { x,y } )
+  }
+  
+  rot_mod
+   = "(" _ mods:mod_rots _ ")" {
+   	return N( "rot_mod", {mods} )
+   }
+  
 
   code 
   = "{" _ statements:statements _ "}" { 

@@ -36,8 +36,10 @@ const Frame = exports.Frame =
 
     transform = node => {
       if (!node?.transform) {
-        throw new Error("WTF")
-        debugger;
+        console.log(node);
+        let e = new Error("WTF")
+        console.log(e.stack);
+        process.exit(-1);
       }
       return node.transform(this);
     }

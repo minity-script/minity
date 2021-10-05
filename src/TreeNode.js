@@ -111,34 +111,43 @@ const transformers = {
   mod_for(node, { T }) {
     return "as " + T(node.selector) + " at @s"
   },
-  mod_pos(node, { T }) {
-    return "positioned " + T(node.pos)
-  },
-  mod_dir(node, { T }) {
-    const pos = { x: 0, y: 0, z: 0 }
-    for (const { dir, off, f } of node.mods) pos[dir] += T(off).value * f;
-    return `positioned ~${pos.x} ~${pos.y} ~${pos.z}`
-  },
   mod_if(node, { T }) {
     return "if " + T(node.test)
   },
   mod_unless(node, { T }) {
     return "unless " + T(node.test)
   },
-  test_entity(node, { T }) {
-    return "entity " + T(node.selector)
+  mod_pos:({pos}, { T }) => `positioned ${T(pos)}`,
+  mod_dir:({mods}, { T }) => {
+    const pos = { x: 0, y: 0, z: 0 }
+    for (const { dir, off, f } of mods) pos[dir] += T(off).value * f;
+    return `positioned ~${pos.x} ~${pos.y} ~${pos.z}`
   },
-  test_datapath(node, { T }) {
-    return "data " + T(node.path)
+  mod_rotated:({pos}, { T }) => `rotated ${T(pos)}`,
+  mod_rot: ({mods}, { T }) => {
+    const pos = { x: 0, y: 0 }
+    console.log(mods)
+    for (const { dir, off, f } of mods) pos[dir] += T(off).value * f;
+    return `rotated ~${pos.x} ~${pos.y}`
   },
   pos_abs(node, { T }) {
     return [T(node.x), T(node.y), T(node.z)].join(" ")
   },
-  pos_rel(node, { T }) {
-    return "~" + [T(node.x), T(node.y), T(node.z)].join(" ~")
+  pos_mod({mods}, { T }) {
+    const pos = { x: 0, y: 0, z: 0 }
+    for (const { dir, off, f } of mods) pos[dir] += T(off).value * f;
+    return `~${pos.x} ~${pos.y} ~${pos.z}`
   },
   pos_from(node, { T }) {
     return "^" + [T(node.x), T(node.y), T(node.z)].join(" ^")
+  },
+  rot_abs(node, { T }) {
+    return [T(node.x), T(node.y)].join(" ")
+  },
+  rot_mod({mods}, { T }) {
+    const pos = { x: 0, y: 0, z: 0 }
+    for (const { dir, off, f } of mods) pos[dir] += T(off).value * f;
+    return `~${pos.x} ~${pos.y}`
   },
   range(node, { T }) {
     return T(node.from) + ".." + T(node.to);
@@ -296,6 +305,12 @@ const transformers = {
   },
   constant_id: ({ value }, { constantId, T }) => {
     return constantId(T(value));
+  },
+  test_entity(node, { T }) {
+    return "entity " + T(node.selector)
+  },
+  test_datapath(node, { T }) {
+    return "data " + T(node.path)
   },
   test_scoreboard: ({ left, op, right }, { T }) => {
     return "score " + T(left) + " " + op + " " + T(right)
