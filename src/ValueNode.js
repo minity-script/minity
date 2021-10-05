@@ -1,4 +1,4 @@
-const ValueNode = exports.ValueNode = class ValueNode {
+const ValueNode = exports.ValueNode = class ValueNode  {
   $ = "VALUE";
   static cast = value => value
 
@@ -7,6 +7,9 @@ const ValueNode = exports.ValueNode = class ValueNode {
   }
 
   static fromValueNode(node, type = node.type) {
+    if (!this.types[node.type]) {
+      process.exit(1)
+    }
     return this.types[node.type].doFromValueNode(node, type);
   }
 
@@ -59,7 +62,7 @@ ValueNode.types.bool = ValueNode.bool = class ValueBool extends ValueNode {
 }
 
 ValueNode.types.int = ValueNode.Int = class ValueInt extends ValueNode.Number {
-  static cast = value => value && +value | 0;
+  static cast = value => value | 0;
 }
 
 ValueNode.types.array = ValueNode.Array = class ValueArray extends ValueNode {
@@ -84,16 +87,11 @@ ValueNode.types.array = ValueNode.Array = class ValueArray extends ValueNode {
 ValueNode.types.template = ValueNode.Template = class ValueTemplate extends ValueNode.String {
   static cast = value => String(value);
 
-  static doFromLiteral({ parts, ...rest },{T}) {
+  static doFromLiteral({ value, ...rest },{T}) {
     return super.doFromLiteral({
-      parts: parts.map(T),
+      value: T(value),
       ...rest
     })
-  }
-  constructor({ parts, ...rest }) {
-    super(rest);
-    this.parts = parts;
-    this.value = parts.join('')
   }
 }
 
@@ -114,7 +112,7 @@ ValueNode.types.object = ValueNode.Object = class ValueObject extends ValueNode 
     this.members = members;
     this.value = {};
     for (const { name, value } of members) {
-      this.value[name.format()] = value.value;
+      this.value[name.value] = value.value;
     }
   }
   format = () => {
@@ -122,12 +120,15 @@ ValueNode.types.object = ValueNode.Object = class ValueObject extends ValueNode 
   }
 }
 
-ValueNode.types.string_json = ValueNode.StringJson = class ValueStringJson extends ValueNode.String {
+ValueNode.types.string_json = ValueNode.StringJson = class ValueStringJson extends ValueNode {
 
   static doFromLiteral({ value, ...rest },{T}) {
     return super.doFromLiteral({
-      value: JSON.stringify(T(value).value),
+      value: T(value).value,
       ...rest
     })
+  }
+  format = () => {
+    return "'"+JSON.stringify(this.value).replace(/(['\\])/g,"\\$1") + "'"
   }
 }

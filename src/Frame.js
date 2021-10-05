@@ -1,5 +1,24 @@
-
+const assert=require("assert");
 const { Result } = require("./Result");
+const { TreeNode} = require("./TreeNode")
+const { ValueNode} = require("./ValueNode")
+class FrameNode extends Function {
+  constructor(frame,node) {
+    super();
+    const proxy = new Proxy(this,{
+      apply: (target,thisArg, args) => node.transform(frame,proxy),
+      get: (target, prop, receiver) => {
+        if (prop==='transform') return () => node.transform(frame,proxy);
+        if (node[prop] instanceof TreeNode || node[prop] instanceof ValueNode) return new FrameNode(frame,node[prop]);
+        else return node[prop];
+      }
+    })
+    return proxy;
+  }
+}
+
+
+
 const Frame = exports.Frame =
   class Frame extends Function {
     constructor() {
@@ -13,9 +32,10 @@ const Frame = exports.Frame =
       return this.proxy;
     }
 
+ 
+
     transform = node => {
       if (!node?.transform) {
-        console.log(node);
         throw new Error("WTF")
         debugger;
       }
@@ -28,9 +48,9 @@ const Frame = exports.Frame =
       const fn = this.result.addFunction(ns, name, lines);
       return fn;
     }
+    blockCount = 0
     addBlock = (lines, ns = this.ns) => {
-      const block_id = "f_" + Math.random().toString(36).substring(2);
-      return this.result.addAnonFunction(ns,lines,"f");
+      return this.result.addAnonFunction(ns,lines,this.scopes[this.scopes.length-1]+"_"+(++this.blockCount));
     }
     addJson = (parts, value) => {
       this.result.addJson(parts, value);
@@ -69,7 +89,10 @@ const Frame = exports.Frame =
       this.tags[t] = { name, ns: this.ns };
     }
     tagExists = name => !!this.tags[name];
-    tagId = name=> this.tags[name];
+    tagId = t => {
+      assert(this.tagExists(t),"undeclared tag "+t)
+      return this.tags[t].name;
+    }
 
     scopedName(name,{prefix="",joiner=".",suffix=""}={}) {
       return prefix + [...this.scopes, name].join(joiner) + suffix;

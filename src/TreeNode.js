@@ -1,4 +1,4 @@
-const { ValueNode } = require("./ValueNode");
+const { ValueNode } = require("./ValueNode.js");
 
 class MclError extends Error {
   constructor(message, location) {
@@ -12,18 +12,17 @@ const TreeNode = exports.TreeNode = class TreeNode {
     this.$ = $;
     this.location = location;
     if (!this.location) {
-      console.log(this);
       debugger;
     }
     Object.assign(this, props);
     this.transformer = transformers[this.$];
     if (!this.transformer) throw "no transformer for " + this.$;
   }
-  transform = frame => {
+  transform = (frame, proxy = this) => {
     try {
-      return this.transformer(this, frame)
+      return this.transformer(proxy, frame)
     } catch (e) {
-      console.log([...e.stack.split("\n    at").slice(0, 8), "    ...."].join("\n    at"))
+      console.log([...e.stack.split("\n    at").slice(0, 3), "    ...."].join("\n    at"))
       e.location = this.location;
       throw (e)
     }
@@ -66,17 +65,33 @@ const transformers = {
     conds = conds.concat(conditions.map(T));
     return "@" + initial + "[" + conds.join(",") + "]"
   },
-  cond_brackets({name, op, value}, { T }) {
-    if (!value) {
-      console.log(name,op,value);
-      process.exit(1);
-    }
+  cond_brackets({ name, op, value }, { T }) {
     return name + op + T(value);
   },
-  cond_brackets_pair: ({name,value},{T}) => T(name)+ "=" +T(value),
-  cond_brackets_braces: ({items},{T}) => "{" + items.map(T) + "}",
+  cond_brackets_pair: ({ name, value }, { T }) => T(name) + "=" + T(value),
+  cond_brackets_braces: ({ items }, { T }) => "{" + items.map(T).join(",") + "}",
+  block_spec_state: ({ name, value }, { T }) => T(name) + "=" + T(value),
+  block_spec_states: ({ states }, { T }) => "[" + states.map(T).join(",") + "]",
+  block_spec: ({ resloc, states, nbt }, { T }) => {
+    let ret = T(resloc);
+    if (states) ret += T(states);
+    if (nbt) ret += T(nbt);
+    return ret;
+  },
+  test_block({ spec }, { T }) {
+    return "block ~ ~ ~ " + T(spec)
+  },
   resloc(node, { T, ns }) {
     return (node.ns ? T(node.ns) : ns) + ":" + T(node.name);
+  },
+  resloc_mc(node, { T }) {
+    return (node.ns ? T(node.ns) : "minecraft") + ":" + T(node.name);
+  },
+  restag(node, { T, ns }) {
+    return (node.ns ? T(node.ns) : ns) + ":#" + T(node.name);
+  },
+  restag_mc(node, { T }) {
+    return (node.ns ? T(node.ns) : "minecraft") + ":#" + T(node.name);
   },
   initial(node) {
     return { initial: node.initial };
@@ -107,7 +122,9 @@ const transformers = {
   mod_if(node, { T }) {
     return "if " + T(node.test)
   },
-
+  mod_unless(node, { T }) {
+    return "unless " + T(node.test)
+  },
   test_entity(node, { T }) {
     return "entity " + T(node.selector)
   },
@@ -132,24 +149,31 @@ const transformers = {
   range_to(node, { T }) {
     return ".." + T(node.to);
   },
-  command(node, { args }) {
-    return node.command.replace(/(?<!\\)\{\?([a-z_]\w*)\}/gi, (m, name) => {
-      const ret = args[name].convert('string').value
-      return ret;
-    });
+  command(node, { T }) {
+    return T(node.command)
   },
   cmd_give: ({ selector, type, nbt }, { T }) => {
     return `give ${T(selector)} ${T(type)}${nbt ? T(nbt).format() : ''}`
+  },
+  cmd_after: ({ time, unit, fn }, { T, addBlock }) => {
+    return `schedule ${T(fn)} ${T(time).value}${unit}`
   },
   code(node, { T, addBlock }) {
     const lines = node.statements.map(T);
     return "function " + addBlock(lines).resloc;
 
   },
-  "function"(node, { T, addFunction, createChild }) {
-    const S = createChild({ scope: node.name });
-    const lines = node.statements.map(S);;
-    addFunction(node.name, lines);
+  code_resloc(node, { T, addBlock }) {
+    const lines = node.statements.map(T);
+    return addBlock(lines).resloc;
+  },
+  function: ({ name, tags, statements }, { T, addFunction, createChild }) => {
+    const S = createChild({ scope: name });
+    const lines = statements.map(S);;
+    const fn = addFunction(name, lines);
+    for ({ ns, name } of tags) {
+      fn.addTag(T(ns), T(name));
+    }
     return "";
   },
   macro(node, { T, macros }) {
@@ -189,28 +213,18 @@ const transformers = {
       `data remove storage mcl:${ns} stack[-1]`
     ]).resloc;
   },
-  call(node, { T, ns }) {
-    return "function " + ns + ":" + node.name;
+  function_call({ resloc }, { T, ns }) {
+    return "function " + T(resloc);
   },
-
   json(node, { T }) {
     return T(node.json)
   },
-  datapath(node, { T }) {
-    return T(node.head) + " " + node.steps.map(T).join(".")
-  },
-  datapath_var(node, { T, ns }) {
-    return "storage " + ns + ":mcl_vars " + node.steps.map(T).join(".")
-  },
-  datahead_entity(node, { T }) {
-    return "entity " + T(node.selector)
-  },
-  datahead_storage(node, { T }) {
-    return "storage " + T(node.name)
-  },
-  assign_datapath_value(node, { T }) {
-    return "data modify " + T(node.left) + " set value " + T(node.right);
-  },
+  datapath: ({ head, path }, { T }) => `${T(head)} ${T(path)}`,
+
+  datapath_var: ({ path }, { T, ns }) => `storage ${ns}:mcl_vars ${T(path)}`,
+  datahead_entity: ({ selector }, { T }) => `entity ${T(selector)}`,
+  datahead_storage: ({ name }, { T }) => `storage ${T(name)}`,
+  assign_datapath_value: ({ left, right }, { T }) => `data modify ${T(left)} set value ${T(right)}`,
   assign_datapath_scoreboard(node, { T }) {
     return "execute store result " + T(node.left) + " run scoreboard players get " + T(node.right);
   },
@@ -238,8 +252,18 @@ const transformers = {
   },
   delete_datapath: ({ path }, { T }) => `data remove ${T(path)}`,
   template_chars: ({ chars }) => chars,
-  template_expand: ({ name }, { args }) => {
-    return args[name].convert("string").value
+  template_parts: ({ parts }, { T }) => parts.map(T).join(""),
+  template_expand_arg: ({ name }, { T, args }) => {
+    return args[T(name)].convert("string").value
+  },
+  template_expand_tag: ({ name }, { T, tagId }) => {
+    return tagId(T(name))
+  },
+  template_expand_var: ({ name }, { T, varId }) => {
+    return varId(T(name))
+  },
+  template_expand_score: ({ name }, { T, scoreId }) => {
+    return scoreId(T(name))
   },
   ident(node) {
     return node.ident;
@@ -277,10 +301,18 @@ const transformers = {
     return "score " + T(left) + " " + op + " " + T(right)
   },
   tag_id: ({ name }, { T, tagId }) => tagId(T(name)),
-  declare_tag: ({ name }, { declareTag }) => {
-    declareTag(name);
+  declare_tag: ({ name }, { declareTag, T }) => {
+    declareTag(T(name));
     return "";
   },
-  tag_set: ({ selector, tag }, { T }) => `tag add ${T(selector)} ${T(tag)}`,
-  tag_unset: ({ selector, tag }, { T }) => `tag add ${T(selector)} ${T(tag)}`
+  tag_set: ({ selector, tag }, { T }) => `tag ${T(selector)} add ${T(tag)}`,
+  tag_unset: ({ selector, tag }, { T }) => `tag ${T(selector)} remove ${T(tag)}`,
+  nbt_path: ({ path }, { T }) => path.map(T).join(""),
+  nbt_path_root: ({ name, match }, { T }) => [name, match].filter(Boolean).map(T).join(""),
+  nbt_path_member: ({ name, match }, { T }) => "." + [name, match].filter(Boolean).map(T).join(""),
+  nbt_path_list: () => "[]",
+  nbt_path_list_element: ({ index }, { T }) => (console.log(index), `[${T(index).format()}]`),
+  nbt_path_list_match: ({ match }, { T }) => `[${T(match)}]`,
+  nbt_path_match: ({ match }, { T }) => `${T(match)}`,
+
 }

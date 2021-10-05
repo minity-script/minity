@@ -1,53 +1,246 @@
-namespace basic
+namespace colored_keys
 
 
-macro hello(?who="world") {
-  /say hello {?who}
+/say hello world
+
+var $enabled = 1
+
+function enable {
+  $enabled = 1
 }
 
-var $foo = 2
-hello("world")
+function disable {
+  $enabled = 0
+}
+tag is_lock
+tag is_dead_lock
+tag is_blue_lock
+tag is_red_lock
+tag is_key
+tag is_blue_key
+tag is_red_key
+tag is_book
 
-as @a[dx=3] test1()
 
-score baz
-
-function test1 {
-  tag welcomed
-  unless @s.welcomed {
-    tag @s welcomed
-    hello("new player")
-  } else {
-    hello("old friend")
-  }
-  score bad
-  var $bar = 3
-  print $bar "=" 3 $foo "=" 2
-  $foo = 4
-  print $bar "=" 3 $foo "=" 4
-  $bar = $foo
-  print $bar "=" 4 $foo "=" 4
-  $bar *= 3
-  print $bar "=" 12 $foo "=" 4
-  $foo ++
-  print $bar "=" 12 $foo "=" 5
-  $bar *= $foo
-  print $bar "=" 60 $foo "=" 5
-  if $bar>30 {
-    print $bar "> 30"
-    $bar = 20
-  } else {
-    print $bar "<= 30"
+macro update_locks(?color,?delta=1) {
+  for @s."is_{?color}_lock" {
+    up ?delta
+    if @p[ distance=..2, nbt = {
+      Inventory:[{
+        tag:{ "{.is_{?color}_key}":1b }
+      }]
+    }] {
+      down ?delta 
+      /setblock ~ ~ ~ minecraft:redstone_block
+    } else {
+      down ?delta /setblock ~ ~ ~ minecraft:glass
+    } 
   }
 }
 
+function update_all_locks #minecraft:tick {
+  if $enabled > 0 {
+    for @slime.is_lock {
+      unless air {
+        update_locks(blue)
+        update_locks(red)
+      } else {
+        /say i am dead
+        tag @s is_dead_lock
+        untag @s is_lock
+        after 3s {
+          /say reviving
+          for @slime.is_dead_lock {
+            untag @s is_dead_lock
+            tag @s is_lock
+            /setblock ~ ~ ~ minecraft:glass
+          }        
+        }
+      }
+    }
+  } 
+}
 
-function set_redstone {
-  if &flip {
-    at @p down 1 /setblock ~ ~ ~ minecraft:redstone_block
-    delete &flip
-  } else {
-    at @p down 1 /setblock ~ ~ ~ minecraft:stone
-    &flip = true
+macro give_lock(?color,?Color,?textColor=white) {
+  give @s command_block {
+   display: {
+     Name:  json [ {
+       color: "{?textColor}",
+       text: "Place {?Color} Lock",
+       italic: 0b
+     }],
+     Lore: [
+       json [{
+         text: "Place this command block to create a {?color} lock.",
+         italic: false
+       }] 
+     ]
+   },
+   BlockEntityTag:{
+     auto: 1b,
+     Command: "function colored_keys:summon_{?color}_lock"
+   }
+  } 
+}
+
+&foo{} ={tags:[{name:a,value:3},{name:b,value:1}]}
+function give_blue_lock {
+  as @p {
+   give_lock(blue,Blue,aqua)
   }
 }
+
+function give_red_lock {
+  as @p {
+     give_lock(red,Red,red)
+  }
+  
+}
+macro summon_lock(?color,?Color) {
+  /summon minecraft:slime ~ ~-0.5 ~ {CustomName:'"{?Color} Lock"',Invulnerable:1b,NoAI:1b,Silent:1b,Tags:["{.is_lock}","{.is_{?color}_lock}"]}
+}
+
+function summon_blue_lock {
+  summon_lock(blue, Blue)
+}
+
+function summon_red_lock {
+  summon_lock(red, Red)
+}
+
+macro give_key(?color, ?Color, ?baseColor) {
+  give @s shield{
+    display: {
+      Name: json [{
+        "text":"{?Color} Key",
+        "italic":false
+      }],
+      Lore: [ 
+        json [{
+          "text":"This key opens {?color} doors.",
+          "italic":false
+        }]
+      ]
+    },
+    Tags: ["{.is_key}","{.is_{?color}_key}"],
+    "{.is_key}": 1b,
+    "{.is_{?color}_key}":1b,
+    BlockEntityTag: {
+      Base: ?baseColor,
+      Patterns: [
+        { Color: 15, Pattern:"mc" },
+        { Color: 15, Pattern:"bt" },
+        { Color: ?baseColor, Pattern:"bo" }
+      ]
+    }
+  }
+}
+
+function give_blue_key {
+  give_key(blue,Blue,3)
+}
+
+function give_red_key {
+  give_key(red,Red,14)
+}
+
+as @a[nbt={Inventory:[{tag:{is_book:1b}}]}] {
+  /clear @s minecraft:written_book{is_book:1b}
+  give_book()
+}
+
+function give_book {
+  give @s written_book {
+    is_book: 1b,
+    "pages": [
+      json { 
+        text: "", 
+        bold:false, 
+        extra: [        
+          { bold: true, text:"COLORED KEYS" },
+          { text:"\n\nGet Key\n" },
+          {
+            color: dark_red, 
+            bold: true,
+            text: "\u2588",
+            clickEvent: {
+              action: run_command,
+              value: "/function colored_keys:give_red_key",
+            }
+          }, " ",
+          {
+            bold: true,
+            color: dark_green, 
+            text: "\u2588",
+            clickEvent: {
+              action: run_command,
+              value: "/function colored_keys:give_green_key",
+            }
+          }, " ",
+          {
+            bold: true,
+            color: dark_aqua, 
+            text: "\u2588",
+            clickEvent: {
+              action: run_command,
+              value: "/function colored_keys:give_blue_key",
+            }
+          }, " ",
+          {
+            bold: true,
+            color: gold, 
+            text: "\u2588",
+            clickEvent: {
+              action: run_command,
+              value: "/function colored_keys:give_yellow_key",
+            }
+          },
+              { text:"\n\nGet Lock\n" },
+          {
+            color: dark_red, 
+            bold: true,
+            text: "\u2588",
+            clickEvent: {
+              action: run_command,
+              value: "/function colored_keys:give_red_lock",
+            }
+          }, " ",
+          {
+            bold: true,
+            color: dark_green, 
+            text: "\u2588",
+            clickEvent: {
+              action: run_command,
+              value: "/function colored_keys:give_green_lock",
+            }
+          }, " ",
+          {
+            bold: true,
+            color: dark_aqua, 
+            text: "\u2588",
+            clickEvent: {
+              action: run_command,
+              value: "/function colored_keys:give_blue_lock",
+            }
+          }, " ",
+          {
+            bold: true,
+            color: gold, 
+            text: "\u2588",
+            clickEvent: {
+              action: run_command,
+              value: "/function colored_keys:give_yellow_lock",
+            }
+          },
+        ]
+      },
+    ],
+    "title":"Colored Keys Handbook",
+    "author":"yockz",
+    "display":{
+      "Lore":[
+          "Commands and instructions for Colored Keys"
+        ]
+      }
+    }
+  }

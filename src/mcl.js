@@ -20,7 +20,6 @@ const mcl = module.exports = {
         return node;
       }
     });
-    console.log(ret);
     return ret;
   },
   transform(tree, result) {

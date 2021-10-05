@@ -1,5 +1,5 @@
 {
-  const _N = options.N || (($,props,location) => ({$,...props,location}));
+  const _N = options.N || (($,props,location) => ({$,...props}));
   const N = ($,props) => { 
     const loc = location();
     const node = _N($,props,loc)
@@ -28,8 +28,8 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     / statement
 
   function 
-    = "function" __ name:IDENT _ "{" _ statements:statements _ "}" {
-        return N( "function", { name,statements } )
+    = "function" __ name:IDENT tags:(__ @restag)* _ "{" _ statements:statements _ "}" {
+        return N( "function", { name,tags,statements } )
     }
 
 //\\ macro
@@ -93,11 +93,12 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     / tag_set
     / tag_unset
     / declare_tag
-    / print
-    / cmd
     / execute
     / if_else
-    / call
+    / print
+    / cmd
+    / function_call
+    / macro_call
     / assign
 
 //\\ print
@@ -120,23 +121,49 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
 //\\ commands
 
-  command = _ "/" command:$([^\n]+) {
+  command = _ "/" command:command_parts {
     return N( "command", { command  } )
   }
 
-  cmd = cmd_give
+  command_parts
+      = parts:command_part* {
+          return N("template_parts",{parts})
+        }
 
-  cmd_give = "give" __ selector:selector __ type:resloc nbt:(_ @object)? {
+    command_part
+      = template_expand
+      / command_chars
+
+    command_chars "chars" 
+      = chars:(![\n\r] @command_char)+ {
+          return N( "template_chars", { chars:chars.join('') } )
+        }
+
+  command_char 
+    	= ![{] @char
+      / @"{" ![.?$]
+      / "\\" @.
+    
+  cmd = cmd_give/cmd_after
+
+  cmd_give = "give" __ selector:selector __ type:resloc_mc nbt:(_ @object)? {
     return N( "cmd_give", { selector,type,nbt } )
   }
 
+  cmd_after = "after" __ time:untyped_float unit:[tds]? __ fn:cmd_arg_function {
+    return N( "cmd_after", { time, unit: (unit ?? "t"), fn } )
+  }
+
 //\\ call
-  call = name:IDENT _ "(" _ ")" {
-    return N( "call", { name } )
-  }
-  / name:IDENT _ "(" _ args:call_args _ ")" {
-    return N( "macro_call", { name,args } )
-  }
+  function_call 
+    = resloc:resloc_or_tag _ "(" _ ")" {
+      return N( "function_call", { resloc } )
+    }
+
+  macro_call
+    = name:IDENT _ "(" _ args:call_args _ ")" {
+        return N( "macro_call", { name,args } )
+      }
 
 //\\ execute
   execute = mods:mods _ code:code {
@@ -148,26 +175,49 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   _mod = __ mod:mod {
     return mod;
   }
+  OPEN = _ "(" _
+  CLOSE =  _ ")"
+  
+  mod_arg_axes 
+    = OPEN @("xyz"/"xy"/"xz"/"yz"/"x"/"y"/"z") CLOSE
+    / __ @("xyz"/"xy"/"xz"/"yz"/"x"/"y"/"z")
+  
+  mod_arg_anchor 
+    = OPEN @("eyes"/"feet") CLOSE
+    / __ @("eyes"/"feet")
+    
+  mod_arg_selector 
+    = OPEN @selector CLOSE
+    / __ @selector
+  
+  mod_arg_test 
+    = OPEN @test CLOSE
+    / __ @test
+  
+  mod_arg_resloc 
+    = OPEN @resloc CLOSE
+    / __ @resloc
+    
   mod 
-  = "align" __ axes:("xyz"/"xy"/"xz"/"yz"/"x"/"y"/"z") {
-    return N( 'mod_align', { axes } )
-  }
-  / "anchored" __ anchor:("eyes"/"feet") {
-    return N( 'mod_align', { axes } )
-  }
-  / "as" __ selector:selector {
+  = "align" axes:mod_arg_axes {
+      return N( 'mod_align', { axes } )
+    }
+  / "anchored" anchor:mod_arg_anchor {
+      return N( 'mod_anchored', { anchor } )
+    }
+  / "as" selector:mod_arg_selector {
     return N( 'mod_as', { selector } )
   }
-  / "at" __ selector:selector {
+  / "at" selector:mod_arg_selector {
     return N( 'mod_at', { selector } )
   }
-  / "for" __ selector:selector {
-    return N( 'mod_for', { selector } )
+  / "for" selector:mod_arg_selector {
+      return N( 'mod_for', { selector } )
   }
-  / "in" __ dimension:resloc {
+  / "in" dimension:mod_arg_resloc {
     return N( 'mod_in', { dimension } )
   }
-  / "pos" "itioned"? __ "as" __ selector:selector {
+  / "pos" "itioned"? __ "as" mod_arg_selector:selector {
     return N( 'mod_pos_as', { selector } )
   } 
   / "pos" "itioned"? __ pos:pos_any {
@@ -176,13 +226,12 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   / head:mod_dir tail:_mod_dir* {
     return N( "mod_dir", { mods:[head,...tail] } )
   }
-  / "if" __ test:test ! (_ code else) {
+  / "if" test:mod_arg_test !(_ code else) {
     return N( "mod_if", { test } )
   } 
-  / "unless" __ test:test  ! (_ code else) {
+  / "unless" test:mod_arg_test  !(_ code else) {
     return N( "mod_unless", { test } )
   }
-
 
   _mod_dir = __ mod:mod_dir {
     return mod
@@ -236,6 +285,12 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   }
   / statement
 
+  cmd_arg_function
+    = "{" _ statements:statements _ "}" { 
+      return N( 'code', { statements:statements } )
+    }
+    / function_call
+
 //\\ selector
   selector "selector"
     = sort:selector_sort? "@" head:(initial/initial_type) conditions:conditions {
@@ -259,7 +314,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     }
 
     initial_type
-    = type:resloc_mc {
+    = type:resloc_or_tag_mc {
       return N( "initial_type", { type } )
     }
 
@@ -271,8 +326,8 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     condition_part = condition_tag/condition_brackets
 
     condition_tag 
-    = "." value:string { return [N( "cond_brackets", { name:"tag", op:"=", value }) ]  }
-    / ".!" value:string { return [N( "cond_brackets", { name:"tag", op:"=!", value }) ]   }
+    = "." value:tag_id { return [N( "cond_brackets", { name:"tag", op:"=", value }) ]  }
+    / ".!" value:tag_id  { return [N( "cond_brackets", { name:"tag", op:"=!", value }) ]   }
 
     condition_brackets "brackets" 
       = "[" _ 
@@ -286,7 +341,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       =   node: 
           (	 ($("d"? [xyz] / [xy] "_rotation") cond_op number )
           /  (( "nbt" ) cond_op json )
-          /  (( "type" ) cond_op resloc_mc )
+          /  (( "type" ) cond_op resloc_or_tag_mc )
           /  (( "predicate" ) cond_op resloc )
           /  (( "distance" / "level") cond_op range )
           /  (( "tag" / "team") cond_op string? )
@@ -355,27 +410,31 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       / "spectator"
 
 //\\ assign
-  assign = assign_scoreboard / assign_datapath / delete_datapath
+  assign = assign_scoreboard / assign_datapath / delete_datapath // assign_tag
 
   
 
 //\\ if_else
   else = _ "else" __ @code
 
-  if_else = head:("if"/"unless") __ test:test _ code:code _else:else {
+  if_else = head:("if"/"unless") test:mod_arg_test _ code:code _else:else {
     return N( "if_else", { head, test,code,_else } )
   }
 
   //\\ test
-    test = test_scoreboard/test_entity/test_datapath
+    test = test_scoreboard/test_entity/test_block/test_datapath
 
     test_entity = selector:selector {
       return N( "test_entity", { selector } )
+    }
+    
+    test_block = spec:block_spec {
+      return N( "test_block", { spec } )
     } 
 
 //\\ tag
   declare_tag
-    = "tag" __ name:IDENT {
+    = "tag" __ name:string {
         return N("declare_tag",{name})
       }
   tag_set
@@ -387,10 +446,29 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
         return N("tag_unset",{selector,tag})
       }
     
-  tag_id 
-    = name:ident {
+  tag_id "tag_id"
+    = name:string {
       return N("tag_id",{name})
     }
+
+  //\\ asign_tag
+    //\\ assign_scoreboard
+    assign_tag
+      = selector:selector "." tag:tag_id _ 
+          assign: (
+            "=" _ right: bool {
+              return N( "assign_tag_value", { right } )
+            }
+          / "=" _ right:datapath {
+              return N( "assign_tag_datapath", { right } )
+            }
+          / "=" _ right:statement {
+              return N( "assign_tag_statement", { right } )
+            }
+        ) {
+          assign.left = left;
+          return assign;
+        } 
 
 //\\ scoreboard
   var_name 
@@ -424,7 +502,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     = "score" __ name:IDENT {
       return N("declare_score",{name,criterion:"dummy"})
     }
- 
+  
   
   //\\ assign_scoreboard
     assign_scoreboard
@@ -463,8 +541,10 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       / "-="
       / "*="
       / "/="
-      / "%="
-
+      / ("<=>" / "><") {return "<=>" }
+      / ("<=" / "<") { return "<" }
+      / (">=" / ">") { return ">" }
+      
   //\\ test_scoreboard
     test_scoreboard
       = left:scoreboard_id _ op:test_scoreboard_op _ right:scoreboard_id {
@@ -480,8 +560,8 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 //\\ nbt
   //\\ datapath
     datapath 
-      = head:datahead "::" steps:datapath_steps {
-          return N( "datapath", { head,steps } )
+      = head:datahead "::" path:nbt_path {
+          return N( "datapath", { head, path } )
         } 
       / datapath_var
 
@@ -500,14 +580,72 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
         }
 
     datapath_var 
-      = "&" steps:datapath_steps { return N( "datapath_var", { steps  } ) }
+      = "&" path:nbt_path { return N( "datapath_var", { path } ) }
 
-    datapath_steps 
-      = head:datapath_step tail:("." @datapath_step)* { return [head,...tail] }
+  //\\ nbt_path
+    nbt_path = head:nbt_path_head tail:nbt_path_tail* {
+      return N("nbt_path",{path:[head,...tail]})
+    }
 
-    datapath_step 
-      = json
-      / IDENT
+    nbt_path_head 
+        = nbt_path_root
+        / nbt_path_match
+        / nbt_path_bracket
+
+    nbt_path_tail 
+      = @nbt_path_member 
+        / nbt_path_bracket
+
+    nbt_path_root 
+    = member:nbt_path_step {
+        return N("nbt_path_root",member)
+      }
+
+
+    nbt_path_member 
+      = "." member:nbt_path_step {
+        return N("nbt_path_member",member)
+      }
+
+    nbt_path_step = name:string match:nbt_path_match? {
+      return {name,match}
+    }
+
+
+    nbt_path_part
+      = "{}"
+        / nbt_path_ident
+        / nbt_path_match
+        / nbt_path_bracket
+        
+
+    nbt_path_bracket 
+      = nbt_path_list_match
+        / nbt_path_list
+        / nbt_path_list_element
+
+    nbt_path_list_element
+      = "[" index:int "]" {
+          return N("nbt_path_list_element",{index})
+        }
+
+    nbt_path_list
+      = "[]" {
+          return N("nbt_path_list")
+        }
+
+
+    nbt_path_list_match 
+      = "[" match:object "]" {
+          return N("nbt_path_list_match",{match})
+        } 
+
+    nbt_path_match = match:object {
+        return N("nbt_path_match",{match})
+      }
+
+    nbt_path_ident = string
+
   //\\ assign_datapath
     assign_datapath 
       = left:datapath EQUALS assign:assign_datapath_rhand {
@@ -538,7 +676,25 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
         return N( "test_datapath", { path } )
       } 
 
+//\\ block_spec
+
+  block_spec 
+    = resloc:resloc_or_tag_mc states:block_states? nbt:object? {
+        return N("block_spec",{resloc,states,nbt})
+      }
+
+  block_states 
+    = "[" _ head:block_state tail:( COMMA @block_state)* _ "]" {
+        return N("block_states",{states:[head,...tail]})
+      }
+  block_state 
+    = name:ident EQUALS value:(number/string) {
+        return N('block_state',{name,value})
+      } 
+
+
 //\\ parts
+  
   resloc
     = resloc_full
     / name: ident {
@@ -549,12 +705,38 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   	= ns:ident ":" name:ident {
         return N( "resloc", { ns,name } )
       }
-  
+
+  resloc_or_tag 
+    = restag 
+    / resloc
+
   resloc_mc
     = resloc_full
     / name: ident {
-        return N( "resloc", { ns:"minecraft", name } )
+        return N( "resloc_mc", { name } )
       }
+
+  restag
+    = restag_full
+    / "#" name:ident {
+        return N( "resloc", { name } )
+      }
+
+  restag_full 
+  	= "#" ns:ident ":" name:ident {
+        return N( "restag", { ns,name } )
+      }
+
+  restag_mc
+    = restag_full
+    / "#" name: ident {
+        return N( "resloc_mc", { name } )
+      }
+
+  resloc_or_tag_mc
+    = restag_mc
+    / resloc_mc
+
 
   range 
     = from:number _ ".." to:number { return N( "range", { from,to } ) }
@@ -611,13 +793,13 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
 
     object_lit
-      = _ "{" _
+      = "{" _
         members:(
-          head:member tail:(COMMA @member)* {
+          head:member tail:(COMMA @member)* COMMA? {
             return [head,...tail];
           }
         )?
-        _ "}"_
+        _ "}"
         { return N( "literal", { type:"object",members:members||[] } ) }
     member
       = name:(string) _":"_ value:value {
@@ -638,6 +820,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
         items:(
           head:value
           tail:(COMMA @value )*
+          COMMA?
           { return [head].concat(tail); }
         )?
         _"]"
@@ -645,23 +828,21 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   
   //\\ number
     number 
-      = number_arg
-      / number_lit
-    number_arg 
       = name:arg_name {	
           return N( "arg", { type:"number",name } ) 
         }
+      / number_lit
+
     number_lit 
       = float_lit
       / int_lit
 
+    
     int 
-      = int_arg
-      / int_lit
-    int_arg 
       = name:arg_name {	
           return N( "arg", { type:"int",name } ) 
         }
+      / int_lit
 
     int_lit "integer" 
       = value:INT suffix:[bsli]? {
@@ -669,20 +850,32 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
         }
 
     float "float" 
-      = float_arg
-      / float_lit
-
-    float_arg 
       = name:arg_name {	
           return N( "arg", { type:"float",name } ) 
         }
-    float_lit 
+      / float_lit
+
+    untyped_float "float" 
+      = name:arg_name {	
+          return N( "arg", { type:"float",name } ) 
+        }
+      / untyped_float_lit
+
+    float_lit
+      = typed_float_lit
+
+    typed_float_lit 
       = value:FLOAT suffix:[fd]? {
           return N( "literal", { type:"float",value:+value,suffix } )
         } 
       / value:INT suffix:[fd] {
           return N( "literal", { type:"float",value:+value,suffix } )
         }
+        
+    untyped_float_lit
+      = value:(FLOAT/INT) {
+          return N( "literal", { type:"float",value:+value } )
+        } 
 
     FLOAT
       = value:$(INT (FRAC EXP?/EXP)) { return +value }
@@ -734,23 +927,58 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
           return N( "arg", { type:"template",name } ) 
         }
 
+
     template_lit "string" 
-      = '"' parts:template_part* '"' {
-        return N( "literal", { type:"template",parts } )
+      = '"' value:template_parts '"' {
+        return N( "literal", { type:"template", value } )
       }
 
-    template_part 
-      = template_chars
-      / template_expand
-
-    template_chars "chars" 
-      = chars:(!template_expand  @char)+ {
-          return N( "template_chars", { chars:chars.join('') } )
+    template_parts 
+      = parts:template_part* {
+          return N("template_parts",{parts})
         }
 
-    template_expand "expansion" 
-      = "{" name:arg_name "}" {
-          return N( "template_expand", { name } )
+    template_part 
+      = template_expand
+      / template_chars
+
+    template_expand
+      = template_expand_arg
+      / template_expand_tag
+
+    template_chars "chars" 
+      = chars:(@template_char)+ {
+          return N( "template_chars", { chars:chars.join('') } )
+        }
+    
+    
+    template_sep "chars" 
+      = chars:[{}] {
+          return N( "template_chars", { chars } )
+        }
+
+	  template_char 
+    	= ![{}"] @char
+      / "\\" @.
+        
+    template_expand_arg "expansion" 
+      = "{?" name:template_parts "}" {
+          return N( "template_expand_arg", { name } )
+        }
+    
+    template_expand_tag "expansion" 
+      = "{." name:template_parts "}" {
+          return N( "template_expand_tag", { name } )
+        }
+
+    template_expand_var "expansion" 
+      = "{$" name:template_parts "}" {
+          return N( "template_expand_var", { name } )
+        }
+    
+    template_expand_score "expansion" 
+      = "{->" name:template_parts "}" {
+          return N( "template_expand_score", { name } )
         }
 
   //\\ string_json
@@ -763,7 +991,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
           return N( "arg", { type:"string_json",name } ) 
         }
     string_json_lit "string"
-      = "'" value:value "'" { 
+      = "json" __ value:value { 
         return N( "literal", { type:"string_json", value: value  } )
         } 
 
@@ -791,7 +1019,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       = '"'
 
     unescaped
-      = [^\0-\x1F\x22\x5C]
+      = [^\0-\x1F\\]
 
 
 
