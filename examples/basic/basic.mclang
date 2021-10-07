@@ -1,9 +1,27 @@
+// Declare the namespace. This is where all the following functions will go.
 namespace colored_keys
 
+// use /<commend...> to execute minecraft commands. This is useful
+// for reusing generated commands from the web, or for commands 
+// that don't have syntax sugar provided by McLang
+/say Hello World
 
-/say hello world
+// All the statements in the root scope of the namespace will be
+// executed on (re)load.
+/say Tutorial loaded
 
-var $enabled = 1
+// Declare an integer variable that will be available in this namespace.
+// Variables are stored on the scoreboard under namespaced identifiers
+// so you don't need to worry about name clashes with other namespaces.
+var $count = 0
+
+// If we don't assign a value to the variable, it will be retained from
+// between reloads.
+var $enabled
+
+// Define a function in the current namespaces. 
+// You can call it with function_name() from McLang, or 
+// with /function namespace:function:name from the Minecraft command prompt
 
 function enable {
   $enabled = 1
@@ -12,6 +30,7 @@ function enable {
 function disable {
   $enabled = 0
 }
+
 tag is_lock
 tag is_dead_lock
 tag is_blue_lock
@@ -22,38 +41,41 @@ tag is_red_key
 tag is_book
 
 
-macro update_locks(?color,?delta=1) {
-  for @s."is_{?color}_lock" {
+macro do_update_locks(?is_lock,?is_key,?delta=1) {
+  for @s.?is_lock {
     up ?delta 
-    if @p[ distance=..2, nbt = {
+    if @p[ distance = ..2, nbt = {
       Inventory:[{
-        tag:{ "{.is_{?color}_key}":1b }
+        tag:{ "{.is_key}":1b }
       }]
     }] {
-      down ?delta 
-      /setblock ~ ~ ~ minecraft:redstone_block
+      down ?delta setblock minecraft:redstone_block
     } else {
-      down ?delta /setblock ~ ~ ~ minecraft:glass
+      down ?delta setblock minecraft:glass
     } 
   }
 }
 
+macro update_locks(?color,?delta=1) {
+  do_update_locks("is_{?color}_lock","{.is_{?color}_key}",?delta)
+}
+
 function update_all_locks #minecraft:tick {
   if $enabled > 0 {
-    for @slime.is_lock left 20deg {
+    for @slime.is_lock {
       unless air {
         update_locks(blue)
         update_locks(red)
       } else {
         /say i am dead
-        tag @s is_dead_lock
-        untag @s is_lock
+        tag is_dead_lock @s
+        untag is_lock @s 
         after 3s {
           /say reviving
           for @slime.is_dead_lock {
-            untag @s is_dead_lock
-            tag @s is_lock
-            /setblock ~ ~ ~ minecraft:glass
+            untag is_dead_lock @s 
+            tag is_lock @s 
+            setblock minecraft:glass
           }        
         }
       }
@@ -83,7 +105,6 @@ macro give_lock(?color,?Color,?textColor=white) {
   } 
 }
 
-&foo{} ={tags:[{name:a,value:3},{name:b,value:1}]}
 function give_blue_lock {
   as @p {
    give_lock(blue,Blue,aqua)
@@ -97,8 +118,18 @@ function give_red_lock {
   
 }
 macro summon_lock(?color,?Color) {
-  /summon minecraft:slime ~ ~-0.5 ~ {CustomName:'"{?Color} Lock"',Invulnerable:1b,NoAI:1b,Silent:1b,Tags:["{.is_lock}","{.is_{?color}_lock}"]}
+  down 0.5 summon slime {
+    CustomName: json "{?Color} Lock",
+    Invulnerable: true,
+    NoAI: true,
+    Silent: true,
+    //Tags:["{.is_lock}","{.is_{?color}_lock}"]
+  } then {
+    tag is_lock @s
+    tag "is_{?color}_lock" @s 
+  }
 }
+
 
 function summon_blue_lock {
   summon_lock(blue, Blue)

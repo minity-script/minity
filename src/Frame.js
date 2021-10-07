@@ -1,24 +1,7 @@
 const assert=require("assert");
 const { Result } = require("./Result");
-const { TreeNode} = require("./TreeNode")
-const { ValueNode} = require("./ValueNode")
-class FrameNode extends Function {
-  constructor(frame,node) {
-    super();
-    const proxy = new Proxy(this,{
-      apply: (target,thisArg, args) => node.transform(frame,proxy),
-      get: (target, prop, receiver) => {
-        if (prop==='transform') return () => node.transform(frame,proxy);
-        if (node[prop] instanceof TreeNode || node[prop] instanceof ValueNode) return new FrameNode(frame,node[prop]);
-        else return node[prop];
-      }
-    })
-    return proxy;
-  }
-}
-
-
-
+const { Nbt } = require("./Nbt")
+const { toNbt, toSnbt, toJson } = Nbt;
 const Frame = exports.Frame =
   class Frame extends Function {
     constructor() {
@@ -29,11 +12,12 @@ const Frame = exports.Frame =
       return this.proxy;
     }
     get T() {
-      return this.proxy;
+      return this.transform;
     }
-
- 
-
+    Nbt = Nbt
+    toNbt = toNbt
+    toSnbt = toSnbt
+    toJson = toJson
     transform = node => {
       if (!node?.transform) {
         console.log(node);

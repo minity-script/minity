@@ -140,8 +140,10 @@ All builtin minecraft selectors should work out of the box. Some syntactic sugar
 ````
 
 ### `.<tag>`
+### `.!<tag>`
 
-You can specify a named tag with a dot 
+You can specify a named tag with a dot. Use `.!` to find entities without a tag.
+
 
 ````
 @a.is_cool 

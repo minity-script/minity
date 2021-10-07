@@ -28,7 +28,7 @@ exports.Builder = class Builder {
 
   input = {
     json: [],
-    mcl: [],
+    mclang: [],
     other: []
   }
 
@@ -52,8 +52,8 @@ exports.Builder = class Builder {
       const path = resolve(cur, entry.name);
       const rel = relative(this.from, path)
       if (entry.isFile()) {
-        if (extname(path) === '.mcl') {
-          this.input.mcl.push({ rel, path });
+        if (extname(path) === '.mclang') {
+          this.input.mclang.push({ rel, path });
         } else if (extname(path) === '.json') {
           this.input.json.push({ rel, path });
         } else {
@@ -98,9 +98,10 @@ exports.Builder = class Builder {
       const dest = resolve(this.to, "data", rel);
       output.json[dest] = require(path);
     }
-    for (const { rel, path } of input.mcl) {
+    for (const { rel, path } of input.mclang) {
       this.compileMclFile(path);
     }
+    console.log("Compiled.")
   }
 
   build() {
@@ -116,7 +117,7 @@ exports.Builder = class Builder {
       rmSync(to, { recursive: true });
     };
     mkdirSync(to,{recursive:true});
-    writeFileSync(resolve(to, ".mcl.fecit"), "", { encoding: "utf8" })
+    writeFileSync(resolve(to, ".mclang.fecit"), "", { encoding: "utf8" })
     for (const dest in output.other) {
       const path = output.other[dest];
       console.log('copying', relative(from, path))
@@ -136,7 +137,7 @@ exports.Builder = class Builder {
     if (!entry.isDirectory()) {
       throw new Error("Destination exists, but is not a directory: " + to)
     };
-    const isMclDirectory = !!statSync(resolve(to, ".mcl.fecit"), { throwIfNoEntry: false });
+    const isMclDirectory = !!statSync(resolve(to, ".mclang.fecit"), { throwIfNoEntry: false });
     if (!isMclDirectory) {
       throw new Error("Destination exists, but was not built with mcl: " + to)
     };

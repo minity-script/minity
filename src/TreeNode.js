@@ -161,11 +161,28 @@ const transformers = {
   command(node, { T }) {
     return T(node.command)
   },
+  cmd_summon: ({ pos, type, nbt, then }, { T, addBlock }) => {
+    if (!then) return `give ${pos ? T(pos) :"~ ~ ~"} ${T(type)}${nbt ? T(nbt).format() : ''}`
+    
+    nbt = nbt ? T(nbt).value : {};
+    nbt.Tags = [...nbt.Tags||[],"_mclang_summoned_"];
+    nbt = JSON.stringify(nbt);
+    return "function " + addBlock([
+      `summon ${T(type)} ${pos ? T(pos) :"~ ~ ~"} ${nbt}`,
+      `execute as @e[tag=_mclang_summoned_] run function `+ addBlock([
+      'tag @s remove _mclang_summoned_',
+        ... then.statements.map(T)
+      ]).resloc
+    ]).resloc
+  },
   cmd_give: ({ selector, type, nbt }, { T }) => {
     return `give ${T(selector)} ${T(type)}${nbt ? T(nbt).format() : ''}`
   },
   cmd_after: ({ time, unit, fn }, { T, addBlock }) => {
     return `schedule ${T(fn)} ${T(time).value}${unit}`
+  },
+  cmd_setblock: ({ pos, block }, { T }) => {
+    return `setblock ${pos ? T(pos) :"~ ~ ~"} ${T(block)}`
   },
   code(node, { T, addBlock }) {
     const lines = node.statements.map(T);
@@ -322,6 +339,7 @@ const transformers = {
   },
   tag_set: ({ selector, tag }, { T }) => `tag ${T(selector)} add ${T(tag)}`,
   tag_unset: ({ selector, tag }, { T }) => `tag ${T(selector)} remove ${T(tag)}`,
+  assign_tag_value: ({ selector, tag }, { T }) => `tag ${T(selector)} ${T(value).value ? "add" : "remove"} ${T(tag)}`,
   nbt_path: ({ path }, { T }) => path.map(T).join(""),
   nbt_path_root: ({ name, match }, { T }) => [name, match].filter(Boolean).map(T).join(""),
   nbt_path_member: ({ name, match }, { T }) => "." + [name, match].filter(Boolean).map(T).join(""),
@@ -329,5 +347,5 @@ const transformers = {
   nbt_path_list_element: ({ index }, { T }) => (console.log(index), `[${T(index).format()}]`),
   nbt_path_list_match: ({ match }, { T }) => `[${T(match)}]`,
   nbt_path_match: ({ match }, { T }) => `${T(match)}`,
-
+  tilde: ({number})=>`~${number}`
 }

@@ -8,6 +8,7 @@ const ValueNode = exports.ValueNode = class ValueNode  {
 
   static fromValueNode(node, type = node.type) {
     if (!this.types[node.type]) {
+      console.log("no value type for",node)
       process.exit(1)
     }
     return this.types[node.type].doFromValueNode(node, type);
@@ -31,7 +32,7 @@ const ValueNode = exports.ValueNode = class ValueNode  {
   toString() {
     return this.format()
   }
-  static types = {}
+  static types = {value:this}
 
   transform = ()=>this
 }

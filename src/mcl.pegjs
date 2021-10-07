@@ -9,12 +9,12 @@
 }
 
 file = _ head:namespace tail:(EOL _ @namespace)* _{
-  return N("file",{namespaces:[head,...tail]})
+  return N('file',{namespaces:[head,...tail]})
 }
 //\\ globals
   namespace 
     = "namespace" __ ns:IDENT EOL _ globals:globals {
-        return N("namespace",{ns,globals})
+        return N('namespace',{ns,globals})
       }
 
   globals 
@@ -28,17 +28,18 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     / statement
 
   function 
-    = "function" __ name:IDENT tags:(__ @restag)* _ "{" _ statements:statements _ "}" {
-        return N( "function", { name,tags,statements } )
+    = "function" __ name:NAME_OR_DIE tags:(__ @restag)* statements:braces {
+        return N('function', { name,tags,statements } )
     }
 
 //\\ macro
 
-  macro = "macro" __ name:IDENT args:macro_args _ "{" _ statements:statements _ "}" {
-      return N( "macro", { name,args,statements } )
+  macro = "macro" __ name:NAME_OR_DIE args:macro_args statements:braces {
+      return N('macro', { name,args,statements } )
   }
 
-  arg_name = "?" @WORD
+  arg_name 'macro argument'
+    = "?" @WORD
 
   //\\ macro_args
     macro_args = _ "(" _ head:macro_arg tail:(COMMA @macro_arg)* _ ")" {
@@ -88,6 +89,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
   statement 
     = command
+    / cmd
     / declare_var
     / declare_score
     / tag_set
@@ -96,14 +98,13 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     / execute
     / if_else
     / print
-    / cmd
     / function_call
     / macro_call
     / assign
 
 //\\ print
   print = "print" selector:(__ @selector)? __ parts:print_parts {
-    return N("print",{selector,parts})
+    return N('print',{selector,parts})
   }
 
   print_parts = head:print_part tail:(print_sep print_part)* {
@@ -111,32 +112,32 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   }
 
   print_sep 
-  =  __ { return N("print_space")}
+  =  __ { return N('print_space')}
   / __? "," __? { return false }
 
   print_part 
-  = name:var_name { return N("print_var",{name})}
-  / value:string { return N("print_string",{value})}
-  / value:value { return N("print_value",{value})}
+  = name:var_name { return N('print_var',{name})}
+  / value:string { return N('print_string',{value})}
+  / value:value { return N('print_value',{value})}
 
 //\\ commands
 
   command = _ "/" command:command_parts {
-    return N( "command", { command  } )
+    return N('command', { command  } )
   }
 
   command_parts
       = parts:command_part* {
-          return N("template_parts",{parts})
+          return N('template_parts',{parts})
         }
 
     command_part
       = template_expand
       / command_chars
 
-    command_chars "chars" 
+    command_chars  
       = chars:(![\n\r] @command_char)+ {
-          return N( "template_chars", { chars:chars.join('') } )
+          return N('template_chars', { chars:chars.join('') } )
         }
 
   command_char 
@@ -144,30 +145,48 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       / @"{" ![.?$]
       / "\\" @.
     
-  cmd = cmd_give/cmd_after
+  cmd 
+    = cmd_give
+    / cmd_after
+    / cmd_setblock
+    / cmd_summon 
 
-  cmd_give = "give" __ selector:selector __ type:resloc_mc nbt:(_ @object)? {
-    return N( "cmd_give", { selector,type,nbt } )
-  }
+  cmd_summon 
+    = "summon" pos:(_ @pos_any)? __ type:resloc_mc nbt:(_ @object)? then:(__ "then" __ @code )? {
+        return N('cmd_summon', { pos,type,nbt, then } )
+      }
 
-  cmd_after = "after" __ time:untyped_float unit:[tds]? __ fn:cmd_arg_function {
-    return N( "cmd_after", { time, unit: (unit ?? "t"), fn } )
-  }
+  cmd_give 
+    = "give" __ selector:selector __ type:resloc_mc nbt:(_ @object)? {
+        return N('cmd_give', { selector,type,nbt } )
+      }
+
+  cmd_setblock 
+    = "setblock" pos:(_ @pos_any)? __ block:block_spec {
+        return N('cmd_setblock', { pos, block } )
+      }
+
+  cmd_after
+    = "after" __ time:untyped_float unit:[tds]? __ fn:cmd_arg_function {
+        return N('cmd_after', { time, unit: (unit ?? "t"), fn } )
+      }
+
+
 
 //\\ call
   function_call 
-    = resloc:resloc_or_tag _ "(" _ ")" {
-      return N( "function_call", { resloc } )
+    = !RESERVED resloc:resloc_or_tag _ "(" _ ")" {
+      return N('function_call', { resloc } )
     }
 
   macro_call
-    = name:IDENT _ "(" _ args:call_args _ ")" {
-        return N( "macro_call", { name,args } )
+    = name:NAME _ "(" _ args:call_args _ ")" {
+        return N('macro_call', { name,args } )
       }
 
 //\\ execute
   execute = mods:mods _ code:code {
-    return N( "execute", { mods,code } )
+    return N('execute', { mods,code } )
   }
   mods = head:mod tail:_mod * {
     return [head,...tail]
@@ -175,8 +194,11 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   _mod = __ mod:mod {
     return mod;
   }
+  
   OPEN = _ "(" _
   CLOSE =  _ ")"
+  BEGIN = _ "{" _
+  END =  _ "}"
   
   mod_arg_axes 
     = OPEN @("xyz"/"xy"/"xz"/"yz"/"x"/"y"/"z") CLOSE
@@ -241,16 +263,16 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     return N( 'mod_rotated', { rot } )
   }
   / mods:mod_rots tail:(__ @mod_rot)* {
-    return N( "mod_rot", { mods } )
+    return N('mod_rot', { mods } )
   }
   / mods:mod_dirs {
-    return N( "mod_dir", { mods } )
+    return N('mod_dir', { mods } )
   }
   / "if" test:mod_arg_test !(_ code else) {
-    return N( "mod_if", { test } )
+    return N('mod_if', { test } )
   } 
   / "unless" test:mod_arg_test  !(_ code else) {
-    return N( "mod_unless", { test } )
+    return N('mod_unless', { test } )
   }
 
   mod_dirs
@@ -293,59 +315,66 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
   pos_abs
   = "(" _ x:coord_abs __ y:coord_abs __ z:coord_abs _ ")" {
-    return N( "pos_abs", { x,y,z } )
+    return N('pos_abs', { x,y,z } )
   }
 
   pos_from
   = "<" _ x:number __ y:number __ z:number _ ">" {
-    return N( "pos_from", { x,y,z } )
+    return N('pos_from', { x,y,z } )
   }
   
   pos_mod
    = "(" _ mods:mod_dirs _ ")" {
-   	return N( "pos_mod", {mods} )
+   	return N('pos_mod', {mods} )
    }
   
   coord_abs 
-  = "~" number:dir_number {
-    return N("tilde",{number})
+  = "~" number:dir_number? {
+    return N('tilde',{number:number||0})
   } / dir_number
 
   angle_abs 
-  = "~" number:rot_angle {
-    return N("tilde",{number})
+  = "~" number:rot_angle? {
+    return N('tilde',{number:number||0})
   } / rot_angle
 
   rot_any = rot_abs/rot_mod
 
   rot_abs
   = "(" _ x:angle_abs __ y:angle_abs  _ ")" {
-    return N( "rot_abs", { x,y } )
+    return N('rot_abs', { x,y } )
   }
   
   rot_mod
    = "(" _ mods:mod_rots _ ")" {
-   	return N( "rot_mod", {mods} )
+   	return N('rot_mod', {mods} )
    }
   
 
+  braces
+    = BEGIN @statements END 
+
   code 
-  = "{" _ statements:statements _ "}" { 
-    if (statements.length===1) return statements[0]
-    return N( 'code', { statements:statements } )
-  }
-  / statement
+    = statements:braces {
+      if (statements.length===1) return statements[0]
+      return N( 'code', { statements:statements } )
+    }
+    / statement
 
   cmd_arg_function
-    = "{" _ statements:statements _ "}" { 
+    = BEGIN statements:statements END { 
       return N( 'code', { statements:statements } )
     }
     / function_call
 
 //\\ selector
-  selector "selector"
+  selector 
+    = OPEN @_selector CLOSE
+    / _selector
+
+  _selector 'selector'
     = sort:selector_sort? "@" head:(initial/initial_type) conditions:conditions {
-      return N( "selector", { head,conditions:[...sort||[],...conditions] } )
+      return N('selector', { head,conditions:[...sort||[],...conditions] } )
     }
     
   //\\ sort
@@ -361,12 +390,12 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   //\\ initial
     initial
     = initial:[a-z] ![a-z0-9_]i {
-      return N( "initial", { initial } )
+      return N('initial', { initial } )
     }
 
     initial_type
     = type:resloc_or_tag_mc {
-      return N( "initial_type", { type } )
+      return N('initial_type', { type } )
     }
 
   //\\ conditions
@@ -377,10 +406,10 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     condition_part = condition_tag/condition_brackets
 
     condition_tag 
-    = "." value:tag_id { return [N( "cond_brackets", { name:"tag", op:"=", value }) ]  }
-    / ".!" value:tag_id  { return [N( "cond_brackets", { name:"tag", op:"=!", value }) ]   }
+    = "." value:tag_id { return [N('cond_brackets', { name:"tag", op:"=", value }) ]  }
+    / ".!" value:tag_id  { return [N('cond_brackets', { name:"tag", op:"=!", value }) ]   }
 
-    condition_brackets "brackets" 
+    condition_brackets  
       = "[" _ 
         head:cond_brackets 
         tail:(COMMA @cond_brackets)* 
@@ -388,7 +417,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
         return [head,...tail]
       }
     
-    cond_brackets "condition" 
+    cond_brackets  
       =   node: 
           (	 ($("d"? [xyz] / [xy] "_rotation") cond_op number )
           /  (( "nbt" ) cond_op json )
@@ -405,47 +434,47 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
           )
         {
           const [name,op,value] = node;
-          return N( "cond_brackets", {name,op,value} )
+          return N('cond_brackets', {name,op,value} )
         }
 
     cond_op
       = _ @$("=" "!"?) _
 
-    cond_brackets_scores "scores"
-      = "{" _ 
+    cond_brackets_scores 
+      = BEGIN 
         head: cond_brackets_score 
         tail: (COMMA @cond_brackets_score)*
-        _ "}" {
-          return N("cond_brackets_braces", {items: [head, ...tail]})
+        END {
+          return N('cond_brackets_braces', {items: [head, ...tail]})
         }
 
     cond_brackets_score
       = name:ident EQUALS value:range {
-          return N("cond_brackets_pair", {name,value})
+          return N('cond_brackets_pair', {name,value})
         }
 
     cond_brackets_advancements 
-      = "{" _ 
+      = BEGIN 
         head: cond_brackets_advancement
         tail: (COMMA @cond_brackets_advancement)*
-        _ "}" {
-          return N("cond_brackets_braces", {items: [head, ...tail]})
+        END {
+          return N('cond_brackets_braces', {items: [head, ...tail]})
         }
 
     cond_brackets_advancement
       = name:resloc_mc EQUALS value:bool {
-          return N("cond_brackets_pair", {name,value})
+          return N('cond_brackets_pair', {name,value})
         }
-      / "{" _ 
+      / BEGIN 
         head: cond_brackets_advancement_criterion
         tail: (COMMA @cond_brackets_advancement_criterion)*
-        _ "}" {
-          return N("cond_brackets_braces", {items: [head, ...tail]})
+        END {
+          return N('cond_brackets_braces', {items: [head, ...tail]})
         }
 
     cond_brackets_advancement_criterion
       = name:ident EQUALS value:bool {
-          return N("cond_brackets_pair", {name,value})
+          return N('cond_brackets_pair', {name,value})
         }
     
     sort_name 
@@ -461,7 +490,10 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       / "spectator"
 
 //\\ assign
-  assign = assign_scoreboard / assign_datapath / delete_datapath // assign_tag
+  assign 'assignment'
+    = assign_scoreboard 
+    / assign_datapath 
+    / delete_datapath // assign_tag
 
   
 
@@ -469,73 +501,66 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   else = _ "else" __ @code
 
   if_else = head:("if"/"unless") test:mod_arg_test _ code:code _else:else {
-    return N( "if_else", { head, test,code,_else } )
+    return N('if_else', { head, test,code,_else } )
   }
 
   //\\ test
     test = test_scoreboard/test_entity/test_block/test_datapath
 
     test_entity = selector:selector {
-      return N( "test_entity", { selector } )
+      return N('test_entity', { selector } )
     }
     
     test_block = spec:block_spec {
-      return N( "test_block", { spec } )
+      return N('test_block', { spec } )
     } 
 
 //\\ tag
   declare_tag
     = "tag" __ name:string {
-        return N("declare_tag",{name})
+        return N('declare_tag',{name})
       }
   tag_set
-    = "tag" __ selector:selector __ tag:tag_id {
-        return N("tag_set",{selector,tag})
+    = "tag" __ tag:tag_id __ selector:selector {
+        return N('tag_set',{selector,tag})
       }
   tag_unset
-    = "untag" __ selector:selector __ tag:tag_id {
-        return N("tag_unset",{selector,tag})
+    = "untag" __ tag:tag_id __ selector:selector {
+        return N('tag_unset',{selector,tag})
       }
     
-  tag_id "tag_id"
+  tag_id 
     = name:string {
-      return N("tag_id",{name})
+      return N('tag_id',{name})
     }
 
   //\\ asign_tag
     //\\ assign_scoreboard
     assign_tag
-      = selector:selector "." tag:tag_id _ 
-          assign: (
-            "=" _ right: bool {
-              return N( "assign_tag_value", { right } )
-            }
-          / "=" _ right:datapath {
-              return N( "assign_tag_datapath", { right } )
-            }
-          / "=" _ right:statement {
-              return N( "assign_tag_statement", { right } )
-            }
-        ) {
-          assign.left = left;
-          return assign;
-        } 
+      = selector:selector "." tag:tag_id _ "=" _ right:bool {
+      		return N('assign_tag_value', { selector, tag, right } )
+      	}
+          
 
 //\\ scoreboard
-  var_name 
+  var_name "variable"
     = "$" @IDENT 
   var_id
     = name:var_name {
-      return N("var_id",{name});
+      return N('var_id',{name});
     }
   constant_id 
     = value:int {
-      return N("constant_id",{value});
+      return N('constant_id',{value});
     }
   score_id 
-    = holder:score_holder _ "->" _ id:ident {
+    = holder:score_holder _ "->" _ id:score_objective {
       return N( 'score_id', { holder,id } )
     }
+
+  score_objective 'score objective'
+    = string
+
   score_holder 
     = selector 
     
@@ -546,12 +571,12 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
   declare_var 
     = "var" __ name:var_name value:(EQUALS @number)? {
-        return N("declare_var",{name,value})
+        return N('declare_var',{name,value})
       }
  
   declare_score 
     = "score" __ name:IDENT {
-      return N("declare_score",{name,criterion:"dummy"})
+      return N('declare_score',{name,criterion:"dummy"})
     }
   
   
@@ -560,22 +585,22 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       = left:scoreboard_lhand _ 
           assign: (
             "=" _ right: number {
-              return N( "assign_scoreboard_value", { right } )
+              return N('assign_scoreboard_value', { right } )
             }
           / op:assign_scoreboard_op _ right:scoreboard_id {
-              return N( "assign_scoreboard_operation", { left, op, right } )
+              return N('assign_scoreboard_operation', { left, op, right } )
             }
           / "++" {
-            return N( "assign_scoreboard_inc",{})
+            return N('assign_scoreboard_inc',{})
             }
           / "--" {
-            return N( "assign_scoreboard_dec",{})
+            return N('assign_scoreboard_dec',{})
             }
           / "=" _ right:datapath {
-              return N( "assign_scoreboard_datapath", { right } )
+              return N('assign_scoreboard_datapath', { right } )
             }
           / "=" _ right:statement {
-              return N( "assign_scoreboard_statement", { right } )
+              return N('assign_scoreboard_statement', { right } )
             }
         ) {
           assign.left = left;
@@ -599,7 +624,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   //\\ test_scoreboard
     test_scoreboard
       = left:scoreboard_id _ op:test_scoreboard_op _ right:scoreboard_id {
-          return N( "test_scoreboard",{left,op,right})
+          return N('test_scoreboard',{left,op,right})
         }
     test_scoreboard_op 
       = "<="
@@ -612,7 +637,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   //\\ datapath
     datapath 
       = head:datahead "::" path:nbt_path {
-          return N( "datapath", { head, path } )
+          return N('datapath', { head, path } )
         } 
       / datapath_var
 
@@ -622,20 +647,20 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
     datahead_entity 
       = selector:selector {
-          return N( "datahead_entity", { selector } )
+          return N('datahead_entity', { selector } )
         }
 
     datahead_storage 
       ="&" name:resloc {
-          return N( "datahead_storage", { name } )
+          return N('datahead_storage', { name } )
         }
 
     datapath_var 
-      = "&" path:nbt_path { return N( "datapath_var", { path } ) }
+      = "&" path:nbt_path { return N('datapath_var', { path } ) }
 
   //\\ nbt_path
     nbt_path = head:nbt_path_head tail:nbt_path_tail* {
-      return N("nbt_path",{path:[head,...tail]})
+      return N('nbt_path',{path:[head,...tail]})
     }
 
     nbt_path_head 
@@ -649,13 +674,13 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
     nbt_path_root 
     = member:nbt_path_step {
-        return N("nbt_path_root",member)
+        return N('nbt_path_root',member)
       }
 
 
     nbt_path_member 
       = "." member:nbt_path_step {
-        return N("nbt_path_member",member)
+        return N('nbt_path_member',member)
       }
 
     nbt_path_step = name:string match:nbt_path_match? {
@@ -677,22 +702,22 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
     nbt_path_list_element
       = "[" index:int "]" {
-          return N("nbt_path_list_element",{index})
+          return N('nbt_path_list_element',{index})
         }
 
     nbt_path_list
       = "[]" {
-          return N("nbt_path_list")
+          return N('nbt_path_list')
         }
 
 
     nbt_path_list_match 
       = "[" match:object "]" {
-          return N("nbt_path_list_match",{match})
+          return N('nbt_path_list_match',{match})
         } 
 
-    nbt_path_match = match:object {
-        return N("nbt_path_match",{match})
+    nbt_path_match = match:object_lit {
+        return N('nbt_path_match',{match})
       }
 
     nbt_path_ident = string
@@ -705,38 +730,38 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       }
 
     assign_datapath_rhand
-      = right:value {
-        return N( "assign_datapath_value", { right } )
+      = right:int {
+        return N('assign_datapath_value', { right } )
       }
       / right:scoreboard_id {
-        return N( "assign_datapath_scoreboard", { right } )
+        return N('assign_datapath_scoreboard', { right } )
       }
       / right:datapath {
-        return N( "assign_datapath_datapath", { right } )
+        return N('assign_datapath_datapath', { right } )
       }
       / right:statement {
-        return N( "assign_datapath_statement", { right } )
+        return N('assign_datapath_statement', { right } )
       }
 
     delete_datapath 
       = ("delete"/"remove") __ path:datapath {
-        return N( "delete_datapath", { path } )
+        return N('delete_datapath', { path } )
       }
   //\\ test_datapath
     test_datapath = path:datapath {
-        return N( "test_datapath", { path } )
+        return N('test_datapath', { path } )
       } 
 
 //\\ block_spec
 
-  block_spec 
+  block_spec 'block predicate'
     = resloc:resloc_or_tag_mc states:block_states? nbt:object? {
-        return N("block_spec",{resloc,states,nbt})
+        return N('block_spec',{resloc,states,nbt})
       }
 
   block_states 
     = "[" _ head:block_state tail:( COMMA @block_state)* _ "]" {
-        return N("block_states",{states:[head,...tail]})
+        return N('block_states',{states:[head,...tail]})
       }
   block_state 
     = name:ident EQUALS value:(number/string) {
@@ -749,12 +774,12 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   resloc
     = resloc_full
     / name: ident {
-        return N( "resloc", { name } )
+        return N('resloc', { name } )
       }
 
   resloc_full 
   	= ns:ident ":" name:ident {
-        return N( "resloc", { ns,name } )
+        return N('resloc', { ns,name } )
       }
 
   resloc_or_tag 
@@ -764,24 +789,24 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   resloc_mc
     = resloc_full
     / name: ident {
-        return N( "resloc_mc", { name } )
+        return N('resloc_mc', { name } )
       }
 
   restag
     = restag_full
     / "#" name:ident {
-        return N( "resloc", { name } )
+        return N('resloc', { name } )
       }
 
   restag_full 
   	= "#" ns:ident ":" name:ident {
-        return N( "restag", { ns,name } )
+        return N('restag', { ns,name } )
       }
 
   restag_mc
     = restag_full
     / "#" name: ident {
-        return N( "resloc_mc", { name } )
+        return N('resloc_mc', { name } )
       }
 
   resloc_or_tag_mc
@@ -790,13 +815,13 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
 
   range 
-    = from:number _ ".." to:number { return N( "range", { from,to } ) }
-    / ".." to:number { return N( "range_to", { to } ) }
-    / from:number _ ".."{ return N( "range", { from } ) }
+    = from:number _ ".." to:number { return N('range', { from,to } ) }
+    / ".." to:number { return N('range_to', { to } ) }
+    / from:number _ ".."{ return N('range', { from } ) }
     / number
   json 
     = json:value {
-        return N( "json", { json } )
+        return N('json', { json } )
       }
     /*
       JSON_text
@@ -808,9 +833,9 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     = value_arg
     / value_lit
 
-  value_arg "value argument"
+  value_arg
     = name:arg_name {
-        return N( "arg", { type:"value",name } )
+        return N('arg', { type:"value",name } )
       }
 
   value_lit
@@ -823,35 +848,35 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   //\\ bool
     bool 
       = bool_arg/bool_lit
-    bool_arg "bool argument"
+    bool_arg
       = name:arg_name {
-          return N( "arg", { type:"bool",name } )
+          return N('arg', { type:"bool",name } )
         }
 
     bool_lit
-      = "true" { return N( "literal", { type:"bool", value: true  } ) }
-      / "false" { return N( "literal", { type:"bool", value: false  } ) }
+      = "true" { return N('literal', { type:"bool", value: true  } ) }
+      / "false" { return N('literal', { type:"bool", value: false  } ) }
 
   //\\ object
     object 
       = object_arg
       / object_lit
     
-    object_arg "object argument"
+    object_arg
       = name:arg_name { 
-          return N( "arg", { type:"object",name } ) 
+          return N('arg', { type:"object",name } ) 
         }
 
 
     object_lit
-      = "{" _
+      = BEGIN
         members:(
           head:member tail:(COMMA @member)* COMMA? {
             return [head,...tail];
           }
         )?
-        _ "}"
-        { return N( "literal", { type:"object",members:members||[] } ) }
+        END
+        { return N('literal', { type:"object",members:members||[] } ) }
     member
       = name:(string) _":"_ value:value {
           return { name: name, value: value };
@@ -864,7 +889,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       / array_lit
 
     array_arg 
-      = name:arg_name {	return N( "arg", { type:"array",name } ) }
+      = name:arg_name {	return N('arg', { type:"array",name } ) }
 
     array_lit
       = "["_
@@ -875,12 +900,12 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
           { return [head].concat(tail); }
         )?
         _"]"
-        { return N( "literal", { type:"array", items: items || [] } ) }
+        { return N('literal', { type:"array", items: items || [] } ) }
   
   //\\ number
     number 
       = name:arg_name {	
-          return N( "arg", { type:"number",name } ) 
+          return N('arg', { type:"number",name } ) 
         }
       / number_lit
 
@@ -891,24 +916,24 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     
     int 
       = name:arg_name {	
-          return N( "arg", { type:"int",name } ) 
+          return N('arg', { type:"int",name } ) 
         }
       / int_lit
 
-    int_lit "integer" 
+    int_lit  "integer"
       = value:INT suffix:[bsli]? {
-          return N( "literal", { type:"int",value:+value,suffix } )
+          return N('literal', { type:"int",value:+value,suffix } )
         }
 
-    float "float" 
+    float  
       = name:arg_name {	
-          return N( "arg", { type:"float",name } ) 
+          return N('arg', { type:"float",name } ) 
         }
       / float_lit
 
-    untyped_float "float" 
+    untyped_float  
       = name:arg_name {	
-          return N( "arg", { type:"float",name } ) 
+          return N('arg', { type:"float",name } ) 
         }
       / untyped_float_lit
 
@@ -917,15 +942,15 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
     typed_float_lit 
       = value:FLOAT suffix:[fd]? {
-          return N( "literal", { type:"float",value:+value,suffix } )
+          return N('literal', { type:"float",value:+value,suffix } )
         } 
       / value:INT suffix:[fd] {
-          return N( "literal", { type:"float",value:+value,suffix } )
+          return N('literal', { type:"float",value:+value,suffix } )
         }
         
     untyped_float_lit
       = value:(FLOAT/INT) {
-          return N( "literal", { type:"float",value:+value } )
+          return N('literal', { type:"float",value:+value } )
         } 
 
     FLOAT
@@ -948,12 +973,12 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
     ident_arg 
       = name:arg_name { 
-          return N("arg",{type:"ident",name}) 
+          return N('arg',{type:"ident",name}) 
         } 
 
-    ident_lit "ident"  
+    ident_lit   
       =  word:WORD { 
-        return N( "literal", { type:"ident", value: word  } )
+        return N('literal', { type:"ident", value: word  } )
       }
 
   //\\ string
@@ -962,7 +987,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       / string_lit
     string_arg 
       = name:arg_name {
-          return N( "arg", { type:"string",name } ) 
+          return N('arg', { type:"string",name } ) 
         }
     string_lit 
       = template_lit
@@ -975,18 +1000,18 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     
     template_arg 
       = name:arg_name {
-          return N( "arg", { type:"template",name } ) 
+          return N('arg', { type:"template",name } ) 
         }
 
 
-    template_lit "string" 
+    template_lit  
       = '"' value:template_parts '"' {
-        return N( "literal", { type:"template", value } )
+        return N('literal', { type:"template", value } )
       }
 
     template_parts 
       = parts:template_part* {
-          return N("template_parts",{parts})
+          return N('template_parts',{parts})
         }
 
     template_part 
@@ -997,39 +1022,39 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       = template_expand_arg
       / template_expand_tag
 
-    template_chars "chars" 
+    template_chars  
       = chars:(@template_char)+ {
-          return N( "template_chars", { chars:chars.join('') } )
+          return N('template_chars', { chars:chars.join('') } )
         }
     
     
-    template_sep "chars" 
+    template_sep  
       = chars:[{}] {
-          return N( "template_chars", { chars } )
+          return N('template_chars', { chars } )
         }
 
 	  template_char 
     	= ![{}"] @char
       / "\\" @.
         
-    template_expand_arg "expansion" 
+    template_expand_arg  
       = "{?" name:template_parts "}" {
-          return N( "template_expand_arg", { name } )
+          return N('template_expand_arg', { name } )
         }
     
-    template_expand_tag "expansion" 
+    template_expand_tag  
       = "{." name:template_parts "}" {
-          return N( "template_expand_tag", { name } )
+          return N('template_expand_tag', { name } )
         }
 
-    template_expand_var "expansion" 
+    template_expand_var  
       = "{$" name:template_parts "}" {
-          return N( "template_expand_var", { name } )
+          return N('template_expand_var', { name } )
         }
     
-    template_expand_score "expansion" 
+    template_expand_score  
       = "{->" name:template_parts "}" {
-          return N( "template_expand_score", { name } )
+          return N('template_expand_score', { name } )
         }
 
   //\\ string_json
@@ -1039,11 +1064,11 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
     string_json_arg 
       = name:arg_name {
-          return N( "arg", { type:"string_json",name } ) 
+          return N('arg', { type:"string_json",name } ) 
         }
-    string_json_lit "string"
+    string_json_lit 
       = "json" __ value:value { 
-        return N( "literal", { type:"string_json", value: value  } )
+        return N('literal', { type:"string_json", value: value  } )
         } 
 
     char
@@ -1080,10 +1105,49 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
   DIGIT  = [0-9]
   HEXDIG = [0-9a-f]i
-  WORD = $([A-Z_]i [A-Z0-9_]i*)
-  IDENT "identifier" = WORD
+  WORD_INIT = [A-Z_]i
+  WORD_CHAR = [A-Z0-9_]i
+  WORD = $(WORD_INIT WORD_CHAR*)
+  IDENT  = WORD
 
-  _ = WS*
-  __ = [ \t]+
-  WS "whitespace" = [ \n\t\r]
-  EOL = __? [\n]
+  _ 'whitespace' = WS*
+  __ 'whitespace' = [ \t]+
+  WS  
+    = [ \n\t\r]
+    / EOL_COMMENT
+  EOL 'end of line' = __? [\n\r]+ / EOL_COMMENT
+
+EOL_COMMENT 
+  = "//" [^\n\r]* [\n\r]+
+
+NAME_OR_DIE 
+  = NAME
+  / word:WORD &{ error(word +' is a reserved word')}
+
+NAME 
+  = !RESERVED @WORD
+
+RESERVED 
+  = (KEYWORD / COMMAND / MOD / SELECTOR) ![a-z-_]i
+
+KEYWORD 
+  = "namespace" / "function" / "macro"
+  / "var" / "score" / "delete" / "remove" 
+  / "true" / "false" / "json"
+
+COMMAND 
+  = "print" / "give" / "setblock" / "after" / "tag" / "untag"
+
+MOD 
+  = "align" / "anchored" / "as" / "at" / "for" / "in"
+  / "up" / "down" / "north" / "south" / "east" / "west" / "left" / "right" 
+  / "pos" / "positioned" / "rot" / "rotated" 
+  / "if" / "unless" / "else" / "then"
+  / "eyes" / "feet" / "deg"
+
+
+SELECTOR
+  =  "sort" / "limit" / "tag" / "nbt" / "type" / "predicate" / "distance" 
+  / "level" / "team" / "name" / "gamemode" / "scores" / "advancements" 
+  / "nearest" / "closest" / "furthest" 
+  / "arbitrary" / "oldest" / "any" / "random" 
