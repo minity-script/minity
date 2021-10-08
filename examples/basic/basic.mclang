@@ -178,93 +178,68 @@ function give_book {
   give @s written_book {
     is_book: 1b,
     "pages": [
-      json { 
-        text: "", 
-        bold: false, 
-        extra: [ 
-          <span>
-            <b>COLORED_KEYS</b>
-            Get key
-            <b>
-              <dark_red 
-                text ="\u2588"
-                clickEvent= {
-                action: run_command,
-                value: "/function colored_keys:give_red_key"
-              }/>
-            </b>
-          </span>,
-          {
-            bold: true,
-            color: dark_green, 
-            text: "\u2588",
-            clickEvent: {
-              action: run_command,
-              value: "/function colored_keys:give_green_key",
-            }
-          }, " ",
-          {
-            bold: true,
-            color: dark_aqua, 
-            text: "\u2588",
-            clickEvent: {
-              action: run_command,
-              value: "/function colored_keys:give_blue_key",
-            }
-          }, " ",
-          {
-            bold: true,
-            color: gold, 
-            text: "\u2588",
-            clickEvent: {
-              action: run_command,
-              value: "/function colored_keys:give_yellow_key",
-            }
-          },
-              { text:"\n\nGet Lock\n" },
-          {
-            color: dark_red, 
-            bold: true,
-            text: "\u2588",
-            clickEvent: {
-              action: run_command,
-              value: "/function colored_keys:give_red_lock",
-            }
-          }, " ",
-          {
-            bold: true,
-            color: dark_green, 
-            text: "\u2588",
-            clickEvent: {
-              action: run_command,
-              value: "/function colored_keys:give_green_lock",
-            }
-          }, " ",
-          {
-            bold: true,
-            color: dark_aqua, 
-            text: "\u2588",
-            clickEvent: {
-              action: run_command,
-              value: "/function colored_keys:give_blue_lock",
-            }
-          }, " ",
-          {
-            bold: true,
-            color: gold, 
-            text: "\u2588",
-            clickEvent: {
-              action: run_command,
-              value: "/function colored_keys:give_yellow_lock",
-            }
-          },
-        ]
-      },
+      json <span>
+        <b>COLORED_KEYS</b>
+        
+        Get Key
+        <b><dark_red 
+          text ="\u2588"
+          clickEvent = {
+            action: run_command,
+            value: "/function colored_keys:give_red_key"
+          }
+        /> <dark_aqua 
+          text = "\u2588"
+          clickEvent = {
+            action: run_command,
+            value: "/function colored_keys:give_blue_key"
+          }
+        /> <dark_green 
+          text ="\u2588"
+          clickEvent = {
+            action: run_command,
+            value: "/function colored_keys:give_green_key"
+          }
+        /> <gold 
+          text ="\u2588"
+          clickEvent= {
+            action: run_command,
+            value: "/function colored_keys:give_yellow_key"
+          }
+        /></b>
+
+        Get Lock
+        <b><dark_red 
+          text ="\u2588"
+          clickEvent= {
+            action: run_command,
+            value: "/function colored_keys:give_red_lock"
+          }
+        /> <dark_aqua 
+          text ="\u2588"
+          clickEvent= {
+            action: run_command,
+            value: "/function colored_keys:give_blue_lock"
+          }
+        /> <dark_green 
+          text ="\u2588"
+          clickEvent= {
+            action: run_command,
+            value: "/function colored_keys:give_green_lock"
+          }
+        /> <gold 
+          text ="\u2588"
+          clickEvent= {
+            action: run_command,
+            value: "/function colored_keys:give_yellow_lock"
+          }
+        /></b>
+      </span>
     ],
-    "title":"Colored Keys Handbook",
-    "author":"yockz",
-    "display":{
-      "Lore":[
+    title: "Colored Keys Handbook",
+    author: "yockz",
+    display: {
+      Lore: [
           "Commands and instructions for Colored Keys"
         ]
       }

@@ -1,11 +1,14 @@
 {
-  "name": "@.mclang/.mclang",
+  "name": "@mclang/mclang",
   "version": "1.0.0",
   "description": "Scripting transpiler for Minecraft",
-  "main": "index.js",
+  "main": "mclang/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "debug": "nodemon --inspect src/index.js -e .js,.pegjs,.mclang,.json -w src -w examples/basic build examples/basic build/basic"
+    "debug": "nodemon --inspect bin/build.js -e .js,.pegjs,.mclang,.json -w src -w examples/basic build examples/basic build/basic"
+  },
+  "bin": {
+    "build" : "bin/build.js"
   },
   "author": "Zoran Obradović",
   "license": "ISC",

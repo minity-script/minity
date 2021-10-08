@@ -1161,7 +1161,7 @@ raw_tag_close
 raw_tag_part 
   = @raw_tag 
   / chars:$(!LT char/[\n\r\t])+ {
-  	return N('raw_chars',{chars:chars.replace(/(\s*\n\s*)/g,"\n")})
+  	return N('raw_chars',{chars:chars.replace(/([ \t]*[\n\r][ \t]*)/g,"\n")})
   }
   
 

@@ -1,8 +1,9 @@
 const { readFileSync, readdirSync, statSync, rmSync, writeFileSync, cpSync, mkdirSync } = require("fs");
-const mcl = require("./mcl.js");
 const { relative, dirname, basename, resolve, extname } = require("path");
 const { merge } = require("merge");
-const { Result } = require("./Result");
+
+const mcl = require("../mclang");
+const { Result } = require("../mclang/Result");
 
 exports.Builder = class Builder {
 

@@ -22,6 +22,14 @@ const mcl = module.exports = {
     });
     return ret;
   },
+  findError(text) {
+    try {
+      parser.parse(text);
+      return false;
+    } catch (error) {
+      return error;
+    }
+  },
   transform(tree, result) {
     const root = new Frame.Root({result});
     root.transform(tree);

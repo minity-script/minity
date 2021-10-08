@@ -368,12 +368,12 @@ const transformers = {
   raw_tag: ({props,attr,parts},{Nbt,toNbt}) => {
     const ret = Nbt({...props})
     for (const {name,value} of attr) {
-      console.log("attr",name,value);
       ret[Nbt(name)]=Nbt(value);
     }
     ret.text ??= "";
     if (parts) ret.extra = parts.map(Nbt)
     return Nbt(ret);
+    
   },
   raw_chars: ({chars},{Nbt}) => Nbt(chars)
 }
