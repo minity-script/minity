@@ -49,9 +49,9 @@ macro do_update_locks(?is_lock,?is_key,?delta=1) {
         tag:{ "{.is_key}":1b }
       }]
     }] {
-      down ?delta setblock minecraft:redstone_block
+      down ?delta setblock redstone_block
     } else {
-      down ?delta setblock minecraft:glass
+      down ?delta setblock glass
     } 
   }
 }
@@ -75,7 +75,7 @@ function update_all_locks #minecraft:tick {
           for @slime.is_dead_lock {
             untag is_dead_lock @s 
             tag is_lock @s 
-            setblock minecraft:glass
+            setblock glass
           }        
         }
       }
@@ -106,16 +106,11 @@ macro give_lock(?color,?Color,?textColor=white) {
 }
 
 function give_blue_lock {
-  as @p {
-   give_lock(blue,Blue,aqua)
-  }
+  give_lock(blue,Blue,aqua)
 }
 
 function give_red_lock {
-  as @p {
-     give_lock(red,Red,red)
-  }
-  
+  give_lock(red,Red,red)  
 }
 macro summon_lock(?color,?Color) {
   down 0.5 summon slime {
@@ -123,7 +118,6 @@ macro summon_lock(?color,?Color) {
     Invulnerable: true,
     NoAI: true,
     Silent: true,
-    //Tags:["{.is_lock}","{.is_{?color}_lock}"]
   } then {
     tag is_lock @s
     tag "is_{?color}_lock" @s 
@@ -186,19 +180,20 @@ function give_book {
     "pages": [
       json { 
         text: "", 
-        bold:false, 
-        extra: [        
-          { bold: true, text:"COLORED KEYS" },
-          { text:"\n\nGet Key\n" },
-          {
-            color: dark_red, 
-            bold: true,
-            text: "\u2588",
-            clickEvent: {
-              action: run_command,
-              value: "/function colored_keys:give_red_key",
-            }
-          }, " ",
+        bold: false, 
+        extra: [ 
+          <span>
+            <b>COLORED_KEYS</b>
+            Get key
+            <b>
+              <dark_red 
+                text ="\u2588"
+                clickEvent= {
+                action: run_command,
+                value: "/function colored_keys:give_red_key"
+              }/>
+            </b>
+          </span>,
           {
             bold: true,
             color: dark_green, 

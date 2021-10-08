@@ -75,17 +75,8 @@ exports.Builder = class Builder {
   }
 
   compileMclFile(path) {
-    try {
-      const text = readFileSync(path, { encoding: "utf8" });
-      return mcl.compile(text,this.result);
-    } catch (e) {
-      console.log(e.message||e);
-      if (e.location) {
-        const { message, location: { start: { line, column } } } = e;
-        console.log(`  at ${path}:${line}:${column}`)
-      }
-      throw new Error("exit");
-    }
+    const text = readFileSync(path, { encoding: "utf8" });
+    return mcl.compile(text,this.result);
   }
 
   prepare() {

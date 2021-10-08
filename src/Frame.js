@@ -1,7 +1,10 @@
 const assert=require("assert");
 const { Result } = require("./Result");
+const { TreeNode } = require("./TreeNode");
 const { Nbt } = require("./Nbt")
-const { toNbt, toSnbt, toJson } = Nbt;
+const { isNbt, toNbt, toSnbt, toJson } = Nbt;
+
+
 const Frame = exports.Frame =
   class Frame extends Function {
     constructor() {
@@ -14,11 +17,13 @@ const Frame = exports.Frame =
     get T() {
       return this.transform;
     }
-    Nbt = Nbt
-    toNbt = toNbt
-    toSnbt = toSnbt
-    toJson = toJson
+    
+    Nbt = x => x instanceof TreeNode ? Nbt(this.T(x)) : Nbt(x)
+    toNbt = x => x instanceof TreeNode ? toNbt(this.T(x)) : toNbt(x)
+    toSnbt = x => x instanceof TreeNode ? toSnbt(this.T(x)) : toSnbt(x)
+    toJson = x => x instanceof TreeNode ? toJson(this.T(x)) : toJson(x)
     transform = node => {
+      if (isNbt(node)) return toNbt(node);
       if (!node?.transform) {
         console.log(node);
         let e = new Error("WTF")

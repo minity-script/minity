@@ -1,4 +1,3 @@
-const { ValueNode } = require("./ValueNode.js");
 
 class MclError extends Error {
   constructor(message, location) {
@@ -22,8 +21,8 @@ const TreeNode = exports.TreeNode = class TreeNode {
     try {
       return this.transformer(proxy, frame)
     } catch (e) {
-      console.log([...e.stack.split("\n    at").slice(0, 3), "    ...."].join("\n    at"))
-      e.location = this.location;
+      //console.log([...(e.stack||e.message||"error").split("\n    at").slice(0, 3), "    ...."].join("\n    at"))
+      e.location ??= this.location;
       throw (e)
     }
   }
@@ -37,14 +36,29 @@ const TreeNode = exports.TreeNode = class TreeNode {
 
 const transformers = {
   VALUE: node => node,
-  literal: (node, frame) => ValueNode.fromLiteral(node, frame),
+  string_lit: ({ value }, { Nbt }) => Nbt(String(value)),
+  number_lit: ({ value, suffix }, { Nbt }) => Nbt(+value, suffix),
+  boolean_lit: ({ value }, { Nbt }) => Nbt(!!value),
+  object_lit: ({ members }, { T, Nbt,toJson }) => {
+    //console.log(members)
+
+    const ret = Nbt({});
+    for (const { name, value } of members) {
+      ret[Nbt(name)] = Nbt(value);
+      //console.log(name,JSON.stringify(ret))
+    }
+    return ret;
+  },
+  string_json: ({ value }, { toJson }) => toJson(value),
+  array_lit: ({ items }, { T, Nbt }) =>  Nbt(items.map(T)),
+  template_lit: ({ parts }, { T, Nbt }) =>  Nbt(parts.map(Nbt).join("")),
   file: ({ namespaces }, { T }) => {
     namespaces.map(T);
   },
-  declare_var: ({ name, value }, { T, declareVar, varId }) => {
+  declare_var: ({ name, value }, { T, toNbt, declareVar, varId }) => {
     declareVar(name);
-    value = value ? T(value) : 0;
-    return "scoreboard players set " + varId(name) + " " + value;
+    if (value) return "scoreboard players set " + varId(name) + " " + toNbt(T(value));
+    return "";
   },
   declare_score: ({ name, criterion }, { T, declareScore }) => {
     declareScore(name, criterion);
@@ -60,16 +74,22 @@ const transformers = {
     const fn = addBlock(lines);
     fn.addTag("minecraft", "load");
   },
-  selector: ({ head, conditions }, { T }) => {
+  selector: ({ head, conditions }, { T,toNbt }) => {
     var { initial, conds = [] } = T(head);
     conds = conds.concat(conditions.map(T));
     return "@" + initial + "[" + conds.join(",") + "]"
   },
-  cond_brackets({ name, op, value }, { T }) {
+  cond_brackets({ name, op, value }, { T, toNbt }) {
     return name + op + T(value);
   },
-  cond_brackets_pair: ({ name, value }, { T }) => T(name) + "=" + T(value),
-  cond_brackets_braces: ({ items }, { T }) => "{" + items.map(T).join(",") + "}",
+  cond_brackets_noquotes({ name, op, value }, { T, Nbt }) {
+    return name + op + T(value);
+  },
+  cond_brackets_nbt({ name, op, value }, { T, toNbt }) {
+    return name + op + toNbt(value);
+  },
+  cond_brackets_pair: ({ name, value }, { T, toNbt }) => T(name) + "=" + T(value),
+  cond_brackets_braces: ({ items }, { T, toNbt }) => "{" + items.map(T).join(",") + "}",
   block_spec_state: ({ name, value }, { T }) => T(name) + "=" + T(value),
   block_spec_states: ({ states }, { T }) => "[" + states.map(T).join(",") + "]",
   block_spec: ({ resloc, states, nbt }, { T }) => {
@@ -117,25 +137,24 @@ const transformers = {
   mod_unless(node, { T }) {
     return "unless " + T(node.test)
   },
-  mod_pos:({pos}, { T }) => `positioned ${T(pos)}`,
-  mod_dir:({mods}, { T }) => {
+  mod_pos: ({ pos }, { T }) => `positioned ${T(pos)}`,
+  mod_dir: ({ mods }, { toNbt }) => {
     const pos = { x: 0, y: 0, z: 0 }
-    for (const { dir, off, f } of mods) pos[dir] += T(off).value * f;
+    for (const { dir, off, f } of mods) pos[dir] += toNbt(off) * f;
     return `positioned ~${pos.x} ~${pos.y} ~${pos.z}`
   },
-  mod_rotated:({pos}, { T }) => `rotated ${T(pos)}`,
-  mod_rot: ({mods}, { T }) => {
+  mod_rotated: ({ pos }, { T }) => `rotated ${T(pos)}`,
+  mod_rot: ({ mods }, { toNbt }) => {
     const pos = { x: 0, y: 0 }
-    console.log(mods)
-    for (const { dir, off, f } of mods) pos[dir] += T(off).value * f;
+    for (const { dir, off, f } of mods) pos[dir] += toNbt(off) * f;
     return `rotated ~${pos.x} ~${pos.y}`
   },
   pos_abs(node, { T }) {
     return [T(node.x), T(node.y), T(node.z)].join(" ")
   },
-  pos_mod({mods}, { T }) {
+  pos_mod({ mods }, { toNbt }) {
     const pos = { x: 0, y: 0, z: 0 }
-    for (const { dir, off, f } of mods) pos[dir] += T(off).value * f;
+    for (const { dir, off, f } of mods) pos[dir] += toNbt(off) * f;
     return `~${pos.x} ~${pos.y} ~${pos.z}`
   },
   pos_from(node, { T }) {
@@ -144,7 +163,7 @@ const transformers = {
   rot_abs(node, { T }) {
     return [T(node.x), T(node.y)].join(" ")
   },
-  rot_mod({mods}, { T }) {
+  rot_mod({ mods }, { T }) {
     const pos = { x: 0, y: 0, z: 0 }
     for (const { dir, off, f } of mods) pos[dir] += T(off).value * f;
     return `~${pos.x} ~${pos.y}`
@@ -161,28 +180,27 @@ const transformers = {
   command(node, { T }) {
     return T(node.command)
   },
-  cmd_summon: ({ pos, type, nbt, then }, { T, addBlock }) => {
-    if (!then) return `give ${pos ? T(pos) :"~ ~ ~"} ${T(type)}${nbt ? T(nbt).format() : ''}`
-    
-    nbt = nbt ? T(nbt).value : {};
-    nbt.Tags = [...nbt.Tags||[],"_mclang_summoned_"];
-    nbt = JSON.stringify(nbt);
+  cmd_summon: ({ pos, type, nbt, then }, { T, addBlock, Nbt, toNbt }) => {
+    if (!then) return `summon ${pos ? T(pos) : "~ ~ ~"} ${T(type)}${nbt ? toNbt(nbt) : ''}`
+
+    nbt = Nbt(nbt||{});
+    nbt.Tags = [...nbt.Tags || [], "_mclang_summoned_"];
     return "function " + addBlock([
-      `summon ${T(type)} ${pos ? T(pos) :"~ ~ ~"} ${nbt}`,
-      `execute as @e[tag=_mclang_summoned_] run function `+ addBlock([
-      'tag @s remove _mclang_summoned_',
-        ... then.statements.map(T)
+      `summon ${T(type)} ${pos ? T(pos) : "~ ~ ~"} ${toNbt(nbt)}`,
+      `execute as @e[tag=_mclang_summoned_] run function ` + addBlock([
+        'tag @s remove _mclang_summoned_',
+        ...then.statements.map(T)
       ]).resloc
     ]).resloc
   },
-  cmd_give: ({ selector, type, nbt }, { T }) => {
-    return `give ${T(selector)} ${T(type)}${nbt ? T(nbt).format() : ''}`
+  cmd_give: ({ selector, type, nbt }, { toNbt, T }) => {
+    return `give ${T(selector)} ${T(type)}${toNbt(nbt||{})}`
   },
-  cmd_after: ({ time, unit, fn }, { T, addBlock }) => {
-    return `schedule ${T(fn)} ${T(time).value}${unit}`
+  cmd_after: ({ time, unit, fn }, { T, toNbt }) => {
+    return `schedule ${T(fn)} ${toNbt(time)}${unit}`
   },
   cmd_setblock: ({ pos, block }, { T }) => {
-    return `setblock ${pos ? T(pos) :"~ ~ ~"} ${T(block)}`
+    return `setblock ${pos ? T(pos) : "~ ~ ~"} ${T(block)}`
   },
   code(node, { T, addBlock }) {
     const lines = node.statements.map(T);
@@ -206,18 +224,18 @@ const transformers = {
     macros[node.name] = node;
     return "";
   },
-  macro_call(node, { T, createChild, macros }) {
+  macro_call(node, { Nbt, createChild, macros }) {
     const macro = macros[node.name];
     const new_args = {};
     for (const i in macro.args) {
       const { name, def } = macro.args[i];
       const { named, numbered } = node.args;
       if (name in named) {
-        new_args[name] = T(named[name])
+        new_args[name] = Nbt(named[name])
       } else if (i in numbered) {
-        new_args[name] = T(numbered[i])
+        new_args[name] = Nbt(numbered[i])
       } else if (def) {
-        new_args[name] = T(def)
+        new_args[name] = Nbt(def)
       } else {
         throw new Error("arg " + name + " in macro " + macro.name + " is not optional")
       }
@@ -227,8 +245,8 @@ const transformers = {
     if (ret.length < 2) return ret[0];
     return "function " + addBlock(ret).resloc;
   },
-  arg(node, { args, files }) {
-    return args[node.name].convert(node.type);
+  arg(node, { args, Nbt }) {
+    return args[node.name];
   },
   if_else(node, { T, ns, addBlock }) {
     return "function " + addBlock([
@@ -267,11 +285,11 @@ const transformers = {
     assert(varExists(name), "undeclared var $" + name);
     return { score: { name: varName(name), objective: varObjective(name) } }
   },
-  print_value: ({ value }, { T }) => {
-    return { text: T(value).format() }
+  print_value: ({ value }, { toNbt }) => {
+    return { text: toNbt(value) }
   },
-  print_string: ({ value }, { T }) => {
-    return { text: T(value).value }
+  print_string: ({ value }, { toNbt }) => {
+    return { text: ""+toNbt(value) }
   },
   print_space: () => {
     return { text: " " }
@@ -279,8 +297,8 @@ const transformers = {
   delete_datapath: ({ path }, { T }) => `data remove ${T(path)}`,
   template_chars: ({ chars }) => chars,
   template_parts: ({ parts }, { T }) => parts.map(T).join(""),
-  template_expand_arg: ({ name }, { T, args }) => {
-    return args[T(name)].convert("string").value
+  template_expand_arg: ({ name }, { toNbt, Nbt, args }) => {
+    return Nbt(args[Nbt(name)])
   },
   template_expand_tag: ({ name }, { T, tagId }) => {
     return tagId(T(name))
@@ -339,13 +357,23 @@ const transformers = {
   },
   tag_set: ({ selector, tag }, { T }) => `tag ${T(selector)} add ${T(tag)}`,
   tag_unset: ({ selector, tag }, { T }) => `tag ${T(selector)} remove ${T(tag)}`,
-  assign_tag_value: ({ selector, tag }, { T }) => `tag ${T(selector)} ${T(value).value ? "add" : "remove"} ${T(tag)}`,
   nbt_path: ({ path }, { T }) => path.map(T).join(""),
   nbt_path_root: ({ name, match }, { T }) => [name, match].filter(Boolean).map(T).join(""),
   nbt_path_member: ({ name, match }, { T }) => "." + [name, match].filter(Boolean).map(T).join(""),
   nbt_path_list: () => "[]",
-  nbt_path_list_element: ({ index }, { T }) => (console.log(index), `[${T(index).format()}]`),
+  nbt_path_list_element: ({ index }, { T }) => (`[${T(index)}]`),
   nbt_path_list_match: ({ match }, { T }) => `[${T(match)}]`,
   nbt_path_match: ({ match }, { T }) => `${T(match)}`,
-  tilde: ({number})=>`~${number}`
+  tilde: ({ number }) => `~${number}`,
+  raw_tag: ({props,attr,parts},{Nbt,toNbt}) => {
+    const ret = Nbt({...props})
+    for (const {name,value} of attr) {
+      console.log("attr",name,value);
+      ret[Nbt(name)]=Nbt(value);
+    }
+    ret.text ??= "";
+    if (parts) ret.extra = parts.map(Nbt)
+    return Nbt(ret);
+  },
+  raw_chars: ({chars},{Nbt}) => Nbt(chars)
 }

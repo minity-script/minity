@@ -8,6 +8,10 @@
   }
 }
 
+
+
+
+
 file = _ head:namespace tail:(EOL _ @namespace)* _{
   return N('file',{namespaces:[head,...tail]})
 }
@@ -406,8 +410,8 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     condition_part = condition_tag/condition_brackets
 
     condition_tag 
-    = "." value:tag_id { return [N('cond_brackets', { name:"tag", op:"=", value }) ]  }
-    / ".!" value:tag_id  { return [N('cond_brackets', { name:"tag", op:"=!", value }) ]   }
+    = "." value:tag_id { return [N('cond_brackets_noquotes', { name:"tag", op:"=", value }) ]  }
+    / ".!" value:tag_id  { return [N('cond_brackets_noquotes', { name:"tag", op:"=!", value }) ]   }
 
     condition_brackets  
       = "[" _ 
@@ -420,12 +424,9 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     cond_brackets  
       =   node: 
           (	 ($("d"? [xyz] / [xy] "_rotation") cond_op number )
-          /  (( "nbt" ) cond_op json )
           /  (( "type" ) cond_op resloc_or_tag_mc )
           /  (( "predicate" ) cond_op resloc )
           /  (( "distance" / "level") cond_op range )
-          /  (( "tag" / "team") cond_op string? )
-          /  (( "name")         cond_op string )
           /  (( "sort")         cond_op sort_name )
           /  (( "limit")        cond_op int)
           /  (( "gamemode")     cond_op gamemode)
@@ -435,8 +436,16 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
         {
           const [name,op,value] = node;
           return N('cond_brackets', {name,op,value} )
-        }
-
+        } 
+      / node:(( "tag" / "team" / "name") cond_op string? ) {
+          const [name,op,value] = node;
+          return N('cond_brackets_noquotes', {name,op,value} )
+        } 
+      / node:(( "nbt") cond_op object ) {
+          const [name,op,value] = node;
+          return N('cond_brackets_nbt', {name,op,value} )
+        } 
+          
     cond_op
       = _ @$("=" "!"?) _
 
@@ -854,8 +863,8 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
         }
 
     bool_lit
-      = "true" { return N('literal', { type:"bool", value: true  } ) }
-      / "false" { return N('literal', { type:"bool", value: false  } ) }
+      = "true" { return N('boolean_lit', { type:"bool", value: true  } ) }
+      / "false" { return N('boolean_lit', { type:"bool", value: false  } ) }
 
   //\\ object
     object 
@@ -876,7 +885,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
           }
         )?
         END
-        { return N('literal', { type:"object",members:members||[] } ) }
+        { return N('object_lit', { type:"object",members:members||[] } ) }
     member
       = name:(string) _":"_ value:value {
           return { name: name, value: value };
@@ -900,7 +909,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
           { return [head].concat(tail); }
         )?
         _"]"
-        { return N('literal', { type:"array", items: items || [] } ) }
+        { return N('array_lit', { type:"array", items: items || [] } ) }
   
   //\\ number
     number 
@@ -922,7 +931,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
     int_lit  "integer"
       = value:INT suffix:[bsli]? {
-          return N('literal', { type:"int",value:+value,suffix } )
+          return N('number_lit', { type:"int",value:+value,suffix } )
         }
 
     float  
@@ -942,15 +951,15 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
     typed_float_lit 
       = value:FLOAT suffix:[fd]? {
-          return N('literal', { type:"float",value:+value,suffix } )
+          return N('number_lit', { type:"float",value:+value,suffix } )
         } 
       / value:INT suffix:[fd] {
-          return N('literal', { type:"float",value:+value,suffix } )
+          return N('number_lit', { type:"float",value:+value,suffix } )
         }
         
     untyped_float_lit
       = value:(FLOAT/INT) {
-          return N('literal', { type:"float",value:+value } )
+          return N('number_lit', { type:"float",value:+value } )
         } 
 
     FLOAT
@@ -978,13 +987,14 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
     ident_lit   
       =  word:WORD { 
-        return N('literal', { type:"ident", value: word  } )
+        return N('string_lit', { type:"ident", value: word  } )
       }
 
   //\\ string
     string 
       = string_arg
       / string_lit
+      
     string_arg 
       = name:arg_name {
           return N('arg', { type:"string",name } ) 
@@ -993,6 +1003,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       = template_lit
       / string_json_lit 
       / ident_lit
+      / raw_text_lit
 
     template 
       = template_arg 
@@ -1005,8 +1016,8 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
 
     template_lit  
-      = '"' value:template_parts '"' {
-        return N('literal', { type:"template", value } )
+      = '"' parts:template_part* '"' {
+        return N('template_lit', { type:"template", parts } )
       }
 
     template_parts 
@@ -1068,7 +1079,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
         }
     string_json_lit 
       = "json" __ value:value { 
-        return N('literal', { type:"string_json", value: value  } )
+        return N('string_json', { type:"string_json", value: value  } )
         } 
 
     char
@@ -1097,6 +1108,93 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     unescaped
       = [^\0-\x1F\\]
 
+LT = "<" _
+LTS = "</" _
+GT = _ ">"
+SGT = _ "/>"
+
+	raw_text 
+      = raw_text_arg
+      / raw_text_lit
+      
+    raw_text_lit
+      = raw_tag
+
+    raw_text_arg 
+      = name:arg_name {
+          return N('arg', { type:"raw_text",name } ) 
+        }
+    
+
+raw_tag 
+  = open:raw_tag_open GT
+  	parts:raw_tag_part*
+    close:(
+      tag:raw_tag_close {
+      	if(tag == open.tag) return tag;
+        expected("</"+open.tag+">",)
+      }
+    ) { 
+    	open.parts = parts;
+      return open;
+    }
+  / @raw_tag_open SGT 
+
+raw_tag_open
+  = LT attr:(head:raw_attr tail:(_ @raw_attr)* { return [head,...tail] }) &(GT/SGT) {
+  	const tag = N("raw_tag",{props:{}})
+  	tag.attr = attr;
+    return tag;	
+    }
+  / LT tag:raw_tag_name attr:(_ @raw_attr)* &(GT/SGT) {
+  	tag.attr = attr;
+    return tag;
+	}
+
+raw_attr = name:string EQUALS value:value {
+	return {name,value}
+}
+
+raw_tag_close
+  = LTS @WORD? GT
+
+raw_tag_part 
+  = @raw_tag 
+  / chars:$(!LT char/[\n\r\t])+ {
+  	return N('raw_chars',{chars:chars.replace(/(\s*\n\s*)/g,"\n")})
+  }
+  
+
+raw_tag_name 
+	=  tag:"span" {
+    	return N("raw_tag",{tag,props:{}})
+    } / tag:"b" {
+    	return N("raw_tag",{tag,props:{bold:true}})
+    } / tag:"i" {
+    	return N("raw_tag",{tag,props:{italic:true}})
+    } / tag:"u" {
+    	return N("raw_tag",{tag,props:{underlined:true}})
+    } 
+    / tag:( "black" 
+      / "dark_blue"
+      / "dark_green"
+      / "dark_aqua"
+      / "dark_red" 
+      / "dark_purple" 
+      / "gold" 
+      / "gray" 
+      / "dark_gray"
+      / "blue" 
+      / "green" 
+      / "aqua" 
+      / "red" 
+      / "light_purple"
+      / "yellow"
+      / "white"
+      / "reset"
+      ) {
+    	return N("raw_tag",{tag,props:{color:tag}})
+      }
 
 
 //\\ TOKENS

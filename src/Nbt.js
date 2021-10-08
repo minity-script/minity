@@ -1,8 +1,9 @@
 const IS_NBT = Symbol()
 const TO_NBT = Symbol()
+const TO_JSON = Symbol()
 
 const Nbt = exports.Nbt = function Nbt(value,...args) {
-  if (value[IS_NBT]) return value;
+  if (Nbt.isNbt(value)) return value;
   if (typeof value === 'boolean') {
     return new NbtBoolean(value,...args);
   }
@@ -18,9 +19,17 @@ const Nbt = exports.Nbt = function Nbt(value,...args) {
   if (typeof value === 'object') {
     return new NbtCompound(value,...args);
   }
-  return new Nbt(value);
+  console.log("bad value", value,...args)
+  debugger;
+  throw new Error("bad nbt value")
 }
+Nbt.isNbt = value => {
+  //console.log("is", value)
+	return (value ?? false) && !!value[IS_NBT];
+}
+
 Nbt.toNbt = value => {
+
 	return Nbt(value)[TO_NBT]();
 }
 Nbt.toSnbt = value => {
@@ -31,9 +40,9 @@ Nbt.toSnbt = value => {
   );
 }
 Nbt.toJson = value => {
-return (
+return JSON.stringify(Nbt(value)); (
   	"'" 
-		+ JSON.stringify(Nbt(value))
+		+ JSON.stringify(Nbt(value)).replace(/[\\']/g, c=>"\\"+c) 
     + "'"
   );
 }
@@ -51,32 +60,41 @@ class NbtNumber extends Number {
 
 class NbtString extends String {
   [TO_NBT]() {
-  	return this;
+  	return JSON.stringify(this);
   } 
 	[IS_NBT] = true;
 }
 
-class NbtCompound {
+class NbtBoolean extends Boolean {
+  [TO_NBT]() {
+  	return JSON.stringify(this);
+  } 
+	[IS_NBT] = true;
+}
+
+
+class NbtCompound{
 	[IS_NBT]=true;
   [TO_NBT]() {
   	let ret =[];
     for (let id in this) {
-    	if (!id.match(/^[a-z_]\w*$/i)) id = JSON.stringify(id);
-    	ret.push(id +":"+ Nbt.toNbt(this[id]))
+    	let key = (!id.match(/^[a-z_]\w*$/i)) ? JSON.stringify(id) : id;
+      //if (typeof this[id] === "undefined") console.log("UNDEFINED",id,JSON.stringify(this))
+    	ret.push(key +":"+ Nbt.toNbt(this[id]))
     }
     return "{"+ret.join(',')+"}";
   } 
 	constructor(value) {
-  	let mine = {};
-    for (const id in value) {
-    	this[id] = Nbt(value[id])
-    }
-    return new Proxy(this,{
+    let proxy = new Proxy(this,{
     	set:(obj, prop, value) => {
     		obj[prop] = Nbt(value)
         return true;
       }
     })
+    for (const id in value) {
+      this[id] = Nbt(value[id]);
+    }
+    return proxy;
   }
 }
 
@@ -103,3 +121,4 @@ class NbtList extends Array {
     })
   }
 }
+
