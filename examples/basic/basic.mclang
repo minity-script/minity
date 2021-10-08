@@ -56,6 +56,8 @@ macro do_update_locks(?is_lock,?is_key,?delta=1) {
   }
 }
 
+
+
 macro update_locks(?color,?delta=1) {
   do_update_locks("is_{?color}_lock","{.is_{?color}_key}",?delta)
 }

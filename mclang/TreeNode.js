@@ -15,21 +15,16 @@ const TreeNode = exports.TreeNode = class TreeNode {
     }
     Object.assign(this, props);
     this.transformer = transformers[this.$];
-    if (!this.transformer) throw "no transformer for " + this.$;
+    if (!this.transformer) {
+      throw new MclError("no transformer for " + this.$,this.location);
+    }
   }
   transform = (frame, proxy = this) => {
     try {
       return this.transformer(proxy, frame)
     } catch (e) {
-      //console.log([...(e.stack||e.message||"error").split("\n    at").slice(0, 3), "    ...."].join("\n    at"))
       e.location ??= this.location;
       throw (e)
-    }
-  }
-  assert = (test, message) => {
-    if (!test) {
-      console.log(this)
-      throw new MclError(message, this.location)
     }
   }
 }
@@ -260,9 +255,10 @@ const transformers = {
   function_call({ resloc }, { T, ns }) {
     return "function " + T(resloc);
   },
-  json(node, { T }) {
-    return T(node.json)
-  },
+  score_id: ({ holder, id }, { T, scoreObjective }) => `${T(holder)} ${scoreObjective(id)}`,
+  var_id: ({ name }, {varId }) => varId(name),
+  constant_id: ({ name }, { constantId }) => constantId(name),
+  
   datapath: ({ head, path }, { T }) => `${T(head)} ${T(path)}`,
 
   datapath_var: ({ path }, { T, ns }) => `storage ${ns}:mcl_vars ${T(path)}`,
@@ -319,28 +315,19 @@ const transformers = {
     return "scoreboard players add " + T(left) + " 1"
   },
   assign_scoreboard_dec({ left }, { constantId, T }) {
-    const c = constantId(1);
-    return "scoreboard players add " + T(left) + " " + c;
+    return "scoreboard players add " + T(left) + " " + -1;
   },
   assign_scoreboard_operation({ left, op, right }, { T }) {
     return "scoreboard players operation " + T(left) + " " + op + " " + T(right);
   },
-  assign_scoreboard_datapath(node, { T }) {
-    return "execute store result score " + T(node.left) + " run data get " + T(node.right);
-  },
-  assign_scoreboard_statement(node, { T }) {
-    return "execute store result score " + T(node.left) + " run " + T(node.right);
-  },
-  score_id: ({ holder, id }, { T, scoreObjective }) => {
-    return T(holder) + " " + scoreObjective(id)
-  },
-  var_id: ({ name, assert }, { varExists, varId }) => {
-    assert(varExists(name), "Undeclared var $" + name);
-    return varId(name);
-  },
-  constant_id: ({ value }, { constantId, T }) => {
-    return constantId(T(value));
-  },
+  assign_execute: ({left,right},{T}) => `execute store result ${T(left)} run ${T(right)}`,
+  assign_store_scoreboard: ({id},{T}) => `score ${T(id)}`,
+  assign_store_datapath: ({path},{T}) => `data ${T(id)}`,
+  assign_store_bossbar: ({id},{T}) => `bossbar ${T(id)} ${prop}`,
+  assign_run_scoreboard: ({id},{T}) => `scoreboard players get ${T(id)}`,
+  assign_store_datapath: ({path},{T}) => `data get ${T(path)}`,
+  assign_store_bossbar: ({id},{T}) => `bossbar get ${T(id)} ${prop}`,
+
   test_entity(node, { T }) {
     return "entity " + T(node.selector)
   },

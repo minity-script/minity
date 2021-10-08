@@ -34,7 +34,6 @@
   * seed
   * spectate
   * spreadplayers
-  * summon
   * team
   * teammsg
   * teleport

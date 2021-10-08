@@ -64,7 +64,10 @@ const Frame = exports.Frame =
     varExists = name => !!this.vars[name];
     varName = (name) => this.vars[name].name
     varObjective = (name) => this.vars[name].objective
-    varId = (name) => this.varName(name) + " " + this.varObjective(name)
+    varId = (name) => {
+      assert(this.vars[name],"Undeclared Variable");
+      this.varName(name) + " " + this.varObjective(name)
+    }
 
     declareScore = (s, criterion) => {
       const objective = this.scopedName(s);

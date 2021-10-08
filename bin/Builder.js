@@ -2,7 +2,7 @@ const { readFileSync, readdirSync, statSync, rmSync, writeFileSync, cpSync, mkdi
 const { relative, dirname, basename, resolve, extname } = require("path");
 const { merge } = require("merge");
 
-const mcl = require("../mclang");
+const mclang = require("../mclang");
 const { Result } = require("../mclang/Result");
 
 exports.Builder = class Builder {
@@ -76,8 +76,13 @@ exports.Builder = class Builder {
   }
 
   compileMclFile(path) {
-    const text = readFileSync(path, { encoding: "utf8" });
-    return mcl.compile(text,this.result);
+    try {
+      const text = readFileSync(path, { encoding: "utf8" });
+      return mclang.compile(text,{result:this.result});
+    } catch (e) {
+      e.file = path;
+      throw(e);
+    }
   }
 
   prepare() {

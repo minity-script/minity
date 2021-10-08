@@ -93,18 +93,57 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
   statement 
     = command
+    / assign
     / cmd
-    / declare_var
-    / declare_score
-    / tag_set
-    / tag_unset
-    / declare_tag
+    / builtin
+    / declare
     / execute
     / if_else
     / print
     / function_call
     / macro_call
-    / assign
+
+//\\ assign
+  assign 'assignment'
+    = assign_scoreboard 
+    / assign_datapath 
+    / assign_bossbar
+    / assign_execute
+    / delete_datapath 
+
+  declare "declaration"
+    = declare_var
+    / declare_score
+
+  assign_execute
+    = left:assign_store EQUALS right:assign_run {
+        return N('assign_execute',{left,right}) 
+      }
+
+  assign_store 
+    = id: scoreboard_id {
+        return N('assign_store_scoreboard',{id})
+      }
+    / path: datapath {
+        return N('assign_store_datapath',{path})
+      }
+    / "bossbar" __ id:bossbar_id __ prop:("value"/"max"/"visible") {
+        return N('assign_store_bossbar',{path})
+      }
+
+  assign_run 
+    = id: scoreboard_id {
+        return N('assign_run_scoreboard',{id})
+      }
+    / path: datapath {
+        return N('assign_run_datapath',{path})
+      }
+    / "bossbar" __ id:bossbar_id __ prop:("value"/"max"/"visible") {
+        return N('assign_run_bossbar',{path})
+      }
+    / statement:statement {
+        return N('assign_run_statement',{statement})
+      }
 
 //\\ print
   print = "print" selector:(__ @selector)? __ parts:print_parts {
@@ -150,31 +189,36 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       / "\\" @.
     
   cmd 
-    = cmd_give
-    / cmd_after
-    / cmd_setblock
-    / cmd_summon 
-
-  cmd_summon 
     = "summon" pos:(_ @pos_any)? __ type:resloc_mc nbt:(_ @object)? then:(__ "then" __ @code )? {
         return N('cmd_summon', { pos,type,nbt, then } )
       }
-
-  cmd_give 
-    = "give" __ selector:selector __ type:resloc_mc nbt:(_ @object)? {
+    / "give" __ selector:selector __ type:resloc_mc nbt:(_ @object)? {
         return N('cmd_give', { selector,type,nbt } )
       }
-
-  cmd_setblock 
-    = "setblock" pos:(_ @pos_any)? __ block:block_spec {
+    / "setblock" pos:(_ @pos_any)? __ block:block_spec {
         return N('cmd_setblock', { pos, block } )
       }
-
-  cmd_after
-    = "after" __ time:untyped_float unit:[tds]? __ fn:cmd_arg_function {
+    / "after" __ time:untyped_float unit:[tds]? __ fn:cmd_arg_function {
         return N('cmd_after', { time, unit: (unit ?? "t"), fn } )
+      } 
+      /*
+    / "bbossbar" __ "add" __ id:bossbar_id __ name:string? {
+        return N('bossbar_add', { id, name} )
       }
+    / "bbossbar" __ "remove" __ id:bossbar_id {
+        return N('bossbar_remove', { id } )
+    } */
 
+  builtin
+   =  "tag" __ tag:tag_id __ selector:selector {
+        return N('tag_set',{selector,tag})
+      }
+    / "untag" __ tag:tag_id __ selector:selector {
+        return N('tag_unset',{selector,tag})
+      }
+    / "tag" __ name:string {
+        return N('declare_tag',{name})
+      }
 
 
 //\\ call
@@ -498,11 +542,6 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       / "adventure"
       / "spectator"
 
-//\\ assign
-  assign 'assignment'
-    = assign_scoreboard 
-    / assign_datapath 
-    / delete_datapath // assign_tag
 
   
 
@@ -524,19 +563,30 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       return N('test_block', { spec } )
     } 
 
+//\\ bossbar
+  //\\ bossbar assign
+  assign_bossbar
+    = "bossbar" __ id:bossbar_id __ assign:assign_bossbar_rhand {
+      assign.id = id;
+      return assign;
+    }
+
+assign_bossbar_rhand 
+  = prop:("name"/"style"/"color") EQUALS value:string {
+      return N('assign_bossbar_set', { prop, value } )
+    }
+  / prop:"players" EQUALS players:selector {
+      return N('assign_bossbar_set', { prop, value } )
+    }
+  / prop:("max"/"value"/"visible") EQUALS value:int {
+      return N('assign_bossbar_set', { prop, value } )
+    }
+
+  bossbar_id 
+    = name:resloc {
+      return N('bossbar_id',{name})
+    }
 //\\ tag
-  declare_tag
-    = "tag" __ name:string {
-        return N('declare_tag',{name})
-      }
-  tag_set
-    = "tag" __ tag:tag_id __ selector:selector {
-        return N('tag_set',{selector,tag})
-      }
-  tag_unset
-    = "untag" __ tag:tag_id __ selector:selector {
-        return N('tag_unset',{selector,tag})
-      }
     
   tag_id 
     = name:string {
@@ -604,12 +654,6 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
             }
           / "--" {
             return N('assign_scoreboard_dec',{})
-            }
-          / "=" _ right:datapath {
-              return N('assign_scoreboard_datapath', { right } )
-            }
-          / "=" _ right:statement {
-              return N('assign_scoreboard_statement', { right } )
             }
         ) {
           assign.left = left;
@@ -742,15 +786,10 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       = right:int {
         return N('assign_datapath_value', { right } )
       }
-      / right:scoreboard_id {
-        return N('assign_datapath_scoreboard', { right } )
-      }
       / right:datapath {
         return N('assign_datapath_datapath', { right } )
       }
-      / right:statement {
-        return N('assign_datapath_statement', { right } )
-      }
+ 
 
     delete_datapath 
       = ("delete"/"remove") __ path:datapath {

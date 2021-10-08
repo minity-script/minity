@@ -9,17 +9,9 @@ const { TreeNode } = require("./TreeNode");
 const { Frame } = require("./Frame");
 const { Result } = require("./Result");
 
-const mcl = module.exports = {
-  parse(text) {
-    const ret =  parser.parse(text,{
-      N: (...args) => {
-        const node = new TreeNode(...args);
-        if (!node.transform) {
-          throw "WTF";
-        };
-        return node;
-      }
-    });
+const mclang = module.exports = {
+  parse(text,options={}) {
+    const ret =  parser.parse(text,options);
     return ret;
   },
   findError(text) {
@@ -30,14 +22,20 @@ const mcl = module.exports = {
       return error;
     }
   },
-  transform(tree, result) {
+  transform(tree, {result= new Result()}) {
     const root = new Frame.Root({result});
     root.transform(tree);
     return root.result;
   },
-  compile(text, result = new Result() ) {
-    const ret = mcl.transform(mcl.parse(text), result);
-    //console.log(ret);
+  compile(text, {result,...rest} ) {
+    const tree = mclang.parse(text,{
+      ...rest,
+      N: (...args) => {
+        const node = new TreeNode(...args);
+        return node;
+      }
+    })
+    const ret = mclang.transform(tree,{result});
     return ret;
   }
 }
