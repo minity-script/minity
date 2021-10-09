@@ -15,11 +15,16 @@ namespace colored_keys
 // Variables are stored on the scoreboard under namespaced identifiers
 // so you don't need to worry about name clashes with other namespaces.
 var $count = 0
+function foo  {
+  $count++  
+  north 0.2 {
+    as @p print $count
+    unless (stone) foo() 
+    else setblock air
+  }
+}
 
-every 1s {
-  $count ++
-  as @p print $count
-} until ($count>=10)
+
 
 // If we don't assign a value to the variable, it will be retained from
 // between reloads.
