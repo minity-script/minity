@@ -8,7 +8,7 @@
     "debug": "nodemon --inspect bin/index.js -e .js,.pegjs,.mclang,.json -w mclang -w examples/basic build examples/basic build/basic"
   },
   "bin": {
-    "mclang" : "bin/index.js"
+    "mclang": "bin/index.js"
   },
   "author": "Zoran Obradović",
   "license": "ISC",
@@ -20,8 +20,6 @@
   "dependencies": {
     "merge": "^2.1.1",
     "merge-anything": "^4.0.1",
-    "optant": "^2.0.0",
-    "parcel": "*",
     "peggy": "^1.2.0"
   }
 }
