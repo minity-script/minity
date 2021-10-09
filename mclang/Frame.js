@@ -21,6 +21,10 @@ const Frame = exports.Frame =
       return this.transform;
     }
     
+    O = node => {
+      if (node===null) return "";
+      return this.T(node);
+    }
     importFile = (file) => {
       let path = resolve(dirname(this.root.file),String(file));
       mclang.compileFile(path,{result:this.result})

@@ -76,28 +76,17 @@ const transformers = {
     conds = conds.concat(conditions.map(T));
     return "@" + initial + "[" + conds.join(",") + "]"
   },
-  cond_brackets({ name, op, value }, { T, toNbt }) {
-    return name + op + T(value);
-  },
-  cond_brackets_noquotes({ name, op, value }, { T, Nbt }) {
-    return name + op + T(value);
-  },
-  cond_brackets_nbt({ name, op, value }, { T, toNbt }) {
-    return name + op + toNbt(value);
-  },
+  cond_brackets:({ name, op, value }, { T} ) => `${name} ${op} ${T(value)}`,
+  cond_brackets_noquotes:({ name, op, value }, { T} ) => `${name} ${op} ${T(value)}`,
+  cond_brackets_nbt:({ name, op, value }, { toNbt }) => `${name} ${op} ${toNbt(value)}`,
   cond_brackets_pair: ({ name, value }, { T, toNbt }) => T(name) + "=" + T(value),
   cond_brackets_braces: ({ items }, { T, toNbt }) => "{" + items.map(T).join(",") + "}",
   block_spec_state: ({ name, value }, { T }) => T(name) + "=" + T(value),
   block_spec_states: ({ states }, { T }) => "[" + states.map(T).join(",") + "]",
-  block_spec: ({ resloc, states, nbt }, { T }) => {
-    let ret = T(resloc);
-    if (states) ret += T(states);
-    if (nbt) ret += T(nbt);
-    return ret;
-  },
-  test_block({ spec }, { T }) {
-    return "block ~ ~ ~ " + T(spec)
-  },
+  block_spec: ({ resloc, states, nbt }, { T,O }) => `${T(resloc)}${O(states)}${O(nbt)}`,
+  test_block:({ spec }, { T }) => `block ~ ~ ~ ${T(spec)}`,
+  test_block_pos:({ pos, spec }, { T }) => `block ${T(pos)} ${T(spec)}`,
+  test_predicate:({ resloc }, { T }) => `predicate ${T(resloc)}`,
   resloc(node, { T, ns }) {
     return (node.ns ? T(node.ns) : ns) + ":" + T(node.name);
   },
@@ -119,21 +108,11 @@ const transformers = {
   execute(node, { T }) {
     return "execute " + node.mods.map(T).join(" ") + " run " + T(node.code)
   },
-  mod_as(node, { T }) {
-    return "as " + T(node.selector)
-  },
-  mod_at(node, { T }) {
-    return "at " + T(node.selector)
-  },
-  mod_for(node, { T }) {
-    return "as " + T(node.selector) + " at @s"
-  },
-  mod_if(node, { T }) {
-    return "if " + T(node.test)
-  },
-  mod_unless(node, { T }) {
-    return "unless " + T(node.test)
-  },
+  mod_as:({selector}, { T }) => `às ${T(selector)}`,
+  mod_at:({selector}, { T }) => `àt ${T(selector)}`,
+  mod_for:({selector}, { T }) => `às ${T(selector)} at @s`,
+  mod_if:({test}, { T }) => `if ${T(test)}`,
+  mod_unless:({test}, { T }) => `unless ${T(test)}`,
   mod_pos: ({ pos }, { T }) => `positioned ${T(pos)}`,
   mod_dir: ({ mods }, { toNbt }) => {
     const pos = { x: 0, y: 0, z: 0 }
@@ -146,37 +125,23 @@ const transformers = {
     for (const { dir, off, f } of mods) pos[dir] += toNbt(off) * f;
     return `rotated ~${pos.x} ~${pos.y}`
   },
-  pos_abs(node, { T }) {
-    return [T(node.x), T(node.y), T(node.z)].join(" ")
-  },
+  pos_abs: ({x,y,z}, { T }) => `${T(x)} ${T(y)} ${T(z)}`,
   pos_mod({ mods }, { toNbt }) {
     const pos = { x: 0, y: 0, z: 0 }
     for (const { dir, off, f } of mods) pos[dir] += toNbt(off) * f;
     return `~${pos.x} ~${pos.y} ~${pos.z}`
   },
-  pos_from(node, { T }) {
-    return "^" + [T(node.x), T(node.y), T(node.z)].join(" ^")
-  },
-  rot_abs(node, { T }) {
-    return [T(node.x), T(node.y)].join(" ")
-  },
+  pos_from:(node, { T }) => `^${T(x)} ^${T(y)} ^${T(z)}`,
+  rot_abs: ({x,y}, { T }) => `${T(x)} ${T(y)}`,
   rot_mod({ mods }, { T }) {
     const pos = { x: 0, y: 0, z: 0 }
     for (const { dir, off, f } of mods) pos[dir] += T(off).value * f;
     return `~${pos.x} ~${pos.y}`
   },
-  range(node, { T }) {
-    return T(node.from) + ".." + T(node.to);
-  },
-  range_from(node, { T }) {
-    return T(node.from) + "..";
-  },
-  range_to(node, { T }) {
-    return ".." + T(node.to);
-  },
-  command(node, { T }) {
-    return T(node.command)
-  },
+  range: ({from,to}, { T }) => `${T(from)}..${T(to)}`,
+  range_from: ({from}, { T }) => `${T(from)}..`,
+  range_to: ({to}, { T }) => `..${T(to)}`,
+  command: ({command}, { T }) => `..${T(command)}`,
   cmd_summon: ({ pos, type, nbt, then }, { T, addBlock, Nbt, toNbt }) => {
     if (!then) return `summon ${pos ? T(pos) : "~ ~ ~"} ${T(type)}${nbt ? toNbt(nbt) : ''}`
 

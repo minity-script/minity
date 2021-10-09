@@ -60,13 +60,11 @@ tag is_book
 
 macro do_update_locks(?is_lock,?is_key,?delta=1) {
   for @s.?is_lock {
-    up ?delta if @p[distance = ..2]::{
-      Inventory:[{tag:{Tags:["{.is_key}"]}}]
-    } {
+    up ?delta if @a[distance = ..2]::Inventory[{tag:{Tags:["{.is_key}"]}}] {
       down ?delta setblock redstone_block
-    } else {
-      down ?delta setblock glass
-    } 
+    } // else {
+      // down ?delta setblock glass
+    //} 
   }
 }
 
