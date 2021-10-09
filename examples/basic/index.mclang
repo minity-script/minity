@@ -6,6 +6,7 @@ namespace colored_keys
 // that don't have syntax sugar provided by McLang
 /say Hello World
 
+
 // All the statements in the root scope of the namespace will be
 // executed on (re)load.
 /say Tutorial loaded
@@ -15,21 +16,32 @@ namespace colored_keys
 // so you don't need to worry about name clashes with other namespaces.
 var $count = 0
 
+every 1s {
+  $count ++
+  as @p print $count
+} until ($count>=10)
+
 // If we don't assign a value to the variable, it will be retained from
 // between reloads.
 var $enabled
+
+as @p print enabled $enabled
 
 // Define a function in the current namespaces. 
 // You can call it with function_name() from McLang, or 
 // with /function namespace:function:name from the Minecraft command prompt
 
+if ($enabled>0) update_all_locks()
+
 function enable {
   $enabled = 1
+  update_all_locks()
 }
 
 function disable {
   $enabled = 0
 }
+
 
 tag is_lock
 tag is_dead_lock
@@ -43,12 +55,9 @@ tag is_book
 
 macro do_update_locks(?is_lock,?is_key,?delta=1) {
   for @s.?is_lock {
-    up ?delta 
-    if @p[ distance = ..2, nbt = {
-      Inventory:[{
-        tag:{ "{.is_key}":1b }
-      }]
-    }] {
+    up ?delta if @p[distance = ..2]::{
+      Inventory:[{tag:{Tags:["{.is_key}"]}}]
+    } {
       down ?delta setblock redstone_block
     } else {
       down ?delta setblock glass
@@ -62,31 +71,32 @@ macro update_locks(?color,?delta=1) {
   do_update_locks("is_{?color}_lock","{.is_{?color}_key}",?delta)
 }
 
-function update_all_locks #minecraft:tick {
-  if $enabled > 0 {
-    for @slime.is_lock {
-      unless air {
-        update_locks(blue)
-        update_locks(red)
-      } else {
-        /say i am dead
-        tag is_dead_lock @s
-        untag is_lock @s 
-        after 3s {
-          /say reviving
-          for @slime.is_dead_lock {
-            untag is_dead_lock @s 
-            tag is_lock @s 
-            setblock glass
-          }        
-        }
+function update_all_locks {
+  for @slime.is_lock {
+    unless air {
+      update_locks(blue)
+      update_locks(red)
+    } else {
+      /say i am dead
+      tag is_dead_lock @s
+      untag is_lock @s 
+      after 3s {
+        /say reviving
+        for @slime.is_dead_lock {
+          untag is_dead_lock @s 
+          tag is_lock @s 
+          setblock glass
+        }        
       }
     }
-  } 
+  }
+  after 2t {
+    if ( $enabled > 0)  update_all_locks()
+  }
 }
 
 macro give_lock(?color,?Color,?textColor=white) {
-  give @s command_block {
+  give @s command_block::{
    display: {
      Name:  json [ {
        color: "{?textColor}",
@@ -115,17 +125,18 @@ function give_red_lock {
   give_lock(red,Red,red)  
 }
 macro summon_lock(?color,?Color) {
-  down 0.5 summon slime {
+  down 0.5 summon slime::{
     CustomName: json "{?Color} Lock",
     Invulnerable: true,
-    NoAI: true,
-    Silent: true,
+    Silent: true
   } then {
-    tag is_lock @s
-    tag "is_{?color}_lock" @s 
+    @s::NoAI = true
+    append @s::Tags "{.is_{?color}_lock}"
+    append @s::Tags "{.is_lock}"
+    //tag is_lock @s
+    setblock glass
   }
 }
-
 
 function summon_blue_lock {
   summon_lock(blue, Blue)
@@ -136,7 +147,7 @@ function summon_red_lock {
 }
 
 macro give_key(?color, ?Color, ?baseColor) {
-  give @s shield{
+  give @s shield::{
     display: {
       Name: json [{
         "text":"{?Color} Key",
@@ -150,8 +161,8 @@ macro give_key(?color, ?Color, ?baseColor) {
       ]
     },
     Tags: ["{.is_key}","{.is_{?color}_key}"],
-    "{.is_key}": 1b,
-    "{.is_{?color}_key}":1b,
+    //"{.is_key}": 1b,
+    //"{.is_{?color}_key}":1b,
     BlockEntityTag: {
       Base: ?baseColor,
       Patterns: [
@@ -176,74 +187,4 @@ as @a[nbt={Inventory:[{tag:{is_book:1b}}]}] {
   give_book()
 }
 
-function give_book {
-  give @s written_book {
-    is_book: 1b,
-    "pages": [
-      json <span>
-        <b>COLORED_KEYS</b>
-        
-        Get Key
-        <b><dark_red 
-          text ="\u2588"
-          clickEvent = {
-            action: run_command,
-            value: "/function colored_keys:give_red_key"
-          }
-        /> <dark_aqua 
-          text = "\u2588"
-          clickEvent = {
-            action: run_command,
-            value: "/function colored_keys:give_blue_key"
-          }
-        /> <dark_green 
-          text ="\u2588"
-          clickEvent = {
-            action: run_command,
-            value: "/function colored_keys:give_green_key"
-          }
-        /> <gold 
-          text ="\u2588"
-          clickEvent= {
-            action: run_command,
-            value: "/function colored_keys:give_yellow_key"
-          }
-        /></b>
-
-        Get Lock
-        <b><dark_red 
-          text ="\u2588"
-          clickEvent= {
-            action: run_command,
-            value: "/function colored_keys:give_red_lock"
-          }
-        /> <dark_aqua 
-          text ="\u2588"
-          clickEvent= {
-            action: run_command,
-            value: "/function colored_keys:give_blue_lock"
-          }
-        /> <dark_green 
-          text ="\u2588"
-          clickEvent= {
-            action: run_command,
-            value: "/function colored_keys:give_green_lock"
-          }
-        /> <gold 
-          text ="\u2588"
-          clickEvent= {
-            action: run_command,
-            value: "/function colored_keys:give_yellow_lock"
-          }
-        /></b>
-      </span>
-    ],
-    title: "Colored Keys Handbook",
-    author: "yockz",
-    display: {
-      Lore: [
-          "Commands and instructions for Colored Keys"
-        ]
-      }
-    }
-  }
+import "./give_book.mclang"

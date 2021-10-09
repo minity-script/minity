@@ -1,13 +1,16 @@
-const assert=require("assert");
+const assert = require("assert");
+let mclang = require("./mclang.js");
 const { Result } = require("./Result");
 const { TreeNode } = require("./TreeNode");
-const { Nbt } = require("./Nbt")
+const { Nbt } = require("./Nbt");
+const { resolve, dirname } = require("path");
 const { isNbt, toNbt, toSnbt, toJson } = Nbt;
 
 
 const Frame = exports.Frame =
   class Frame extends Function {
     constructor() {
+      mclang = require("./index.js")
       super()
       this.proxy = new Proxy(this, {
         apply: (target, thisArg, args) => target.transform(...args)
@@ -18,6 +21,10 @@ const Frame = exports.Frame =
       return this.transform;
     }
     
+    importFile = (file) => {
+      let path = resolve(dirname(this.root.file),String(file));
+      mclang.compileFile(path,{result:this.result})
+    }
     Nbt = x => x instanceof TreeNode ? Nbt(this.T(x)) : Nbt(x)
     toNbt = x => x instanceof TreeNode ? toNbt(this.T(x)) : toNbt(x)
     toSnbt = x => x instanceof TreeNode ? toSnbt(this.T(x)) : toSnbt(x)
@@ -43,6 +50,9 @@ const Frame = exports.Frame =
     addBlock = (lines, ns = this.ns) => {
       return this.result.addAnonFunction(ns,lines,this.scopes[this.scopes.length-1]+"_"+(++this.blockCount));
     }
+    anonFunction = (lines,ns=this.ns) => {
+      return "function " + this.addBlock(lines,ns).resloc;
+    }
     addJson = (parts, value) => {
       this.result.addJson(parts, value);
     }
@@ -61,12 +71,15 @@ const Frame = exports.Frame =
       const objective = "mcl." + this.ns;
       this.vars[v] = { v, name, objective };
     }
+    getVar(name) {
+      assert(this.vars[name],`Undeclared Variable $${name}`);
+      return this.vars[name];
+    }
     varExists = name => !!this.vars[name];
-    varName = (name) => this.vars[name].name
-    varObjective = (name) => this.vars[name].objective
+    varName = (name) => this.getVar(name).name;
+    varObjective = (name) => this.getVar(name).objective;
     varId = (name) => {
-      assert(this.vars[name],"Undeclared Variable");
-      this.varName(name) + " " + this.varObjective(name)
+      return this.varName(name) + " " + this.varObjective(name)
     }
 
     declareScore = (s, criterion) => {
@@ -98,8 +111,10 @@ const Frame = exports.Frame =
   }
 
 Frame.Root = class FrameRoot extends Frame {
-  constructor({ ns = "mcl", args = {}, result } = {}) {
+  constructor({ file, ns = "mcl", args = {}, result } = {}) {
     super();
+    console.log("Root Frame",file)
+    this.file = file;
     this.ns = ns;
     this.args = args
     this.scopes = [ns];

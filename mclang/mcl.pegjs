@@ -12,17 +12,17 @@
 
 
 
-file = _ head:namespace tail:(EOL _ @namespace)* _{
+file = ___ head:namespace tail:(EOL @namespace)* ___ {
   return N('file',{namespaces:[head,...tail]})
 }
 //\\ globals
   namespace 
-    = "namespace" __ ns:IDENT EOL _ globals:globals {
+    = "namespace" __ ns:IDENT EOL globals:globals {
         return N('namespace',{ns,globals})
       }
 
   globals 
-    = head:global tail:(EOL _ @global)* {
+    = head:global tail:(EOL @global)* {
         return [head,...tail]
       }
 
@@ -46,7 +46,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     = "?" @WORD
 
   //\\ macro_args
-    macro_args = _ "(" _ head:macro_arg tail:(COMMA @macro_arg)* _ ")" {
+    macro_args = _ "(" ___ head:macro_arg tail:(COMMA @macro_arg)* ___ ")" {
       return [head,...tail]
     }
 
@@ -72,9 +72,9 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       return [head,...tail]
     }
 
-    call_arg_numbered = _ value:macro_arg_literal  {
+    call_arg_numbered = ___ value:macro_arg_literal  {
       return value
-    } / & (_ ",")
+    } / & (COMMA)
 
     call_args_named = head:call_arg_named tail:(COMMA @call_arg_named)* {
       return [head,...tail]
@@ -87,11 +87,11 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
 //\\ statements
   statements 
-    = head:statement tail:(EOL _ @statement)* {
+    = head:statement tail:(EOL @statement)* {
       return [head,...tail]
     }
 
-  statement 
+  statement "statement"
     = command
     / assign
     / cmd
@@ -165,7 +165,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
 
 //\\ commands
 
-  command = _ "/" command:command_parts {
+  command = "/" command:command_parts {
     return N('command', { command  } )
   }
 
@@ -189,10 +189,10 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       / "\\" @.
     
   cmd 
-    = "summon" pos:(_ @pos_any)? __ type:resloc_mc nbt:(_ @object)? then:(__ "then" __ @code )? {
+    = "summon" pos:(_ @pos_any)? __ type:resloc_mc nbt:("::" @object)? then:(__ "then" __ @code )? {
         return N('cmd_summon', { pos,type,nbt, then } )
       }
-    / "give" __ selector:selector __ type:resloc_mc nbt:(_ @object)? {
+    / "give" __ selector:selector __ type:resloc_mc nbt:("::" @object)? {
         return N('cmd_give', { selector,type,nbt } )
       }
     / "setblock" pos:(_ @pos_any)? __ block:block_spec {
@@ -201,16 +201,25 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     / "after" __ time:untyped_float unit:[tds]? __ fn:cmd_arg_function {
         return N('cmd_after', { time, unit: (unit ?? "t"), fn } )
       } 
-      /*
-    / "bbossbar" __ "add" __ id:bossbar_id __ name:string? {
+    / "bossbar" __ "add" __ id:bossbar_id __ name:string? {
         return N('bossbar_add', { id, name} )
       }
-    / "bbossbar" __ "remove" __ id:bossbar_id {
+    / "bossbar" __ "remove" __ id:bossbar_id {
         return N('bossbar_remove', { id } )
-    } */
+    } 
 
   builtin
-   =  "tag" __ tag:tag_id __ selector:selector {
+   =  "import" __ file:string {
+      return N('import',{file})
+    } 
+   /  "repeat" statements:braces _ "until" test:mod_arg_test {
+     return N('repeat_until',{statements,test})
+   } 
+   / "every" __ time:untyped_float unit:[tds]? statements:braces _ "until" test:mod_arg_test {
+     return N('every_until',{statements,test,time,unit})
+   }
+
+   /  "tag" __ tag:tag_id __ selector:selector {
         return N('tag_set',{selector,tag})
       }
     / "untag" __ tag:tag_id __ selector:selector {
@@ -219,21 +228,22 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     / "tag" __ name:string {
         return N('declare_tag',{name})
       }
+    
 
 
 //\\ call
   function_call 
-    = !RESERVED resloc:resloc_or_tag _ "(" _ ")" {
+    = !RESERVED resloc:resloc_or_tag _ OPEN _ CLOSE {
       return N('function_call', { resloc } )
     }
 
   macro_call
-    = name:NAME _ "(" _ args:call_args _ ")" {
+    = name:NAME _ OPEN args:call_args CLOSE {
         return N('macro_call', { name,args } )
       }
 
 //\\ execute
-  execute = mods:mods _ code:code {
+  execute = mods:mods code:code {
     return N('execute', { mods,code } )
   }
   mods = head:mod tail:_mod * {
@@ -243,10 +253,10 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
     return mod;
   }
   
-  OPEN = _ "(" _
-  CLOSE =  _ ")"
-  BEGIN = _ "{" _
-  END =  _ "}"
+  OPEN = _ "(" ___
+  CLOSE =  ___ ")"
+  BEGIN = _ "{" ___
+  END =  ___ "}"
   
   mod_arg_axes 
     = OPEN @("xyz"/"xy"/"xz"/"yz"/"x"/"y"/"z") CLOSE
@@ -316,10 +326,10 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   / mods:mod_dirs {
     return N('mod_dir', { mods } )
   }
-  / "if" test:mod_arg_test !(_ code else) {
+  / "if" test:mod_arg_test !(code else) {
     return N('mod_if', { test } )
   } 
-  / "unless" test:mod_arg_test  !(_ code else) {
+  / "unless" test:mod_arg_test  !(code else) {
     return N('mod_unless', { test } )
   }
 
@@ -362,7 +372,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   pos_any = pos_abs/pos_mod/pos_from
 
   pos_abs
-  = "(" _ x:coord_abs __ y:coord_abs __ z:coord_abs _ ")" {
+  = OPEN x:coord_abs __ y:coord_abs __ z:coord_abs CLOSE {
     return N('pos_abs', { x,y,z } )
   }
 
@@ -372,7 +382,7 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   }
   
   pos_mod
-   = "(" _ mods:mod_dirs _ ")" {
+   = OPEN mods:mod_dirs CLOSE {
    	return N('pos_mod', {mods} )
    }
   
@@ -389,25 +399,28 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   rot_any = rot_abs/rot_mod
 
   rot_abs
-  = "(" _ x:angle_abs __ y:angle_abs  _ ")" {
+  = OPEN x:angle_abs __ y:angle_abs  CLOSE {
     return N('rot_abs', { x,y } )
   }
   
   rot_mod
-   = "(" _ mods:mod_rots _ ")" {
+   = OPEN mods:mod_rots CLOSE {
    	return N('rot_mod', {mods} )
    }
   
 
-  braces
+  braces 
     = BEGIN @statements END 
 
   code 
-    = statements:braces {
+    = statements:code_braces {
       if (statements.length===1) return statements[0]
       return N( 'code', { statements:statements } )
     }
-    / statement
+    / @code_statement
+
+  code_braces "braces" = ___ @braces
+  code_statement "statement" = __ @statement
 
   cmd_arg_function
     = BEGIN statements:statements END { 
@@ -451,19 +464,26 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
       return parts.flat()
     }
 
-    condition_part = condition_tag/condition_brackets
+    condition_part = condition_tag/condition_brackets/condition_nbt
 
-    condition_tag 
+    condition_tag "selector tag"
     = "." value:tag_id { return [N('cond_brackets_noquotes', { name:"tag", op:"=", value }) ]  }
     / ".!" value:tag_id  { return [N('cond_brackets_noquotes', { name:"tag", op:"=!", value }) ]   }
 
-    condition_brackets  
-      = "[" _ 
+    condition_nbt "selector nbt"
+      = "::" value:object {
+        return N('cond_brackets_nbt', {name:"nbt",op:"=",value} )
+      }
+
+
+    condition_brackets "selector brackets"
+      = "[" ___ 
         head:cond_brackets 
         tail:(COMMA @cond_brackets)* 
-        _ "]" {
+        ___ "]" {
         return [head,...tail]
       }
+    
     
     cond_brackets  
       =   node: 
@@ -546,9 +566,9 @@ file = _ head:namespace tail:(EOL _ @namespace)* _{
   
 
 //\\ if_else
-  else = _ "else" __ @code
+  else = ___ "else" @code
 
-  if_else = head:("if"/"unless") test:mod_arg_test _ code:code _else:else {
+  if_else = head:("if"/"unless") test:mod_arg_test code:code _else:else {
     return N('if_else', { head, test,code,_else } )
   }
 
@@ -596,7 +616,7 @@ assign_bossbar_rhand
   //\\ asign_tag
     //\\ assign_scoreboard
     assign_tag
-      = selector:selector "." tag:tag_id _ "=" _ right:bool {
+      = selector:selector "." tag:tag_id EQUALS right:bool {
       		return N('assign_tag_value', { selector, tag, right } )
       	}
           
@@ -676,9 +696,15 @@ assign_bossbar_rhand
       
   //\\ test_scoreboard
     test_scoreboard
-      = left:scoreboard_id _ op:test_scoreboard_op _ right:scoreboard_id {
+      = left:scoreboard_id _ op:test_scoreboard_op _ right:int {
+          return N('test_scoreboard_value',{left,op,right})
+        }
+      / left:scoreboard_id _ op:test_scoreboard_op _ right:scoreboard_id {
           return N('test_scoreboard',{left,op,right})
         }
+      / left:scoreboard_id {
+        return N('test_scoreboard_true',{left})
+      }
     test_scoreboard_op 
       = "<="
       / ">="
@@ -777,18 +803,25 @@ assign_bossbar_rhand
 
   //\\ assign_datapath
     assign_datapath 
-      = left:datapath EQUALS assign:assign_datapath_rhand {
-        assign.left = left;
-        return assign;
-      }
+      = modify:("merge"/"append"/"prepend") __ left:datapath __ right:datapath {
+          return N('datapath_modify_datapath',{modify,left,right})
+        }
+      /  modify:("merge"/"append"/"prepend") __ left:datapath __ right:value {
+          return N('datapath_modify_value',{modify,left,right})
+        }
+      / modify:"append" __ left:datapath __ right:assign_run {
+          return N('datapath_modify_execute',{modify,left,right,index:-1})
+        }
+      / modify:"prepend" __ left:datapath __ right:assign_run {
+          return N('datapath_modify_execute',{modify,left,right,index:0})
+        }
+      / left:datapath EQUALS  right:value {
+          return N('datapath_modify_value', {modify: 'set', left, right } )
+        }
+      / left:datapath EQUALS  right:datapath {
+          return N('datapath_modify_datapath', {modify: 'set', left, right } )
+        }
 
-    assign_datapath_rhand
-      = right:int {
-        return N('assign_datapath_value', { right } )
-      }
-      / right:datapath {
-        return N('assign_datapath_datapath', { right } )
-      }
  
 
     delete_datapath 
@@ -803,12 +836,12 @@ assign_bossbar_rhand
 //\\ block_spec
 
   block_spec 'block predicate'
-    = resloc:resloc_or_tag_mc states:block_states? nbt:object? {
+    = resloc:resloc_or_tag_mc states:block_states? nbt:("::" @object)? {
         return N('block_spec',{resloc,states,nbt})
       }
 
   block_states 
-    = "[" _ head:block_state tail:( COMMA @block_state)* _ "]" {
+    = "[" ___ head:block_state tail:( COMMA @block_state)* ___ "]" {
         return N('block_states',{states:[head,...tail]})
       }
   block_state 
@@ -863,9 +896,9 @@ assign_bossbar_rhand
 
 
   range 
-    = from:number _ ".." to:number { return N('range', { from,to } ) }
+    = from:number ".." to:number { return N('range', { from,to } ) }
     / ".." to:number { return N('range_to', { to } ) }
-    / from:number _ ".."{ return N('range', { from } ) }
+    / from:number ".." { return N('range', { from } ) }
     / number
   json 
     = json:value {
@@ -926,7 +959,7 @@ assign_bossbar_rhand
         END
         { return N('object_lit', { type:"object",members:members||[] } ) }
     member
-      = name:(string) _":"_ value:value {
+      = name:(string) _":" ___ value:value {
           return { name: name, value: value };
         }
 
@@ -940,14 +973,14 @@ assign_bossbar_rhand
       = name:arg_name {	return N('arg', { type:"array",name } ) }
 
     array_lit
-      = "["_
+      = "[" ___
         items:(
           head:value
           tail:(COMMA @value )*
           COMMA?
           { return [head].concat(tail); }
         )?
-        _"]"
+        ___ "]"
         { return N('array_lit', { type:"array", items: items || [] } ) }
   
   //\\ number
@@ -1149,8 +1182,8 @@ assign_bossbar_rhand
 
 LT = "<" _
 LTS = "</" _
-GT = _ ">"
-SGT = _ "/>"
+GT = ___ ">"
+SGT = ___ "/>"
 
 	raw_text 
       = raw_text_arg
@@ -1180,12 +1213,12 @@ raw_tag
   / @raw_tag_open SGT 
 
 raw_tag_open
-  = LT attr:(head:raw_attr tail:(_ @raw_attr)* { return [head,...tail] }) &(GT/SGT) {
+  = LT attr:(head:raw_attr tail:(___ @raw_attr)* { return [head,...tail] }) &(GT/SGT) {
   	const tag = N("raw_tag",{props:{}})
   	tag.attr = attr;
     return tag;	
     }
-  / LT tag:raw_tag_name attr:(_ @raw_attr)* &(GT/SGT) {
+  / LT tag:raw_tag_name attr:(___ @raw_attr)* &(GT/SGT) {
   	tag.attr = attr;
     return tag;
 	}
@@ -1237,7 +1270,7 @@ raw_tag_name
 
 
 //\\ TOKENS
-  COMMA = _ "," _
+  COMMA = ___ "," ___
   EQUALS = _ "=" _
 
   DIGIT  = [0-9]
@@ -1247,15 +1280,17 @@ raw_tag_name
   WORD = $(WORD_INIT WORD_CHAR*)
   IDENT  = WORD
 
-  _ 'whitespace' = WS*
-  __ 'whitespace' = [ \t]+
+  _ 'whitespace' = SPACE*
+  __ 'whitespace' = SPACE+
+  ___ 'whitespace' = WS*
+  SPACE = [ \t]
   WS  
     = [ \n\t\r]
     / EOL_COMMENT
-  EOL 'end of line' = __? [\n\r]+ / EOL_COMMENT
+  EOL 'end of line' = __? [\n\r]+ ___ / EOL_COMMENT
 
 EOL_COMMENT 
-  = "//" [^\n\r]* [\n\r]+
+  = "//" [^\n\r]* [\n\r]+ ___ 
 
 NAME_OR_DIE 
   = NAME

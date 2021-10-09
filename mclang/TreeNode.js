@@ -1,4 +1,3 @@
-
 class MclError extends Error {
   constructor(message, location) {
     super(message);
@@ -30,7 +29,22 @@ const TreeNode = exports.TreeNode = class TreeNode {
 }
 
 const transformers = {
-  VALUE: node => node,
+  file: ({ namespaces }, { T }) => {
+    namespaces.map(T);
+  },
+  import: ({ file }, { importFile , Nbt}) => {
+    importFile(Nbt(file));
+  },
+  namespace: ({ ns, globals }, { createChild, addBlock, addFunctionTag }) => {
+    const S = createChild({ ns, scope: ns });
+    const ret = globals.map(S).filter(Boolean);
+    const lines = [
+      `scoreboard objectives add mcl.${ns} dummy`,
+      ...ret
+    ]
+    const fn = addBlock(lines);
+    fn.addTag("minecraft", "load");
+  },
   string_lit: ({ value }, { Nbt }) => Nbt(String(value)),
   number_lit: ({ value, suffix }, { Nbt }) => Nbt(+value, suffix),
   boolean_lit: ({ value }, { Nbt }) => Nbt(!!value),
@@ -47,9 +61,7 @@ const transformers = {
   string_json: ({ value }, { toJson }) => toJson(value),
   array_lit: ({ items }, { T, Nbt }) =>  Nbt(items.map(T)),
   template_lit: ({ parts }, { T, Nbt }) =>  Nbt(parts.map(Nbt).join("")),
-  file: ({ namespaces }, { T }) => {
-    namespaces.map(T);
-  },
+  
   declare_var: ({ name, value }, { T, toNbt, declareVar, varId }) => {
     declareVar(name);
     if (value) return "scoreboard players set " + varId(name) + " " + toNbt(T(value));
@@ -58,16 +70,6 @@ const transformers = {
   declare_score: ({ name, criterion }, { T, declareScore }) => {
     declareScore(name, criterion);
     return "";
-  },
-  namespace: ({ ns, globals }, { createChild, addBlock, addFunctionTag }) => {
-    const S = createChild({ ns, scope: ns });
-    const ret = globals.map(S).filter(Boolean);
-    const lines = [
-      `scoreboard objectives add mcl.${ns} dummy`,
-      ...ret
-    ]
-    const fn = addBlock(lines);
-    fn.addTag("minecraft", "load");
   },
   selector: ({ head, conditions }, { T,toNbt }) => {
     var { initial, conds = [] } = T(head);
@@ -194,11 +196,23 @@ const transformers = {
   cmd_after: ({ time, unit, fn }, { T, toNbt }) => {
     return `schedule ${T(fn)} ${toNbt(time)}${unit}`
   },
+  repeat_until: ({ statements, test }, { T, addBlock }) => {
+    const lines = statements.map(T);
+    const block = addBlock(lines);
+    block._content.push(`execute unless ${T(test)} run function ${block.resloc}`)
+    return "function "+block.resloc;
+  },
+  every_until: ({ statements, test, time, unit }, { T, Nbt, addBlock }) => {
+    const lines = statements.map(T);
+    const block = addBlock(lines);
+    block._content.push(`execute unless ${T(test)} run schedule function ${block.resloc} ${Nbt(time)}${unit}`)
+    return "function "+block.resloc;
+  },
   cmd_setblock: ({ pos, block }, { T }) => {
     return `setblock ${pos ? T(pos) : "~ ~ ~"} ${T(block)}`
   },
-  code(node, { T, addBlock }) {
-    const lines = node.statements.map(T);
+  code({statements}, { T, addBlock }) {
+    const lines = statements.map(T);
     return "function " + addBlock(lines).resloc;
 
   },
@@ -219,7 +233,7 @@ const transformers = {
     macros[node.name] = node;
     return "";
   },
-  macro_call(node, { Nbt, createChild, macros }) {
+  macro_call(node, { Nbt, createChild, macros, addBlock }) {
     const macro = macros[node.name];
     const new_args = {};
     for (const i in macro.args) {
@@ -255,30 +269,29 @@ const transformers = {
   function_call({ resloc }, { T, ns }) {
     return "function " + T(resloc);
   },
-  score_id: ({ holder, id }, { T, scoreObjective }) => `${T(holder)} ${scoreObjective(id)}`,
-  var_id: ({ name }, {varId }) => varId(name),
-  constant_id: ({ name }, { constantId }) => constantId(name),
+  var_id: ({ name }, {varId, Nbt }) => {
+    return varId(name)
+  },
+  score_id: ({ holder, id }, { T, scoreObjective }) => `${T(holder)} ${scoreObjective(T(id))}`,
+  constant_id: ({ value }, { constantId, Nbt }) => constantId(Nbt(value)),
   
   datapath: ({ head, path }, { T }) => `${T(head)} ${T(path)}`,
 
   datapath_var: ({ path }, { T, ns }) => `storage ${ns}:mcl_vars ${T(path)}`,
   datahead_entity: ({ selector }, { T }) => `entity ${T(selector)}`,
   datahead_storage: ({ name }, { T }) => `storage ${T(name)}`,
-  assign_datapath_value: ({ left, right }, { T }) => `data modify ${T(left)} set value ${T(right)}`,
-  assign_datapath_scoreboard(node, { T }) {
-    return "execute store result " + T(node.left) + " run scoreboard players get " + T(node.right);
-  },
-  assign_datapath_datapath(node, { T }) {
-    return "data modify " + T(node.left) + " set from " + T(node.right);
-  },
-  assign_datapath_statement(node, { T }) {
-    return "execute store result " + T(node.left) + " run " + T(node.right);
-  },
+  datapath_modify_datapath:({modify,left,right}, { T }) => `data modify ${T(left)} ${modify} from ${T(right)}`,
+  datapath_modify_value:({modify,left,right}, { T }) => `data modify ${T(left)} ${modify} value ${T(right)}`,
+  datapath_modify_execute:({modify,left,right}, { T, anonFunction }) => anonFunction([
+    [
+      `data modify ${T(left)} ${modify} value 0`,
+      `execute store ${T(left)}[${T(index)}] set ${T(right)}`,
+    ]
+  ]),
   print: ({ selector, parts }, { T }) => {
     return "tellraw " + (selector ? T(selector) : "@s") + " " + JSON.stringify(parts.map(T));
   },
-  print_var: ({ name, assert }, { T, varExists, varName, varObjective }) => {
-    assert(varExists(name), "undeclared var $" + name);
+  print_var: ({ name }, { T, varExists, varName, varObjective }) => {
     return { score: { name: varName(name), objective: varObjective(name) } }
   },
   print_value: ({ value }, { toNbt }) => {
@@ -314,7 +327,7 @@ const transformers = {
   assign_scoreboard_inc({ left }, { T }) {
     return "scoreboard players add " + T(left) + " 1"
   },
-  assign_scoreboard_dec({ left }, { constantId, T }) {
+  assign_scoreboard_dec({ left }, { T }) {
     return "scoreboard players add " + T(left) + " " + -1;
   },
   assign_scoreboard_operation({ left, op, right }, { T }) {
@@ -328,14 +341,19 @@ const transformers = {
   assign_store_datapath: ({path},{T}) => `data get ${T(path)}`,
   assign_store_bossbar: ({id},{T}) => `bossbar get ${T(id)} ${prop}`,
 
-  test_entity(node, { T }) {
-    return "entity " + T(node.selector)
-  },
-  test_datapath(node, { T }) {
-    return "data " + T(node.path)
-  },
-  test_scoreboard: ({ left, op, right }, { T }) => {
-    return "score " + T(left) + " " + op + " " + T(right)
+  test_entity: ({selector}, { T }) => `entity ${T(selector)}`,
+  test_datapath: ({path}, { T }) => `data ${T(path)}`,
+  test_scoreboard: ({ left, op, right }, { T }) => `score ${T(left)} ${op} ${T(right)}`,
+  test_scoreboard_true: ({ left }, { T }) => `score ${T(left)} matches 1..`,
+  test_scoreboard_value: ({ left, op, right }, { T, Nbt }) => {
+    const value = Nbt(right);
+    switch (op) {
+      case '<': return `score ${T(left)} matches ..${value-1}`;
+      case '<=': return `score ${T(left)} matches ..${value}`;
+      case '>': return `score ${T(left)} matches ${value+1}..`;
+      case '>=': return `score ${T(left)} matches ${value}..`;
+      case '=': return `score ${T(left)} matches ${value}`;
+    }
   },
   tag_id: ({ name }, { T, tagId }) => tagId(T(name)),
   declare_tag: ({ name }, { declareTag, T }) => {

@@ -53,7 +53,7 @@ exports.Builder = class Builder {
       const path = resolve(cur, entry.name);
       const rel = relative(this.from, path)
       if (entry.isFile()) {
-        if (extname(path) === '.mclang') {
+        if (rel === 'index.mclang') {
           this.input.mclang.push({ rel, path });
         } else if (extname(path) === '.json') {
           this.input.json.push({ rel, path });
@@ -75,15 +75,6 @@ exports.Builder = class Builder {
     }
   }
 
-  compileMclFile(path) {
-    try {
-      const text = readFileSync(path, { encoding: "utf8" });
-      return mclang.compile(text,{result:this.result});
-    } catch (e) {
-      e.file = path;
-      throw(e);
-    }
-  }
 
   prepare() {
     const { input, output } = this;
@@ -96,7 +87,7 @@ exports.Builder = class Builder {
       output.json[dest] = require(path);
     }
     for (const { rel, path } of input.mclang) {
-      this.compileMclFile(path);
+      mclang.compileFile(path,{result:this.result});
     }
     console.log("Compiled.")
   }
@@ -122,7 +113,7 @@ exports.Builder = class Builder {
       cpSync(path, dest);
     }
     for (const file of this.result.files) {
-      console.log("writing",file.dest);
+      console.log("writing",resolve(to,file.dest));
       file.write(to);
     }
   }
