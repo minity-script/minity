@@ -91,7 +91,7 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
       return [head,...tail]
     }
 
-  statement "statement"
+  statement 
     = command
     / assign
     / cmd
@@ -370,11 +370,16 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
   
 
   pos_any = pos_abs/pos_mod/pos_from
+  coords_any = coords_abs / coords_mod
 
   pos_abs
-  = OPEN x:coord_abs __ y:coord_abs __ z:coord_abs CLOSE {
-    return N('pos_abs', { x,y,z } )
-  }
+  = OPEN @coords_abs CLOSE 
+
+  coords_abs 
+    = x:coord_abs __ y:coord_abs __ z:coord_abs {
+      return N('pos_abs', { x,y,z } )
+    }
+
 
   pos_from
   = "<" _ x:number __ y:number __ z:number _ ">" {
@@ -382,7 +387,10 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
   }
   
   pos_mod
-   = OPEN mods:mod_dirs CLOSE {
+   = OPEN @coords_mod CLOSE 
+  
+  coords_mod
+   = mods:mod_dirs {
    	return N('pos_mod', {mods} )
    }
   
@@ -419,8 +427,8 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
     }
     / @code_statement
 
-  code_braces "braces" = ___ @braces
-  code_statement "statement" = __ @statement
+  code_braces  = ___ @braces
+  code_statement  = __ @statement
 
   cmd_arg_function
     = BEGIN statements:statements END { 
@@ -573,33 +581,44 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
   }
 
   //\\ test
-    test = test_scoreboard/test_entity/test_block/test_datapath
+    test = test_predicate/test_datapath/test_entity/test_scoreboard/test_block
+
+    test_predicate = "predicate" __ predicate:resloc {
+      return N('test_predicate', { predicate } )
+    }
+    
 
     test_entity = selector:selector {
       return N('test_entity', { selector } )
     }
     
-    test_block = spec:block_spec {
-      return N('test_block', { spec } )
-    } 
+    test_block 
+      = OPEN pos:coords_any? __ spec:block_spec {
+          return N('test_block_pos', { pos, spec } )
+      }
+      / spec:block_spec {
+        return N('test_block', { spec } )
+      } 
+    
+
 
 //\\ bossbar
   //\\ bossbar assign
   assign_bossbar
-    = "bossbar" __ id:bossbar_id __ assign:assign_bossbar_rhand {
+    = "bossbar" __ id:bossbar_id __ 
+    assign:(
+        prop:("name"/"style"/"color") EQUALS value:string {
+          return N('assign_bossbar_set', { prop, value } )
+        }
+      / prop:"players" EQUALS players:selector {
+          return N('assign_bossbar_set', { prop, value } )
+        }
+      / prop:("max"/"value"/"visible") EQUALS value:int {
+          return N('assign_bossbar_set', { prop, value } )
+        }  
+    ) {
       assign.id = id;
       return assign;
-    }
-
-assign_bossbar_rhand 
-  = prop:("name"/"style"/"color") EQUALS value:string {
-      return N('assign_bossbar_set', { prop, value } )
-    }
-  / prop:"players" EQUALS players:selector {
-      return N('assign_bossbar_set', { prop, value } )
-    }
-  / prop:("max"/"value"/"visible") EQUALS value:int {
-      return N('assign_bossbar_set', { prop, value } )
     }
 
   bossbar_id 
