@@ -688,6 +688,9 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
           / op:assign_scoreboard_op _ right:scoreboard_id {
               return N('assign_scoreboard_operation', { left, op, right } )
             }
+          / op:("><"/"<=>") _ right:scoreboard_lhand {
+              return N('assign_scoreboard_operation', { left, op, right } )
+            }
           / "++" {
             return N('assign_scoreboard_inc',{})
             }
@@ -709,7 +712,6 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
       / "-="
       / "*="
       / "/="
-      / ("<=>" / "><") {return "<=>" }
       / ("<=" / "<") { return "<" }
       / (">=" / ">") { return ">" }
       
@@ -1309,7 +1311,7 @@ raw_tag_name
   EOL 'end of line' = __? [\n\r]+ ___ / EOL_COMMENT
 
 EOL_COMMENT 
-  = "//" [^\n\r]* [\n\r]+ ___ 
+  = _ "//" [^\n\r]* [\n\r]+ ___ 
 
 NAME_OR_DIE 
   = NAME
