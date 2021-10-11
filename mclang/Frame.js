@@ -57,6 +57,18 @@ const Frame = exports.Frame =
     anonFunction = (lines,ns=this.ns) => {
       return "function " + this.addBlock(lines,ns).resloc;
     }
+    ifElse = (checks, thenCode, elseCode) => {
+      const stack=`storage mcl:${this.ns} stack`;
+      const top=`${stack}[-1]`;
+      return this.anonFunction([
+        `data modify ${stack} append value []`,
+        `execute ${checks} run data modify ${top} append value 1b`,
+        `execute if data ${top}[0] run ${thenCode}`,
+        `execute unless data ${top}[0] run ${elseCode}`,
+        `data remove ${top}`
+      ])
+    }
+
     addJson = (parts, value) => {
       this.result.addJson(parts, value);
     }
@@ -71,8 +83,8 @@ const Frame = exports.Frame =
     }
 
     declareVar = (v) => {
-      const name = this.scopedName(v,{prefix:"#"});
-      const objective = "mcl." + this.ns;
+      const name = this.scopedName(v);
+      const objective = `--${this.ns}--vars`;
       this.vars[v] = { v, name, objective };
     }
     getVar(name) {
@@ -105,7 +117,7 @@ const Frame = exports.Frame =
       return this.tags[t].name;
     }
 
-    scopedName(name,{prefix="",joiner=".",suffix=""}={}) {
+    scopedName(name,{prefix="--",joiner="-",suffix=""}={}) {
       return prefix + [...this.scopes, name].join(joiner) + suffix;
     }
 
@@ -121,7 +133,7 @@ Frame.Root = class FrameRoot extends Frame {
     this.file = file;
     this.ns = ns;
     this.args = args
-    this.scopes = [ns];
+    this.scopes = [];
     this.root = this;
     this.result = result ?? new Result();
   }

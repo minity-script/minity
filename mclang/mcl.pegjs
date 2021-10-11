@@ -208,12 +208,19 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
         return N('bossbar_remove', { id } )
     } 
 
+  repeat_cond
+    = head: "until" test:mod_arg_test {
+        return N( "repeat_cond_until", {head, test} )
+      }
+    / head: "while" test:mod_arg_test {
+      return N( "repeat_cond_while", {head, test} )
+    }
   builtin
    =  "import" __ file:string {
       return N('import',{file})
     } 
-   /  "repeat" statements:braces _ "until" test:mod_arg_test {
-     return N('repeat_until',{statements,test})
+   /  "repeat" __ mods:mods? _ statements:braces conds:(__ @repeat_cond)+ then:(__ "then" @braces)? {
+     return N('repeat_until',{mods,statements,conds,then})
    } 
    / "every" __ time:untyped_float unit:[tds]? statements:braces _ "until" test:mod_arg_test {
      return N('every_until',{statements,test,time,unit})
@@ -367,7 +374,7 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
     / "left"  { return {dir:"x",f: 1} }
     / "right" { return {dir:"x",f:-1} }
       
-  
+    
 
   pos_any = pos_abs/pos_mod/pos_from
   coords_any = coords_abs / coords_mod
@@ -442,7 +449,7 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
     / _selector
 
   _selector 'selector'
-    = sort:selector_sort? "@" head:(initial/initial_type) conditions:conditions {
+    = sort:selector_sort? "@" !"@" head:(initial/initial_type) conditions:conditions {
       return N('selector', { head,conditions:[...sort||[],...conditions] } )
     }
     
@@ -576,8 +583,21 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
 //\\ if_else
   else = ___ "else" @code
 
-  if_else = head:("if"/"unless") test:mod_arg_test code:code _else:else {
-    return N('if_else', { head, test,code,_else } )
+  mod_checks
+    = head:mod_check tail:(__ "and" __ @mod_check)* {
+      return N("mod_checks",{checks:[head,...tail]})
+    } 
+
+  mod_check
+    = "if" test:mod_arg_test {
+      return N("mod_check_if",{test})
+    } 
+    / "unless" test:mod_arg_test {
+      return N("mod_check_unless",{test})
+    } 
+
+  if_else = checks:mod_checks then_code:code else_code:else {
+    return N('if_else', { checks, then_code, else_code } )
   }
 
   //\\ test
@@ -751,12 +771,12 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
         }
 
     datahead_storage 
-      ="&" name:resloc {
+      ="@@" name:resloc {
           return N('datahead_storage', { name } )
         }
 
     datapath_var 
-      = "&" path:nbt_path { return N('datapath_var', { path } ) }
+      = "@@" path:nbt_path { return N('datapath_var', { path } ) }
 
   //\\ nbt_path
     nbt_path = head:nbt_path_head tail:nbt_path_tail* {

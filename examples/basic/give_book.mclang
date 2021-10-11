@@ -3,23 +3,7 @@ namespace colored_keys
 function give_book {
   give @s written_book::{
     is_book: 1b,
-    "pages": [
-      json <span>
-        <b>COLORED_KEYS</b>
-        
-        Get Key
-        <click function=give_red_key bold=true color=dark_red>⬛</click>
-        <click function=give_blue_key bold=true color=dark_aqua>⬛</click>
-        <click function=give_green_key bold=true color=dark_green>⬛</click>
-        <click function=give_yellow_key bold=true color=gold>⬛</click>
-
-        Get Lock
-        <click function=give_red_lock bold=true color=dark_red>⬛</click>
-        <click function=give_blue_lock bold=true color=dark_aqua>⬛</click>
-        <click function=give_green_lock bold=true color=dark_green>⬛</click>
-        <click function=give_yellow_lock bold=true color=gold>⬛</click>
-      </span>
-    ],
+    "pages": [],
     title: "Colored Keys Handbook",
     author: "yockz",
     display: {

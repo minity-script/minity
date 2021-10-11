@@ -22,9 +22,9 @@ const Result = exports.Result = class Result {
     return this.addNamespace(ns);
   }
   addConstant(value) {
-    const name = "#mcl#" + value;
+    const name = "--mcl--const-" + value;
     if (!this.constants[value]) {
-      const objective = "mcl.mcl";
+      const objective = "--mcl--const";
       const id = name + " " + objective;
       this.constants[value] = {
         name,
@@ -64,7 +64,7 @@ class ResultNamespace {
     this.ns = ns;
     this.objectives = {};
     this.jsons = {};
-    this.addObjective("mcl." + ns, "dummy")
+    //this.addObjective(`--${ns}--vars`, "dummy")
     this.functions = {};
   }
   addObjective(objective, criterion = "dummy") {
@@ -108,7 +108,7 @@ ResultNamespace.Internal = ResultNamespace
 ResultNamespace.Custom = class ResultNamespaceCustom extends ResultNamespace {
   constructor(result,{...rest}) {
     super(result,rest);
-    this.addObjective(("mcl." + this.ns, "dummy"));
+    this.addObjective(`--${this.ns}--vars`, "dummy");
     this.addAnonFunction(()=>[
       ... Object.values(this.objectives).map(it=>it.declare)
     ],"objectives").addTag("minecraft","load");
@@ -173,7 +173,17 @@ class ResultFunction extends ResultFile {
   }
     
   get text() {
-    return this.content.join("\n");
+    return this.content.filter(Boolean).map(line=>{
+      if (Array.isArray(line)) {
+        return line.map(part=>{
+          if (part == Symbol.for("callSelf")) {
+            return "function "+this.name;
+          }
+          return part;
+        }).join("");
+      }
+      return line;
+    }).join("\n");
   }
 
   addTag(ns, tag) {

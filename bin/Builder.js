@@ -55,6 +55,8 @@ exports.Builder = class Builder {
       if (entry.isFile()) {
         if (rel === 'index.mclang') {
           this.input.mclang.push({ rel, path });
+        } else if (extname(path) === '.mclang') {
+          
         } else if (extname(path) === '.json') {
           this.input.json.push({ rel, path });
         } else {

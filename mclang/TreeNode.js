@@ -37,11 +37,7 @@ const transformers = {
   },
   namespace: ({ ns, globals }, { createChild, addBlock, addFunctionTag }) => {
     const S = createChild({ ns, scope: ns });
-    const ret = globals.map(S).filter(Boolean);
-    const lines = [
-      `scoreboard objectives add mcl.${ns} dummy`,
-      ...ret
-    ]
+    const lines = globals.map(S).filter(Boolean);
     const fn = addBlock(lines);
     fn.addTag("minecraft", "load");
   },
@@ -108,9 +104,9 @@ const transformers = {
   execute(node, { T }) {
     return "execute " + node.mods.map(T).join(" ") + " run " + T(node.code)
   },
-  mod_as:({selector}, { T }) => `às ${T(selector)}`,
-  mod_at:({selector}, { T }) => `àt ${T(selector)}`,
-  mod_for:({selector}, { T }) => `às ${T(selector)} at @s`,
+  mod_as:({selector}, { T }) => `as ${T(selector)}`,
+  mod_at:({selector}, { T }) => `at ${T(selector)}`,
+  mod_for:({selector}, { T }) => `as ${T(selector)} at @s`,
   mod_if:({test}, { T }) => `if ${T(test)}`,
   mod_unless:({test}, { T }) => `unless ${T(test)}`,
   mod_pos: ({ pos }, { T }) => `positioned ${T(pos)}`,
@@ -141,19 +137,19 @@ const transformers = {
   range: ({from,to}, { T }) => `${T(from)}..${T(to)}`,
   range_from: ({from}, { T }) => `${T(from)}..`,
   range_to: ({to}, { T }) => `..${T(to)}`,
-  command: ({command}, { T }) => `..${T(command)}`,
-  cmd_summon: ({ pos, type, nbt, then }, { T, addBlock, Nbt, toNbt }) => {
+  command: ({command}, { T }) => T(command),
+  cmd_summon: ({ pos, type, nbt, then }, { T, anonFunction, Nbt, toNbt }) => {
     if (!then) return `summon ${pos ? T(pos) : "~ ~ ~"} ${T(type)}${nbt ? toNbt(nbt) : ''}`
 
     nbt = Nbt(nbt||{});
     nbt.Tags = [...nbt.Tags || [], "_mclang_summoned_"];
-    return "function " + addBlock([
+    return anonFunction([
       `summon ${T(type)} ${pos ? T(pos) : "~ ~ ~"} ${toNbt(nbt)}`,
-      `execute as @e[tag=_mclang_summoned_] run function ` + addBlock([
+      `execute as @e[tag=_mclang_summoned_] run ${anonFunction([
         'tag @s remove _mclang_summoned_',
         ...then.statements.map(T)
-      ]).resloc
-    ]).resloc
+      ])}`
+    ])
   },
   cmd_give: ({ selector, type, nbt }, { toNbt, T }) => {
     return `give ${T(selector)} ${T(type)}${toNbt(nbt||{})}`
@@ -161,18 +157,7 @@ const transformers = {
   cmd_after: ({ time, unit, fn }, { T, toNbt }) => {
     return `schedule ${T(fn)} ${toNbt(time)}${unit}`
   },
-  repeat_until: ({ statements, test }, { T, addBlock }) => {
-    const lines = statements.map(T);
-    const block = addBlock(lines);
-    block._content.push(`execute unless ${T(test)} run function ${block.resloc}`)
-    return "function "+block.resloc;
-  },
-  every_until: ({ statements, test, time, unit }, { T, Nbt, addBlock }) => {
-    const lines = statements.map(T);
-    const block = addBlock(lines);
-    block._content.push(`execute unless ${T(test)} run schedule function ${block.resloc} ${Nbt(time)}${unit}`)
-    return "function "+block.resloc;
-  },
+  
   cmd_setblock: ({ pos, block }, { T }) => {
     return `setblock ${pos ? T(pos) : "~ ~ ~"} ${T(block)}`
   },
@@ -185,7 +170,7 @@ const transformers = {
     const lines = node.statements.map(T);
     return addBlock(lines).resloc;
   },
-  function: ({ name, tags, statements }, { T, addFunction, createChild }) => {
+  "function": ({ name, tags, statements }, { T, addFunction, createChild }) => {
     const S = createChild({ scope: name });
     const lines = statements.map(S);;
     const fn = addFunction(name, lines);
@@ -222,15 +207,7 @@ const transformers = {
   arg(node, { args, Nbt }) {
     return args[node.name];
   },
-  if_else(node, { T, ns, addBlock }) {
-    return "function " + addBlock([
-      `data modify storage mcl:${ns} stack append value []`,
-      `execute ${node.head} ${T(node.test)} run data modify storage mcl:${ns} stack[-1] append value 1b`,
-      `execute if data storage mcl:${ns} stack[-1][0] run ${T(node.code)}`,
-      `execute unless data storage mcl:${ns} stack[-1][0] run ${T(node._else)}`,
-      `data remove storage mcl:${ns} stack[-1]`
-    ]).resloc;
-  },
+  
   function_call({ resloc }, { T, ns }) {
     return "function " + T(resloc);
   },
@@ -345,5 +322,48 @@ const transformers = {
     return Nbt(ret);
     
   },
-  raw_chars: ({chars},{Nbt}) => Nbt(chars)
+  raw_chars: ({chars},{Nbt}) => Nbt(chars),
+  mod_check_if:({test},{T})=> `if ${T(test)}`,
+  mod_check_unless:({test},{T})=> `unless ${T(test)}`,
+  mod_checks:({checks},{T})=> checks.map(T).join(" "),
+  if_else: ({checks,then_code,else_code}, { T, ifElse }) => {
+    return ifElse(
+      T(checks),
+      T(then_code),
+      T(else_code)
+    );
+  },
+  repeat_until: ({ mods, statements, conds, then  }, { T, addBlock, anonFunction,ns }) => {
+    
+    const MODS = mods.map(T).join(" ");
+    const CONDS = conds.map(T).join(" ");
+    if (!then) {
+      const block = addBlock(lines);
+      block._content.push(`execute unless ${CONDS} ${MODS} run function ${block.resloc}`)
+      return "function "+block.resloc;
+    } else {
+      const stack = `storage mcl:${ns} stack`;
+      return anonFunction([
+        `data modify ${stack} append value []`,
+        `execute ${MODS} run ` + anonFunction([
+          ...statements.map(T),
+          `execute ${CONDS} run data modify ${stack}[-1][0] set value 1b `,
+          `execute if data ${stack}[-1][0] run ` + anonFunction([
+            ...then.map(T)
+          ]),
+          [`execute unless data ${stack}[-1][0] ${MODS} run `, Symbol.for("callSelf") ]
+          
+        ]),
+        `data remove ${stack}[-1]`      
+      ])
+    }
+  },
+  repeat_cond_until:({test},{T})=>`if ${T(test)}`,
+  repeat_cond_while:({test},{T})=>`unless ${T(test)}`,
+  every_until: ({ statements, test, time, unit }, { T, Nbt, addBlock }) => {
+    const lines = statements.map(T);
+    const block = addBlock(lines);
+    block._content.push(`execute unless ${T(test)} run schedule function ${block.resloc} ${Nbt(time)}${unit}`)
+    return "function "+block.resloc;
+  },
 }
