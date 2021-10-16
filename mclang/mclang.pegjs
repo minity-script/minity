@@ -8,17 +8,13 @@
   }
 }
 
-
-
-
-
-file = ___ head:namespace tail:(EOL @namespace)* ___ {
+file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
   return N('file',{namespaces:[head,...tail]})
 }
 //\\ globals
-  namespace 
+  DeclareNamespace 
     = "namespace" __ ns:IDENT EOL globals:globals {
-        return N('namespace',{ns,globals})
+        return N('DeclareNamespace',{ns,globals})
       }
 
   globals 
@@ -27,18 +23,15 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
       }
 
   global 
-    = function
+    = DeclareFunction
     / macro
-    / statement
+    / Statement
 
-  function 
-    = "function" __ name:NAME_OR_DIE tags:(__ @restag)* statements:braces {
-        return N('function', { name,tags,statements } )
-    }
+  
 
 //\\ macro
 
-  macro = "macro" __ name:NAME_OR_DIE args:macro_args statements:braces {
+  macro = "macro" __ name:NAME_OR_DIE args:macro_args statements:Braces {
       return N('macro', { name,args,statements } )
   }
 
@@ -85,24 +78,6 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
     }
 
 
-//\\ statements
-  statements 
-    = head:statement tail:(EOL @statement)* {
-      return [head,...tail]
-    }
-
-  statement 
-    = command
-    / assign
-    / cmd
-    / builtin
-    / declare
-    / execute
-    / if_else
-    / print
-    / function_call
-    / macro_call
-
 //\\ assign
   assign 'assignment'
     = assign_scoreboard 
@@ -141,7 +116,7 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
     / "bossbar" __ id:bossbar_id __ prop:("value"/"max"/"visible") {
         return N('assign_run_bossbar',{path})
       }
-    / statement:statement {
+    / statement:Instruction {
         return N('assign_run_statement',{statement})
       }
 
@@ -189,13 +164,13 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
       / "\\" @.
     
   cmd 
-    = "summon" pos:(_ @pos_any)? __ type:resloc_mc nbt:("::" @object)? then:(__ "then" __ @code )? {
+    = "summon" pos:(_ @Position)? __ type:resloc_mc nbt:(@object)? then:(__ "then" __ @CodeBlock )? {
         return N('cmd_summon', { pos,type,nbt, then } )
       }
-    / "give" __ selector:selector __ type:resloc_mc nbt:("::" @object)? {
+    / "give" __ selector:selector __ type:resloc_mc nbt:(@object)? {
         return N('cmd_give', { selector,type,nbt } )
       }
-    / "setblock" pos:(_ @pos_any)? __ block:block_spec {
+    / "setblock" pos:(_ @Position)? __ block:block_spec {
         return N('cmd_setblock', { pos, block } )
       }
     / "after" __ time:untyped_float unit:[tds]? __ fn:cmd_arg_function {
@@ -207,34 +182,20 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
     / "bossbar" __ "remove" __ id:bossbar_id {
         return N('bossbar_remove', { id } )
     } 
-
-  repeat_cond
-    = head: "until" test:mod_arg_test {
-        return N( "repeat_cond_until", {head, test} )
-      }
-    / head: "while" test:mod_arg_test {
-      return N( "repeat_cond_while", {head, test} )
-    }
-  builtin
-   =  "import" __ file:string {
-      return N('import',{file})
-    } 
-   /  "repeat" __ mods:mods? _ statements:braces conds:(__ @repeat_cond)+ then:(__ "then" @braces)? {
-     return N('repeat_until',{mods,statements,conds,then})
-   } 
-   / "every" __ time:untyped_float unit:[tds]? statements:braces _ "until" test:mod_arg_test {
-     return N('every_until',{statements,test,time,unit})
-   }
-
-   /  "tag" __ tag:tag_id __ selector:selector {
+    / "tag" __ selector:selector __ tag:tag_id  {
         return N('tag_set',{selector,tag})
       }
-    / "untag" __ tag:tag_id __ selector:selector {
+    / "untag" __ selector:selector __ tag:tag_id  {
         return N('tag_unset',{selector,tag})
       }
     / "tag" __ name:string {
         return N('declare_tag',{name})
       }
+
+  builtin
+   =  "import" __ file:string {
+      return N('import',{file})
+    } / print
     
 
 
@@ -244,21 +205,11 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
       return N('function_call', { resloc } )
     }
 
-  macro_call
-    = name:NAME _ OPEN args:call_args CLOSE {
-        return N('macro_call', { name,args } )
-      }
+  
 
 //\\ execute
-  execute = mods:mods code:code {
-    return N('execute', { mods,code } )
-  }
-  mods = head:mod tail:_mod * {
-    return [head,...tail]
-  }
-  _mod = __ mod:mod {
-    return mod;
-  }
+
+
   
   OPEN = _ "(" ___
   CLOSE =  ___ ")"
@@ -296,182 +247,39 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
   	= OPEN @rot_angle CLOSE
     / __ @rot_angle
     
-  mod 
-  = "align" axes:mod_arg_axes {
-      return N( 'mod_align', { axes } )
-    }
-  / "anchored" anchor:mod_arg_anchor {
-      return N( 'mod_anchored', { anchor } )
-    }
-  / "as" selector:mod_arg_selector {
-    return N( 'mod_as', { selector } )
-  }
-  / "at" selector:mod_arg_selector {
-    return N( 'mod_at', { selector } )
-  }
-  / "for" selector:mod_arg_selector {
-      return N( 'mod_for', { selector } )
-  }
-  / "in" dimension:mod_arg_resloc {
-    return N( 'mod_in', { dimension } )
-  }
-  / "pos" "itioned"? __ "as" mod_arg_selector:selector {
-    return N( 'mod_pos_as', { selector } )
-  } 
-  / "pos" "itioned"? _ pos:pos_any {
-    return N( 'mod_pos', { pos } )
-  }
-  / "rot" "ated"? __ "as" mod_arg_selector:selector {
-    return N( 'mod_rot_as', { selector } )
-  } 
-  / "rot" "ated"? _ rot:rot_any {
-    return N( 'mod_rotated', { rot } )
-  }
-  / mods:mod_rots tail:(__ @mod_rot)* {
-    return N('mod_rot', { mods } )
-  }
-  / mods:mod_dirs {
-    return N('mod_dir', { mods } )
-  }
-  / "if" test:mod_arg_test !(code else) {
-    return N('mod_if', { test } )
-  } 
-  / "unless" test:mod_arg_test  !(code else) {
-    return N('mod_unless', { test } )
-  }
-
-  mod_dirs
-    = head:mod_dir tail:(__ @mod_dir)* {
-      return [head,...tail]
-    }
-  
-  mod_dir 
-    = direction:direction off:mod_arg_number {
-      return {...direction,off}
-    }
-  
-  direction 
-    = "up"    { return {dir:"y",f: 1} }
-    / "down"  { return {dir:"y",f:-1} }
-    / "north" { return {dir:"z",f:-1} }
-    / "south" { return {dir:"z",f: 1} }
-    / "east"  { return {dir:"x",f: 1} }
-    / "west"  { return {dir:"x",f: 1} }
-    
-	mod_rots
-    = head:mod_rot tail:(__ @mod_rot)* {
-      return [head,...tail]
-    }
-    
-  	mod_rot 
-    = direction:rot_direction off:mod_arg_angle {
-      return {...direction,off}
-    }
-  
-    rot_direction 
-    = "up"    { return {dir:"y",f: 1} }
-    / "down"  { return {dir:"y",f:-1} }
-    / "left"  { return {dir:"x",f: 1} }
-    / "right" { return {dir:"x",f:-1} }
-      
-    
-
-  pos_any = pos_abs/pos_mod/pos_from
-  coords_any = coords_abs / coords_mod
-
-  pos_abs
-  = OPEN @coords_abs CLOSE 
-
-  coords_abs 
-    = x:coord_abs __ y:coord_abs __ z:coord_abs {
-      return N('pos_abs', { x,y,z } )
-    }
-
-
-  pos_from
-  = "<" _ x:number __ y:number __ z:number _ ">" {
-    return N('pos_from', { x,y,z } )
-  }
-  
-  pos_mod
-   = OPEN @coords_mod CLOSE 
-  
-  coords_mod
-   = mods:mod_dirs {
-   	return N('pos_mod', {mods} )
-   }
-  
-  coord_abs 
-  = "~" number:dir_number? {
-    return N('tilde',{number:number||0})
-  } / dir_number
-
-  angle_abs 
-  = "~" number:rot_angle? {
-    return N('tilde',{number:number||0})
-  } / rot_angle
-
-  rot_any = rot_abs/rot_mod
-
-  rot_abs
-  = OPEN x:angle_abs __ y:angle_abs  CLOSE {
-    return N('rot_abs', { x,y } )
-  }
-  
-  rot_mod
-   = OPEN mods:mod_rots CLOSE {
-   	return N('rot_mod', {mods} )
-   }
-  
-
-  braces 
-    = BEGIN @statements END 
-
-  code 
-    = statements:code_braces {
-      if (statements.length===1) return statements[0]
-      return N( 'code', { statements:statements } )
-    }
-    / @code_statement
-
-  code_braces  = ___ @braces
-  code_statement  = __ @statement
-
   cmd_arg_function
-    = BEGIN statements:statements END { 
-      return N( 'code', { statements:statements } )
-    }
+    = AnonFunction
     / function_call
-
 //\\ selector
   selector 
     = OPEN @_selector CLOSE
     / _selector
 
   _selector 'selector'
-    = sort:selector_sort? "@" !"@" head:(initial/initial_type) conditions:conditions {
-      return N('selector', { head,conditions:[...sort||[],...conditions] } )
+    = sort:selector_sort? "@" !"@" initial:(selector_initial/selector_initial_type) conditions:conditions {
+      return N('selector', { initial,conditions:[...sort||[],...conditions] } )
     }
     
   //\\ sort
     selector_sort 
-    = sort:("nearest"/"random"/"furthest"/"arbitrary") limit:(__ @number) ? __ {
-      if (!limit) return [N('cond',{name:"sort",op:"=",value:sort})]
+    = sort:sort_name limit:(__ @number) ? __ {
+      if (!limit) return [N('cond_brackets',{name:"sort",op:"include",value:sort})]
       return [
-        N('cond_brackets',{name:"sort",op:"=",value:sort}),
-        N('cond_brackets',{name:"limit",op:"=",value:limit}),
+        N('cond_brackets_lit',{name:"sort",op:"include",value:sort}),
+        N('cond_brackets',{name:"limit",op:"include",value:limit}),
       ]
     }
     
   //\\ initial
-    initial
+    selector_initial
     = initial:[a-z] ![a-z0-9_]i {
-      return N('initial', { initial } )
+      if (!initial.match(/[prase]/)) expected("@p, @r, @a, @s, @e or @<type>")
+      return N('selector_initial', { initial } )
     }
 
-    initial_type
+    selector_initial_type
     = type:resloc_or_tag_mc {
-      return N('initial_type', { type } )
+      return N('selector_sinitial_type', { type } )
     }
 
   //\\ conditions
@@ -482,14 +290,13 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
     condition_part = condition_tag/condition_brackets/condition_nbt
 
     condition_tag "selector tag"
-    = "." value:tag_id { return [N('cond_brackets_noquotes', { name:"tag", op:"=", value }) ]  }
-    / ".!" value:tag_id  { return [N('cond_brackets_noquotes', { name:"tag", op:"=!", value }) ]   }
+    = "." value:tag_id { return [N('cond_brackets', { name:"tag", op:"include", value }) ]  }
+    / "!" value:tag_id  { return [N('cond_brackets', { name:"tag", op:"exclude", value }) ]   }
 
     condition_nbt "selector nbt"
-      = "::" value:object {
-        return N('cond_brackets_nbt', {name:"nbt",op:"=",value} )
+      = value:object {
+        return N('cond_brackets_nbt', {name:"nbt",op:"include",value} )
       }
-
 
     condition_brackets "selector brackets"
       = "[" ___ 
@@ -497,18 +304,14 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
         tail:(COMMA @cond_brackets)* 
         ___ "]" {
         return [head,...tail]
-      }
-    
+    }
     
     cond_brackets  
       =   node: 
-          (	 ($("d"? [xyz] / [xy] "_rotation") cond_op number )
-          /  (( "type" ) cond_op resloc_or_tag_mc )
-          /  (( "predicate" ) cond_op resloc )
-          /  (( "distance" / "level") cond_op range )
-          /  (( "sort")         cond_op sort_name )
+          (	 ($("d"? [xyz])     cond_op number )
+          /  (( "type" )        cond_op resloc_or_tag_mc )
+          /  (( "predicate" )   cond_op resloc )
           /  (( "limit")        cond_op int)
-          /  (( "gamemode")     cond_op gamemode)
           /  (( "scores")       cond_op cond_brackets_scores)
           /  (( "advancements") cond_op cond_brackets_advancements)
           )
@@ -516,17 +319,37 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
           const [name,op,value] = node;
           return N('cond_brackets', {name,op,value} )
         } 
-      / node:(( "tag" / "team" / "name") cond_op string? ) {
+      /  node:
+         ( ("sort"         cond_op sort_name)
+         / ("gamemode"     cond_op gamemode)
+         ) {
+            const [name,op,value] = node;
+            return N('cond_brackets_lit', {name,op,value} ) 
+         }
+      /  node:(( "tag" / "team" / "name") cond_op string? ) {
           const [name,op,value] = node;
-          return N('cond_brackets_noquotes', {name,op,value} )
+          return N('cond_brackets', {name,op,value} )
         } 
       / node:(( "nbt") cond_op object ) {
           const [name,op,value] = node;
           return N('cond_brackets_nbt', {name,op,value} )
-        } 
-          
+        }
+      / name:"level" _ value:int_range_match {
+          return N('cond_brackets', {name,op:"include",value} )
+        }
+      / name:("distance"/"x_rotation"/"y_rotation") _ value:range_match {
+          return N('cond_brackets', {name,op:"include",value} )
+      } 
+      / "->" _ name:score_objective _ value:int_range_match {
+          return N('cond_brackets_score', {name,op:"score",value} )
+      }
+    
+
+
     cond_op
-      = _ @$("=" "!"?) _
+      = _ "==" _ { return "include" }
+      / _ ("=!"/"!=") _ { return "exclude" }
+      / _ "=" _ { return "include" }
 
     cond_brackets_scores 
       = BEGIN 
@@ -581,27 +404,9 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
   
 
 //\\ if_else
-  else = ___ "else" @code
-
-  mod_checks
-    = head:mod_check tail:(__ "and" __ @mod_check)* {
-      return N("mod_checks",{checks:[head,...tail]})
-    } 
-
-  mod_check
-    = "if" test:mod_arg_test {
-      return N("mod_check_if",{test})
-    } 
-    / "unless" test:mod_arg_test {
-      return N("mod_check_unless",{test})
-    } 
-
-  if_else = checks:mod_checks then_code:code else_code:else {
-    return N('if_else', { checks, then_code, else_code } )
-  }
-
+  
   //\\ test
-    test = test_predicate/test_datapath/test_entity/test_scoreboard/test_block
+    test = test_predicate/test_entity/test_datapath/test_scoreboard/test_block
 
     test_predicate = "predicate" __ predicate:resloc {
       return N('test_predicate', { predicate } )
@@ -613,7 +418,7 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
     }
     
     test_block 
-      = OPEN pos:coords_any? __ spec:block_spec {
+      = OPEN pos:Coords __ spec:block_spec {
           return N('test_block_pos', { pos, spec } )
       }
       / spec:block_spec {
@@ -705,17 +510,23 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
             "=" _ right: number {
               return N('assign_scoreboard_value', { right } )
             }
+          / op:"+=" _ right:int {
+              return N('assign_scoreboard_add', { right } )
+            }
+          / op:"-=" _ right:int {
+              return N('assign_scoreboard_remove', { right } )
+            }
           / op:assign_scoreboard_op _ right:scoreboard_id {
-              return N('assign_scoreboard_operation', { left, op, right } )
+              return N('assign_scoreboard_operation', { op, right } )
             }
           / op:("><"/"<=>") _ right:scoreboard_lhand {
-              return N('assign_scoreboard_operation', { left, op, right } )
+              return N('assign_scoreboard_operation', { op:"><", right } )
             }
           / "++" {
-            return N('assign_scoreboard_inc',{})
+              return N('assign_scoreboard_inc',{})
             }
           / "--" {
-            return N('assign_scoreboard_dec',{})
+              return N('assign_scoreboard_dec',{})
             }
         ) {
           assign.left = left;
@@ -735,17 +546,17 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
       / ("<=" / "<") { return "<" }
       / (">=" / ">") { return ">" }
       
+
+
   //\\ test_scoreboard
     test_scoreboard
-      = left:scoreboard_id _ op:test_scoreboard_op _ right:int {
-          return N('test_scoreboard_value',{left,op,right})
+      = left:scoreboard_id _ right:int_range_match {
+          return N('test_scoreboard_range',{left,right})
         }
       / left:scoreboard_id _ op:test_scoreboard_op _ right:scoreboard_id {
           return N('test_scoreboard',{left,op,right})
         }
-      / left:scoreboard_id {
-        return N('test_scoreboard_true',{left})
-      }
+      
     test_scoreboard_op 
       = "<="
       / ">="
@@ -877,7 +688,7 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
 //\\ block_spec
 
   block_spec 'block predicate'
-    = resloc:resloc_or_tag_mc states:block_states? nbt:("::" @object)? {
+    = resloc:resloc_or_tag_mc states:block_states? nbt:(@object)? {
         return N('block_spec',{resloc,states,nbt})
       }
 
@@ -935,12 +746,32 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
     = restag_mc
     / resloc_mc
 
+  int_range_match
+    = "=" "="? _ @int_range 
+    / "<=" _ to:int { return N('range_to', { to }) }
+    / ">=" _ from:int { return N('range_from', { from }) }
+    / "<" _ to:int { return N('range_lt_int', { to }) }
+    / ">" _ from:int { return N('range_gt_int', { from }) }
 
+  int_range 
+    = from:int ".." to:int { return N('range', { from,to } ) }
+    / ".." to:int { return N('range_to', { to } ) }
+    / from:int ".." { return N('range_from', { from } ) }
+    / int
+
+  range_match
+    = "=" "="? _ @range 
+    / "<=" _ to:number { return N('range_to', { to }) }
+    / ">=" _ from:number { return N('range_from', { from }) }
+    / "<" _ to:number { return N('range_lt', { to }) }
+    / ">" _ from:number { return N('range_gt', { from }) }
+    
   range 
     = from:number ".." to:number { return N('range', { from,to } ) }
     / ".." to:number { return N('range_to', { to } ) }
-    / from:number ".." { return N('range', { from } ) }
+    / from:number ".." { return N('range_from', { from } ) }
     / number
+
   json 
     = json:value {
         return N('json', { json } )
@@ -1145,6 +976,8 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
     template_expand
       = template_expand_arg
       / template_expand_tag
+      / template_expand_score
+      / template_expand_selector
 
     template_chars  
       = chars:(@template_char)+ {
@@ -1179,6 +1012,10 @@ file = ___ head:namespace tail:(EOL @namespace)* ___ {
     template_expand_score  
       = "{->" name:template_parts "}" {
           return N('template_expand_score', { name } )
+        }
+    template_expand_selector
+      = "{" selector:selector "}" {
+          return N('template_expand_selector', { selector } )
         }
 
   //\\ string_json
@@ -1241,7 +1078,9 @@ SGT = ___ "/>"
 
 raw_tag 
   = open:raw_tag_open GT
+    ___
   	parts:raw_tag_part*
+    ___
     close:(
       tag:raw_tag_close {
       	if(tag == open.tag) return tag;
@@ -1273,13 +1112,28 @@ raw_tag_close
 
 raw_tag_part 
   = @raw_tag 
-  / chars:$(!LT char/[\n\r\t])+ {
-  	return N('raw_chars',{chars:chars.replace(/([ \t]*[\n\r][ \t]*)/g,"\n")})
-  }
+  / EOL {
+  	  return N('raw_chars',{chars:"\n"})
+    } 
+  / __ {
+      return N('raw_chars',{chars:" "})
+    }
+  / chars:$(!(LT) (char/[\n\r\t]))+ {
+      return N('raw_chars',{chars:chars.replace(/([ \t]*[\n\r][ \t]*)/g,"\n")})
+    }
   
 
 raw_tag_name 
-	=  tag:"span" {
+	=  tag:("div"/"d") {
+        return N("raw_tag",{tag,props:{},block:true})
+      } 
+    / tag:("p") {
+        return N("raw_tag",{tag,props:{},block:true,paragraph:true})
+      } 
+    /  tag:("h") {
+        return N("raw_tag",{tag,props:{bold:true},block:true,paragraph:true})
+      } 
+    / tag:("span"/"t") {
     	return N("raw_tag",{tag,props:{}})
     } / tag:"b" {
     	return N("raw_tag",{tag,props:{bold:true}})
@@ -1287,7 +1141,7 @@ raw_tag_name
     	return N("raw_tag",{tag,props:{italic:true}})
     } / tag:"u" {
     	return N("raw_tag",{tag,props:{underlined:true}})
-    } 
+    }
     / tag:( "black" 
       / "dark_blue"
       / "dark_green"
@@ -1364,3 +1218,238 @@ SELECTOR
   / "level" / "team" / "name" / "gamemode" / "scores" / "advancements" 
   / "nearest" / "closest" / "furthest" 
   / "arbitrary" / "oldest" / "any" / "random" 
+
+// POSITION AND COORDINATES
+
+  Position 
+    = OPEN @Coords CLOSE / NativeCoords
+  
+  Coords 
+    = RelativeCoords 
+    / LocalCoords 
+    / NativeCoords
+  
+  RelativeCoords
+    = head: RelativeCoord tail:(__ @RelativeCoord)* {
+      return N("RelativeCoords",{ _coords: [head, ...tail]} )
+    }
+    
+  RelativeCoord
+    = "east"  __ d:Coord { return { axis:'x', f:+1, d } }
+    / "west"  __ d:Coord { return { axis:'x', f:-1, d } }
+    / "up"    __ d:Coord { return { axis:'y', f:+1, d } }
+    / "down"  __ d:Coord { return { axis:'y', f:-1, d } }
+    / "south" __ d:Coord { return { axis:'z', f:+1, d } }
+    / "north" __ d:Coord { return { axis:'z', f:-1, d } }
+  
+  LocalCoords
+    = head: LocalCoord tail:(__ @LocalCoord)* {
+      return N("LocalCoords",{ _coords: [head, ...tail]} )
+    }
+
+  LocalCoord
+    = "left"        __ d:Coord { return { axis:'x', f:+1, d } }
+    / "right"       __ d:Coord { return { axis:'x', f:-1, d } }
+    / "upward"      __ d:Coord { return { axis:'y', f:+1, d } }
+    / "downward"    __ d:Coord { return { axis:'y', f:-1, d } }
+    / "forward"     __ d:Coord { return { axis:'z', f:+1, d } }
+    / "back""ward"? __ d:Coord { return { axis:'z', f:-1, d } }
+
+  NativeCoords
+    = NativeLocalCoords
+    / NativeWorldCoords
+  
+  NativeWorldCoords 
+    = x: NativeCoord __ y: NativeCoord  __ z: NativeCoord {
+        return N("NativeCoords",{x,y,z})
+      }
+      
+  NativeCoord 
+    = TildeCoord 
+    / Coord
+
+  NativeLocalCoords 
+    = x: CaretCoord __ y: CaretCoord  __ z: CaretCoord {
+         return N("NativeCoords",{x,y,z} )
+      }
+  
+  Rotation 
+    = OPEN @Angles CLOSE / NativeAngles
+  
+
+  Angles
+  	= NativeAngles / RelativeAngles
+    
+  NativeAngles
+  	= x:NativeCoord "deg"? __ y:NativeCoord "deg"? {
+      return N("NativeAngles",{x,y} )
+   }
+  
+  RelativeAngles
+  	= head: RelativeAngle tail:(__ @RelativeAngles)* {
+      return N("RelativeAngles",{ _coords: [head, ...tail]} )
+    } 
+  
+  RelativeAngle
+    = "left"        __ d:Angle { return { axis:'x', f:+1, d } }
+    / "right"       __ d:Angle { return { axis:'x', f:-1, d } }
+    / "up" 		      __ d:Angle { return { axis:'y', f:+1, d } }
+    / "down"    	  __ d:Angle { return { axis:'y', f:-1, d } }
+    
+
+  Coord 
+    = untyped_float
+
+  Angle 
+    = @untyped_float "deg"
+
+  TildeCoord 
+    = "~" arg:Coord  {
+        return N('TildeCoord',{arg})
+      }
+
+  CaretCoord 
+    = "^" arg:Coord  {
+        return N('CaretCoord',{arg})
+      }
+      
+
+
+
+/*---------------------------------------------------------------------*/
+  Statements = head:Statement tail:(EOL @Statement)* {
+  	return [head,...tail]
+  }
+  Declaration = declare 
+  Instruction = Structure / command / cmd / builtin / CallSelf / function_call / MacroCall / assign
+  Executable = last:(CodeBlock / (__ @Instruction)) {
+      return N( 'Executable', { last } )
+  }
+  Execution 
+    = modifiers:Modifiers executable:Executable {
+      return N( 'Execution', { modifiers, executable } )
+  }
+  Modifiers 
+    = head:Modifier tail:(__ @Modifier)* {
+      return [head,...tail]
+    }
+  Statement = statement:(
+    Declaration / Instruction / Execution / BlockArg
+  ) {
+    statement.text = text();
+    return statement;
+  }
+  CodeBlock = BEGIN statements:Statements END {
+      return N( 'CodeBlock', { statements } )
+  }
+  AnonFunction = BEGIN statements:Statements END {
+      return N( 'AnonFunction', { statements } )
+  }
+  StatementOrBlock 
+    = CodeBlock
+    / Statement
+  
+  Braces = BEGIN @statements:Statements END 
+  Modifier  
+  = MOD:"align" ARG:mod_arg_axes {
+      return N( 'ModifierNativeLiteral', { MOD, ARG } )
+    }
+  / MOD:"anchored" ARG:mod_arg_anchor {
+      return N( 'ModifierNativeLiteral', { MOD, ARG } )
+    }
+  / MOD:
+    ( "as"
+    / "at"
+    / "pos" "itioned?" __ "as" { return "positioned as" }
+    / "rot" "ated?" __ "as" { return "rotated as" }
+    ) arg:mod_arg_selector {
+    return N( 'ModifierNative', { MOD, arg } )
+  }
+  / "for" arg:mod_arg_selector {
+      return N( 'ModifierFor', { arg } )
+  }
+  / MOD:"in" arg:mod_arg_resloc {
+    return N( 'ModifierNative', { MOD, arg } )
+  }
+  / "pos" "itioned"? _ arg:Position {
+    return N( 'ModifierNative', { MOD:"positioned", arg } )
+  }
+  / "rot" "ated"? _ arg:Rotation {
+    return N( 'ModifierNative', { MOD:"rotated", arg } )
+  }
+  / arg:RelativeAngles {
+    return N('ModifierNative', { MOD:"rotated", arg} )
+  }
+  / arg:RelativeCoords {
+    return N('ModifierNative', { MOD:"positioned", arg } )
+  }
+  / arg:LocalCoords {
+    return N('ModifierNative', { MOD:"positioned", arg } )
+  }
+  
+  Structure 
+    = arg:Conditionals then:Executable 
+        otherwise:(__ "else" @Executable)? {
+        return N('StructureIfElse', { arg, then, otherwise } )
+      }
+    / "repeat" __ mods:Modifiers statements:Braces? __ conds:LoopConditionals then:(__ "then" @Executable)? {
+        return N('StructureRepeat',{mods,statements,conds,then})
+      }
+  Conditionals
+  = head:Conditional tail:(__ "and" __ @Conditional)* {
+    return N("Conditionals",{subs:[head,...tail]})
+  } 
+
+  Conditional
+  = "if" arg:mod_arg_test {
+    return N("ConditionalIf",{arg})
+  } 
+  / "unless" arg:mod_arg_test {
+    return N("ConditionalUnless",{arg})
+  } 
+
+  LoopConditionals
+  = head:LoopConditional tail:(__ "and" __ @LoopConditional)* {
+    return N("Conditionals",{subs:[head,...tail]})
+  } 
+
+  LoopConditional
+  = "while" arg:mod_arg_test {
+    return N("ConditionalIf",{arg})
+  } 
+  / "if" arg:mod_arg_test {
+    return N("ConditionalUnless",{arg})
+  } 
+
+/*
+   /  "repeat" __ mods:mods? _ statements:Braces conds:(__ @repeat_cond)+ then:(__ "then" @Braces)? {
+     return N('repeat_until',{mods,statements,conds,then})
+   } 
+   / "every" __ time:untyped_float unit:[tds]? statements:braces _ "until" test:mod_arg_test {
+     return N('every_until',{statements,test,time,unit})
+   }
+*/
+
+
+  MacroCall
+    = name:NAME _ OPEN args:call_args CLOSE 
+      then:(__ "then" __ @StatementOrBlock)? 
+      otherwise:(__ "else" __ @StatementOrBlock)? {
+        return N('macro_call', { name, args, then, otherwise } )
+      }
+  BlockArg
+    = "{{" _ "then" _ "}}" {
+        return N("BlockArgThen")
+      }
+    / "{{" _ "else" _ "}}" {
+        return N("BlockArgElse")
+      }
+
+  CallSelf = "self" _ "(" _ ")" {
+    return N('CallSelf', {} )
+  }
+
+  DeclareFunction 
+    = "function" __ name:NAME_OR_DIE tags:(__ @restag)* statements:Braces {
+        return N('DeclareFunction', { name,tags,statements } )
+    }

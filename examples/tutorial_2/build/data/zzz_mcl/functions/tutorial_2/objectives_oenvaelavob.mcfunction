@@ -1,0 +1,1 @@
+scoreboard objectives add --tutorial_2--vars dummy

@@ -1,10 +1,15 @@
 - [mclang syntax](#mclang-syntax)
+- [Basic Syntax](#basic-syntax)
+  - [Using native Minecraft commands](#using-native-minecraft-commands)
+  - [Comments](#comments)
+  - [Importing mclang files](#importing-mclang-files)
 - [Functions and namespaces](#functions-and-namespaces)
-  - [Defining functions](#defining-functions)
   - [Setting the namespace](#setting-the-namespace)
+  - [Defining functions](#defining-functions)
   - [Tagging functions](#tagging-functions)
-- [Execution context](#execution-context)
-  - [Shorter syntax](#shorter-syntax)
+- [Constants and macros](#constants-and-macros)
+- [Control structures](#control-structures)
+  - [A replacement for `execute ... run`](#a-replacement-for-execute--run)
   - [Grouping commands](#grouping-commands)
 - [Execution modifiers](#execution-modifiers)
   - [<tt>**for** *selector*</tt>](#ttfor-selectortt)
@@ -23,7 +28,7 @@
   - [<tt>(**insert**) *index* *NBT_path* *data*</tt>](#ttinsert-index-nbt_path-datatt)
   - [<tt>(**merge**) *NBT_path* *data*</tt>](#ttmerge-nbt_path-datatt)
   - [<tt>(**remove**) *NBT_path* *value*</tt>](#ttremove-nbt_path-valuett)
-- [Target selectors](#target-selectors)
+- [Advanced target selectors](#advanced-target-selectors)
   - [Selector conditions](#selector-conditions)
     - [<tt><b>@p</b> <b>@r</b> <b>@a</b> <b>@e</b></tt>](#ttbpb-brb-bab-bebtt)
     - [<tt><b>@[</b>*player_id*<b>]</b></tt>](#ttbbplayer_idbbtt)
@@ -52,53 +57,138 @@
     - [Attributes](#attributes)
     - [<tt>&lt;b> &lt;i> &lt;u> &lt;s></tt>](#ttb-i-u-stt)
     - [<tt>&lt;h></tt>](#tthtt)
-- [Constants and macros](#constants-and-macros)
 
 </div>
 
 <div style="overflow:auto;padding-left:30px">
 
 ## mclang syntax
-Mclang code is written in files with `.mclang` efile xtension. You can use IDE extensions for syntax highlighting and error reporting.
 
-Use `//` to introduce comments. Anything between `//` and the end of the line is a comment and will be ignored by mclang.
+Mclang code is written in files with `.mclang` efile xtension. Mclang will parse your code and compile it into `.mcfunction` files in your datapack. Some mclang statements will also produce or alter `.json` files in your datapack.
 
-Each .mclang file can contain mclang statements, as well as native minecraft commands for any functionality that is not included in mclang. Use `/command ....` to pass native commands through to minecraft.
+You can use IDE extensions for syntax highlighting and error reporting.
 
-Any statements in the root of the file (i.e. outside any functions) will be executed when the datapack is (re)loaded. The following index.mclang will display "Hello world" on load and do nothing else:
+
+## Basic Syntax
+
+Most mclang syntax is concerned with naming of variables, accesing and assigning of data, arithmetics, and control structures. It is a complete replacement for .mcfunction commands `execute ... run`, `scoreboard` and `data`. 
+
+Each .mclang file can contain mclang statements, as well as comments and native minecraft commands for any functionality that is not included in mclang.
+
+Any statements in the root of the file (i.e. outside any functions) will be executed when the datapack is (re)loaded. The following `index.mclang` will display "Hello world" on (re)load and do nothing else:
+
 ````
 /say Hello world
 ````
 
+### Using native Minecraft commands
+ Use `/command ....` to pass native commands through to minecraft.
+
+````
+/say Hello world
+````
+
+Mclang has a small, but growing, set of builtin replacements for native commands, which allow you to easily use mclang goodies like advanced selector syntax, variables, etc. See below for details.
+
+In other situations, when you have to use native minecraft commands, mclang can offer some help with replacement patterns in curly brackets:
+
+````
+/execute as {@armor_stand.is_marker} run say I'm a {?color} marker
+=> execute as @e[type=armor_stand,tag=--my_ns-is_marker] run say I'm a red marker
+````
+See below for details.
+
+### Comments
+Use `//` to introduce comments. Anything between `//` and the end of the line is a comment and will be ignored by mclang.
+````
+// this is a comment
+if ($a>3) setblock air // this is a comment too
+````
+The exception are native commands prefixed with `/` and a few mclang commands that encapsulate "greedy" native commands like `say` and `tellraw`, which will eat up everything until the end of the line:
+````
+/setblock ~ ~ ~ minecraft:stone //not a comment, will throw syntax error in minecraft
+
+say Everything's fine //also not a comment, it will be printed out in minecraft chat
+````
+
+
+### Importing mclang files
+Keeping your whole program in one file can become impractical, so you may decide to split into multiple files.
+````
+import "./helpers.mclang"
+import "./minigame.mclang"
+````
+Some mclang features (variables, macros, etc.) need to be declared or defined before they are used, the order of imports and where in your file you put them can be important.
+<blockquote>
+This requirement could be relaxed in the future.
+</blockquote>
+
 ## Functions and namespaces
-### Defining functions
-Each function is compiled to a .mcfunction file.
-
-````
-function hello() {
-  /say Hello world!
-}
-````
-This will create a function name "hello" in hello.mcfunction in your current namespace. The default namespace is `mclang_dev`, but you will want to change that if you plan to use your datapack with others.
-
-### Setting the namespace
 ````
 namespace tutorial
-// applies from this point on
 
 function hello() {
   /say Hello world!
 }
-
-//let's call it on load
 hello() 
+````
+### Setting the namespace
+Most mclang statements requires a namespace to be set. This will among other things determine where `.mcfunction` files are located, and namespaced identifiers for your variables, scores, etc.
+````
+namespace tutorial          // applies from this point on
+
+function hello() {          // this will become function tutorial:hello
+  /say Hello world!
+}
+
+function goodbye() {        // this will become function tutorial:goodbye
+  /say Goodbye!
+}
+````
+### Defining functions
+Each function is compiled to a `.mcfunction` file.
+
+````
+function hello() {
+  /say Hello world!
+}
+````
+This will create a function named "hello" in `hello.mcfunction` in your current namespace. Functions must go into namespaces, so they must appear after a namespace statement.
+
+````
+//let's call our functions on load
+hello() 
+goodbye()
 
 // or from the minecraft chat
 /function tutorial:hello
-
+/function tutorial:goodbye
 ````
+To call a function from a different namespace, prefix it with the namespace and `:`
+````
+namespace tutorial
+function hello() {  
+  /say Hello world!
+}
+
+namespace mypack
+
+function greet() {
+  tutorial:hello()
+  /say It's a splendid morning
+}
+
+greet()
+````
+Function calls compile directly to `function <name>` in .mcfunction, so you can use them to call functions in other namespaces and datapacks, whether they were written in mclang or not.
+````
+namespace tutorial
+some_other_namespace:do_stuff()
+````
+
+
 ### Tagging functions
-You can tag functions when you create them. The tag namespace defaults to the current namespace, but different namespaces can be provided. Mclang will automatically generate the correct JSON files for function tags.
+You can tag functions when you create them. Mclang will automatically generate the correct JSON files for function tags.
 
 ````
 function hello_overworld() #greet {
@@ -107,17 +197,63 @@ function hello_overworld() #greet {
 function hello_nether() #greet {
   /say Hello nether!
 }
+#greet()                              // will call both greetings
+````
+The tag namespace defaults to the current namespace, but different namespaces can be provided.
 
-#greet()
-  // will call both greetings
+````
 
 function again_and_again #minecraft:tick {
   // will be called on every tick
 }
 ````
 
-## Execution context
-### Shorter syntax
+## Constants and macros
+You can define compile time constants, which you can then use anywhere in your code where a value is expected.
+````
+?my_constant       = 12
+?my_other_constant = "foo"
+
+$a = ?my_constant
+````
+You can also define macro frunctions and pass arguments to them. The passed values will be usable inside the macro.
+
+````
+macro give_items(?id, ?count=10, ?damage=0b) {
+  give @s ?count ?id{Damage:?damage}
+}
+
+as @a give_items( torch , 5 )           // give each player 5 torches
+
+function give_eggs {
+  at @chicken as @p give_items( egg )   // for each chicken, give an egg to 
+                                        // the nearest player
+} 
+function give_cracked_eggs {
+  at @chicken as @p {
+    give_items( egg, ?damage=99b )      // for each chicken, give a damaged egg to 
+  }                                     // the nearest player
+} 
+````
+Each macro call is expanded to an anonymous function at compile time.
+
+You can call macros from within macros:
+````
+macro give_items(?id, ?count=10) {
+  give @s ?count ?id
+}
+
+macro give_eggs (?count=1) {
+  at @chicken as @p give_items( egg )   // for each chicken, give an egg to 
+                                        // the nearest player
+} 
+
+give_eggs(10)
+````
+
+
+## Control structures
+### A replacement for `execute ... run`
 There is no `execute` and `run` in mclang. You simply write the execution modifiers (`as`, `at`, `positioned`, etc.) and commands without them. 
 ````
 as @a /say hello
@@ -133,30 +269,24 @@ You don't have to use `()` brackets around the arguments to execution modifiers,
 ````
 as (@a)  { 
   /kill @s
-  /say I'm dead
+  /say R.I.P.
   at (@s) build_grave()
 }
-// each player dies, then says I'm dead
+// each player dies, then says R.I.P.
 // then we call our function to build
 // a grave where the player died
 ````
-Statements within braces will be put in an *anonymous function* which will be saved under a unique name in the mcl namespace. This guarantees that all statements in the block (including subfunctions) will be called with the same execution context, even if anything changes in between. Compare the two different cases below:
+Statements within braces will be put in an *anonymous function* which will be saved under a unique name in the `zzz_mclang` namespace. This guarantees that all statements in the block (including subfunctions) will be called with the same execution context, even if anything changes in between. Compare the two different cases below:
 
 ````
-function kill_all {
-  as @e /kill @s
-    // each entity dies
-  as @e /say I'm dead
-    // no entity says anything, because @e selects 
-    // only live entities
-}
-
-function better_kill_all {
-  as @e {
-    /kill @s
-    /say I'm dead.
-    // each entity dies, then says I'm dead
-  }
+function protect_base {
+  at @e.base_marker {
+    for @player[team!=my_team][distance < 10] {
+      back 10 teleport
+      tell @s You cannot come here
+    }
+    if @player[team=my_team][distance < 5]
+  }  
 }
 ````
 ## Execution modifiers
@@ -384,7 +514,7 @@ prepend @s::MyList "First String"
     // the list is now ["First String","A String","Last String"]
 ````
 
-## Target selectors
+## Advanced target selectors
 All valid minecraft selectors should work in mclang. The only exception are bare player ids, which are instead accepted in the form of `@[player_id]`
 
 In addition, syntactic sugar is provided for some selector conditions. Similar to css, multiple conditions can be applied in series, as long as there is no whitespace betwen them. See below for the conditions that you can apply this way.
@@ -717,46 +847,3 @@ Heading. Like a `p` tag, but with bold already set to true.
 </span>
 ````
 
-
-## Constants and macros
-You can define compile time constants, which you can then use anywhere in your code where a value is expected.
-````
-?my_constant       = 12
-?my_other_constant = "foo"
-
-$a = ?my_constant
-````
-You can also define macro frunctions and pass arguments to them. The passed values will be usable inside the macro.
-
-````
-macro give_items(?id, ?count=10, ?damage=0b) {
-  give @s ?count ?id{Damage:?damage}
-}
-
-as @a give_items( torch , 5 )           // give each player 5 torches
-
-function give_eggs {
-  at @chicken as @p give_items( egg )   // for each chicken, give an egg to 
-                                        // the nearest player
-} 
-function give_cracked_eggs {
-  at @chicken as @p {
-    give_items( egg, ?damage=99b )      // for each chicken, give a damaged egg to 
-  }                                     // the nearest player
-} 
-````
-Each macro call is expanded to an anonymous function at compile time.
-
-You can call macros from within macros:
-````
-macro give_items(?id, ?count=10) {
-  give @s ?count ?id
-}
-
-macro give_eggs (?count=1) {
-  at @chicken as @p give_items( egg )   // for each chicken, give an egg to 
-                                        // the nearest player
-} 
-
-give_eggs(10)
-````

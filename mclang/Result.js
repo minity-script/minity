@@ -8,7 +8,7 @@ const Result = exports.Result = class Result {
     this.namespaces = {};
     this.constants = {};
     this.addNamespace("minecraft","Internal");
-    this.main = this.addNamespace("mcl","Main");
+    this.main = this.addNamespace("zzz_mcl","Main");
   }
   addNamespace(ns,kind="Custom") {
     let namespace = this.namespaces[ns];
@@ -77,17 +77,17 @@ class ResultNamespace {
       }
     }
   }
-  addFunction(name, content) {
-    const fn = new ResultFunction(this, { name, content })
+  addFunction(self, name, content) {
+    const fn = new ResultFunction(this, { self, name, content })
     assert(!this.functions[fn.name], "duplicate function " + fn.resloc)
     return this.functions[fn.name] = fn;
   }
   get main() {
     return this.result.main;
   }
-  addAnonFunction(content,prefix="") {
+  addAnonFunction(self, content,prefix="") {
     const id = prefix+"_"+Math.random().toString(36).substring(2);
-    return this.main.addFunction([this.ns,id],content);
+    return this.main.addFunction(self,[this.ns,id],content);
   }
   addJson(name, obj) {
     let id = [].concat(name).join("/");
@@ -109,7 +109,7 @@ ResultNamespace.Custom = class ResultNamespaceCustom extends ResultNamespace {
   constructor(result,{...rest}) {
     super(result,rest);
     this.addObjective(`--${this.ns}--vars`, "dummy");
-    this.addAnonFunction(()=>[
+    this.addAnonFunction("",()=>[
       ... Object.values(this.objectives).map(it=>it.declare)
     ],"objectives").addTag("minecraft","load");
   }
@@ -118,7 +118,7 @@ ResultNamespace.Custom = class ResultNamespaceCustom extends ResultNamespace {
 ResultNamespace.Main = class ResultNamespaceCustom extends ResultNamespace.Custom {
   constructor(result,{...rest}) {
     super(result,{...rest});
-    this.addAnonFunction(()=>[
+    this.addAnonFunction("",()=>[
       ... Object.values(this.result.constants).map(it=>it.declare)
     ],"constants").addTag("minecraft","load");
   }
@@ -168,8 +168,10 @@ class ResultFile {
 }
 
 class ResultFunction extends ResultFile {
-  constructor(namespace, { ...rest }) {
+  constructor(namespace, { self, ...rest }) {
     super(namespace, { ext: ".mcfunction", ...rest });
+    this.self = self;
+    //console.log("=".repeat(60),"\n"+this.resloc,"\n"+this.text,"\n"+"-".repeat(60))
   }
     
   get text() {
@@ -177,7 +179,7 @@ class ResultFunction extends ResultFile {
       if (Array.isArray(line)) {
         return line.map(part=>{
           if (part == Symbol.for("callSelf")) {
-            return "function "+this.name;
+            return "function "+this.self;
           }
           return part;
         }).join("");

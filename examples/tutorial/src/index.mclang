@@ -21,7 +21,7 @@ namespace colored_keys
 var $enabled =1
 
 as @p print enabled $enabled
-
+ 
 // Define a function in the current namespaces. 
 // You can call it with function_name() from McLang, or 
 // with /function namespace:function:name from the Minecraft command prompt
@@ -50,7 +50,7 @@ tag is_book
 
 macro do_update_locks(?is_lock,?is_key,?delta=1) {
   for @s.?is_lock {
-    up ?delta if (@a[distance = ..2]{
+    up ?delta if (@a[distance=..3]{
       Inventory:[{
         tag:{Tags:["{.is_key}"]}
       }]
@@ -123,7 +123,9 @@ function give_red_lock {
 }
 macro summon_lock(?color,?Color) {
   down 0.5 summon slime{
-    CustomName: json "{?Color} Lock",
+    CustomName: json <span color=?color>
+      {?Color} Lock
+    </span>,
     Invulnerable: true,
     Silent: true,
     Size: 0.5d,

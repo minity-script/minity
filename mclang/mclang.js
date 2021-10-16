@@ -3,7 +3,7 @@ const { assert } = require("console");
 const {readFileSync} = require("fs");
 const peggy = require("peggy");
 
-const grammar = readFileSync(__dirname + "/mcl.pegjs", { encoding: "utf8" });
+const grammar = readFileSync(__dirname + "/mclang.pegjs", { encoding: "utf8" });
 const parser = peggy.generate(grammar);
 const { TreeNode } = require("./TreeNode");
 const { Frame } = require("./Frame");

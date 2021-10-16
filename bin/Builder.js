@@ -7,29 +7,28 @@ const { Result } = require("../mclang/Result");
 
 exports.Builder = class Builder {
 
-  static scan(from, to) {
-    const builder = new Builder(from, to);
+  static scan(options) {
+    const builder = new Builder(options);
     builder.scan();
     return builder.input;
   }
 
-  static prepare(from, to) {
-    const builder = new Builder(from, to);
+  static prepare(options) {
+    const builder = new Builder(options);
     builder.scan();
     builder.prepare();
     const { input, output } = builder
     return { input, output };
   }
 
-  static build(from, to) {
-    const builder = new Builder(from, to);
+  static build(options) {
+    const builder = new Builder(options);
     return builder.build();
   }
 
 
   input = {
     json: [],
-    mclang: [],
     other: []
   }
 
@@ -42,34 +41,28 @@ exports.Builder = class Builder {
 
   result = new Result;
 
-  constructor(from, to) {
-    this.from = resolve(".", from);
-    this.to = resolve(".", to);
+  constructor({ sourceDirectory, entryPoint, filesDirectories, targetDirectory }) {
+    this.sourceDirectory = sourceDirectory;
+    this.entryPoint = entryPoint;
+    this.filesDirectories = filesDirectories;
+    this.targetDirectory = targetDirectory
   }
 
-  scan(cur = this.from) {
-    const entries = readdirSync(cur, { withFileTypes: true });
-    for (const entry of entries) {
-      const path = resolve(cur, entry.name);
-      const rel = relative(this.from, path)
-      if (entry.isFile()) {
-        if (rel === 'index.mclang') {
-          this.input.mclang.push({ rel, path });
-        } else if (extname(path) === '.mclang') {
-          
-        } else if (extname(path) === '.json') {
+  scan() {
+    for (const path of this.filesDirectories) {
+      const files = walk(path);
+      for (const { path, rel, extension } of files) {
+        if (extension === '.json') {
           this.input.json.push({ rel, path });
         } else {
           this.input.other.push({ rel, path });
         }
-      } else if (entry.isDirectory()) {
-        const sub = resolve(path, entry.name);
-        this.scan(sub)
       }
     }
   }
-  mergeJson(dest,obj) {
-    const {output}=this;
+
+  mergeJson(dest, obj) {
+    const { output } = this;
     if (output.json[dest]) {
       output.json[dest] = merge(output.json[dest], obj)
     } else {
@@ -81,16 +74,14 @@ exports.Builder = class Builder {
   prepare() {
     const { input, output } = this;
     for (const { rel, path } of input.other) {
-      const dest = resolve(this.to, rel);
+      const dest = resolve(this.targetDirectory, rel);
       output.other[dest] = path;
     }
     for (const { rel, path } of input.json) {
-      const dest = resolve(this.to, "data", rel);
+      const dest = resolve(this.targetDirectory, "data", rel);
       output.json[dest] = require(path);
     }
-    for (const { rel, path } of input.mclang) {
-      mclang.compileFile(path,{result:this.result});
-    }
+    mclang.compileFile(this.entryPoint, { result: this.result });
     console.log("Compiled.")
   }
 
@@ -102,35 +93,54 @@ exports.Builder = class Builder {
   }
 
   write() {
-    const {from,to,output} = this;
-    if(this.checkTo()) {
-      rmSync(to, { recursive: true });
+    const { targetDirectory, sourceDirectory, output } = this;
+    if (this.checkTo()) {
+      rmSync(targetDirectory, { recursive: true });
     };
-    mkdirSync(to,{recursive:true});
-    writeFileSync(resolve(to, ".mclang.fecit"), "", { encoding: "utf8" })
+    mkdirSync(targetDirectory, { recursive: true });
+    writeFileSync(resolve(targetDirectory, ".mclang.fecit"), "", { encoding: "utf8" })
     for (const dest in output.other) {
       const path = output.other[dest];
-      console.log('copying', relative(from, path))
+      console.log('copying', relative(sourceDirectory, path))
       mkdirSync(dirname(dest), { recursive: true });
       cpSync(path, dest);
     }
     for (const file of this.result.files) {
-      console.log("writing",resolve(to,file.dest));
-      file.write(to);
+      console.log("writing", resolve(targetDirectory, file.dest));
+      file.write(targetDirectory);
     }
   }
 
   checkTo() {
-    const { to } = this;
-    const entry = statSync(to, { throwIfNoEntry: false });
+    const { targetDirectory } = this;
+    const entry = statSync(targetDirectory, { throwIfNoEntry: false });
     if (!entry) return false;
     if (!entry.isDirectory()) {
-      throw new Error("Destination exists, but is not a directory: " + to)
+      throw new Error("Destination exists, but is not a directory: " + targetDirectory)
     };
-    const isMclDirectory = !!statSync(resolve(to, ".mclang.fecit"), { throwIfNoEntry: false });
+    const isMclDirectory = !!statSync(resolve(targetDirectory, ".mclang.fecit"), { throwIfNoEntry: false });
     if (!isMclDirectory) {
-      throw new Error("Destination exists, but was not built with mcl: " + to)
+      throw new Error("Destination exists, but was not built with mclang: " + targetDirectory)
     };
     return true;
   }
+}
+
+const walk = exports.walk = function walk(dir, cur = dir) {
+  var ret = [];
+  const entries = readdirSync(cur, { withFileTypes: true });
+  for (const entry of entries) {
+    const path = resolve(cur, entry.name);
+    if (entry.isFile()) {
+      ret.push({
+        path,
+        rel: relative(dir, path),
+        extension: extname(path),
+        directory: dirname(path)
+      })
+    } else if (entry.isDirectory()) {
+      ret = [...ret, ...walk(dir, path)]
+    }
+  }
+  return ret;
 }

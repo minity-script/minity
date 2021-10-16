@@ -1,0 +1,14 @@
+{
+  "name": "tutorial_2",
+  "description": "tutorial_2 datapack",
+  "main": "src/index.mclang",
+  "directories": {
+    "copy": [
+      "files"
+    ],
+    "watch": [
+      "files",
+      "src"
+    ]
+  }
+}

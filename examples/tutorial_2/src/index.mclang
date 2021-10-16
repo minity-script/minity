@@ -1,0 +1,10 @@
+namespace tutorial_2
+
+function hello {
+  // call this function with /function tutorial_2:hello from minecraft check
+  /say Datapack tutorial_2 is loaded.
+}
+
+// anything placed here will be run on load
+hello() 
+hello() 

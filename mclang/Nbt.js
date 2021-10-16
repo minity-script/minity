@@ -40,9 +40,10 @@ Nbt.toSnbt = value => {
   );
 }
 Nbt.toJson = value => {
-return JSON.stringify(Nbt(value)); (
+return JSON.stringify(Nbt(value));
+return (
   	"'" 
-		+ JSON.stringify(Nbt(value)).replace(/[\\']/g, c=>"\\"+c) 
+		+ JSON.stringify(Nbt(value)).split(/([^'\\]+|\\.|')/).map(t=>t=="'"?"\\'":t).join("")
     + "'"
   );
 }
