@@ -77,13 +77,13 @@ class ResultNamespace {
       }
     }
   }
+  get main() {
+    return this.result.main;
+  }
   addFunction(self, name, content) {
     const fn = new ResultFunction(this, { self, name, content })
     assert(!this.functions[fn.name], "duplicate function " + fn.resloc)
     return this.functions[fn.name] = fn;
-  }
-  get main() {
-    return this.result.main;
   }
   addAnonFunction(self, content,prefix="") {
     const id = prefix+"_"+Math.random().toString(36).substring(2);

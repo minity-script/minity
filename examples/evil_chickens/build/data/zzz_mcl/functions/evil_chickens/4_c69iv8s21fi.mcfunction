@@ -1,0 +1,2 @@
+execute as @e[type=minecraft:chicken,sort=random,limit=1,tag=--evil_chickens-evil,nbt={OnGround:1b}] run data modify entity @s Motion[1] set value 1d
+execute if score --evil_chickens-running --evil_chickens--vars matches 1.. run schedule function zzz_mcl:evil_chickens/4_c69iv8s21fi 2s

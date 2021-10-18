@@ -29,7 +29,7 @@ const Frame = exports.Frame =
       let path = resolve(dirname(this.root.file), String(file));
       mclang.compileFile(path, { result: this.result })
     }
-    Nbt = x => x instanceof TreeNode ? Nbt(this.T(x)) : Nbt(x)
+    Nbt = (x,...args) => x instanceof TreeNode ? Nbt(this.T(x),...args) : Nbt(x,...args)
     toNbt = x => x instanceof TreeNode ? toNbt(this.T(x)) : toNbt(x)
     toSnbt = x => x instanceof TreeNode ? toSnbt(this.T(x)) : toSnbt(x)
     toJson = x => x instanceof TreeNode ? toJson(this.T(x)) : toJson(x)
@@ -60,8 +60,12 @@ const Frame = exports.Frame =
       const C = new Frame.Function(this,{name,statements})
       return C.fn;
     }
+    declareMacro = ({name,...rest}) => {
+      this.macros[name]={name,...rest,parent:this};
+    }
     expandMacro = (name,args) => {
-      const C = new Frame.Macro(this,{name,args})
+      const macro = this.macros[name];
+      const C = new Frame.Macro(macro.parent,{name,args})
       return C.fn
     }
    
@@ -71,8 +75,8 @@ const Frame = exports.Frame =
       return this.result.addAnonFunction(ns, this.resloc, lines, (++this.blockCount));
     }
     
-    anonFunction = (...args) => {
-      return "function "+this.anonFunctionResloc(...args)
+    anonFunction = (lines, ns = this.ns) => {
+      return "function "+this.anonFunctionResloc(lines, ns )
     }
 
     anonFunctionResloc = (lines, ns = this.ns) => {
@@ -82,13 +86,13 @@ const Frame = exports.Frame =
     ifElse = (checks, thenCode, elseCode) => {
       const stack = `storage zzz_mcl:${this.ns} stack`;
       const top = `${stack}[-1]`;
-      return "function "+this.addBlock([
-        `data modify ${stack} append value []`,
+      return [
+        `data modify ${stack} append value [B;]`,
         `execute ${checks} run data modify ${top} append value 1b`,
         `execute if data ${top}[0] ${thenCode}`,
         `execute unless data ${top}[0] ${elseCode}`,
         `data remove ${top}`
-      ]).resloc
+      ]
     }
 
     sumCoords = coords => {
@@ -174,17 +178,18 @@ Frame.Root = class FrameRoot extends Frame {
 }
 
 Frame.Child = class FrameChild extends Frame {
-  constructor(parent, { args = parent.args, ns = parent.ns, scope = null }) {
+  constructor(parent, { args = {}, ns = parent.ns, scope = null }) {
     super(parent)
     this.parent = parent;
     this.root = parent.root;
     this.ns = ns;
-    this.args = args;
     if (scope) {
       this.vars = Object.assign({}, parent.vars)
       this.scores = Object.assign({}, parent.scores)
       this.tags = Object.assign({}, parent.tags)
+      this.args = Object.assign({}, parent.args,args)
     } else {
+      this.args = parent.args;
       this.vars = parent.vars;
       this.scores = parent.scores;
       this.tags = parent.tags;

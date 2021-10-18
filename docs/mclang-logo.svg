@@ -1,0 +1,686 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="47.830059mm"
+   height="50.270775mm"
+   viewBox="0 0 47.830059 50.270775"
+   version="1.1"
+   id="svg56926"
+   sodipodi:docname="mclang-logo.svg"
+   inkscape:version="1.1 (ce6663b3b7, 2021-05-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview107"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="2.631582"
+     inkscape:cx="43.889949"
+     inkscape:cy="67.449922"
+     inkscape:window-width="1623"
+     inkscape:window-height="1026"
+     inkscape:window-x="57"
+     inkscape:window-y="54"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g56583" />
+  <defs
+     id="defs56923">
+    <filter
+       style="color-interpolation-filters:sRGB"
+       id="filter21878"
+       x="0"
+       y="0"
+       width="1"
+       height="1">
+      <feColorMatrix
+         result="result2"
+         type="luminanceToAlpha"
+         in="SourceGraphic"
+         id="feColorMatrix21868" />
+      <feDiffuseLighting
+         lighting-color="#ffffff"
+         in="result2"
+         diffuseConstant="0.5"
+         result="result1"
+         surfaceScale="15"
+         id="feDiffuseLighting21872">
+        <feDistantLight
+           azimuth="225"
+           elevation="10"
+           id="feDistantLight21870" />
+      </feDiffuseLighting>
+      <feComposite
+         result="result9"
+         operator="arithmetic"
+         k2="1"
+         k3="0.8"
+         in2="SourceGraphic"
+         id="feComposite21874"
+         k1="0"
+         k4="0" />
+      <feComposite
+         in2="SourceGraphic"
+         result="result7"
+         operator="in"
+         in="result9"
+         id="feComposite21876" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       id="filter56737"
+       x="0"
+       y="0"
+       width="1"
+       height="1">
+      <feColorMatrix
+         result="result2"
+         type="luminanceToAlpha"
+         in="SourceGraphic"
+         id="feColorMatrix56727" />
+      <feDiffuseLighting
+         lighting-color="#ffffff"
+         in="result2"
+         diffuseConstant="0.5"
+         result="result1"
+         surfaceScale="15"
+         id="feDiffuseLighting56731">
+        <feDistantLight
+           azimuth="225"
+           elevation="10"
+           id="feDistantLight56729" />
+      </feDiffuseLighting>
+      <feComposite
+         result="result9"
+         operator="arithmetic"
+         k2="1"
+         k3="0.8"
+         in2="SourceGraphic"
+         id="feComposite56733"
+         k1="0"
+         k4="0" />
+      <feComposite
+         in2="SourceGraphic"
+         result="result7"
+         operator="in"
+         in="result9"
+         id="feComposite56735" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       id="filter56749"
+       x="0"
+       y="0"
+       width="1"
+       height="1">
+      <feColorMatrix
+         result="result2"
+         type="luminanceToAlpha"
+         in="SourceGraphic"
+         id="feColorMatrix56739" />
+      <feDiffuseLighting
+         lighting-color="#ffffff"
+         in="result2"
+         diffuseConstant="0.5"
+         result="result1"
+         surfaceScale="15"
+         id="feDiffuseLighting56743">
+        <feDistantLight
+           azimuth="225"
+           elevation="10"
+           id="feDistantLight56741" />
+      </feDiffuseLighting>
+      <feComposite
+         result="result9"
+         operator="arithmetic"
+         k2="1"
+         k3="0.8"
+         in2="SourceGraphic"
+         id="feComposite56745"
+         k1="0"
+         k4="0" />
+      <feComposite
+         in2="SourceGraphic"
+         result="result7"
+         operator="in"
+         in="result9"
+         id="feComposite56747" />
+    </filter>
+    <filter
+       style="color-interpolation-filters:sRGB"
+       id="filter56761"
+       x="0"
+       y="0"
+       width="1"
+       height="1">
+      <feColorMatrix
+         result="result2"
+         type="luminanceToAlpha"
+         in="SourceGraphic"
+         id="feColorMatrix56751" />
+      <feDiffuseLighting
+         lighting-color="#ffffff"
+         in="result2"
+         diffuseConstant="0.5"
+         result="result1"
+         surfaceScale="15"
+         id="feDiffuseLighting56755">
+        <feDistantLight
+           azimuth="225"
+           elevation="10"
+           id="feDistantLight56753" />
+      </feDiffuseLighting>
+      <feComposite
+         result="result9"
+         operator="arithmetic"
+         k2="1"
+         k3="0.8"
+         in2="SourceGraphic"
+         id="feComposite56757"
+         k1="0"
+         k4="0" />
+      <feComposite
+         in2="SourceGraphic"
+         result="result7"
+         operator="in"
+         in="result9"
+         id="feComposite56759" />
+    </filter>
+  </defs>
+  <g
+     id="layer1"
+     transform="translate(-69.93697,-69.904616)">
+    <g
+       id="g56669"
+       transform="translate(-19.786075,-144.40796)">
+      <rect
+         style="font-variation-settings:normal;vector-effect:none;fill:#2e3436;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;filter:url(#filter21878);stop-color:#000000"
+         id="rect56557"
+         width="47.830059"
+         height="50.270775"
+         x="89.723045"
+         y="214.31258"
+         ry="2.7928264"
+         inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+         inkscape:export-xdpi="67.973991"
+         inkscape:export-ydpi="67.973991" />
+      <text
+         xml:space="preserve"
+         style="font-size:27.7618px;line-height:1.25;font-family:roboto;-inkscape-font-specification:roboto;fill:#ffffff;stroke-width:0.264583;filter:url(#filter21878)"
+         x="92.920937"
+         y="242.24214"
+         id="text56561"
+         inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+         inkscape:export-xdpi="67.973991"
+         inkscape:export-ydpi="67.973991"><tspan
+           id="tspan56559"
+           style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-size:27.7618px;font-family:roboto;-inkscape-font-specification:'roboto, Light';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke-width:0.264583"
+           x="92.920937"
+           y="242.24214">{</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:27.7618px;line-height:1.25;font-family:roboto;-inkscape-font-specification:roboto;fill:#ffffff;stroke-width:0.264583;filter:url(#filter21878)"
+         x="-134.35519"
+         y="246.21089"
+         id="text56565"
+         transform="matrix(-1,0,0,1,0.26555077,-3.9687213)"
+         inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+         inkscape:export-xdpi="67.973991"
+         inkscape:export-ydpi="67.973991"><tspan
+           id="tspan56563"
+           style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-size:27.7618px;font-family:roboto;-inkscape-font-specification:'roboto, Light';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke-width:0.264583"
+           x="-134.35519"
+           y="246.21089">{</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.5281px;line-height:1.25;font-family:roboto;-inkscape-font-specification:'roboto, Normal';font-variant-ligatures:normal;font-variant-caps:unicase;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke-width:0.264583;filter:url(#filter21878)"
+         x="93.17469"
+         y="260.03278"
+         id="text56569"
+         inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+         inkscape:export-xdpi="67.973991"
+         inkscape:export-ydpi="67.973991"><tspan
+           id="tspan56567"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.5281px;font-family:roboto;-inkscape-font-specification:'roboto, Normal';font-variant-ligatures:normal;font-variant-caps:unicase;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ffffff;stroke-width:0.264583"
+           x="93.17469"
+           y="260.03278">mclanG</tspan></text>
+      <path
+         style="fill:#fcaf3e;stroke:#babdb6;stroke-width:1.05833;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 103.18751,240.77083 -1e-5,3e-5 v -13.2292 l 10.58334,-5.29166 10.58333,5.29166 v 13.22917 l -10.58333,5.29167 z"
+         id="path56571"
+         inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+         inkscape:export-xdpi="67.973991"
+         inkscape:export-ydpi="67.973991" />
+      <g
+         id="g56667"
+         transform="translate(60.854172,75.410094)">
+        <g
+           id="g56615"
+           transform="matrix(1.0000009,0.50072795,-1.0000005,0.50072816,132.29168,55.421874)"
+           style="stroke-width:0.999268">
+          <rect
+             style="fill:#915126;fill-opacity:1;stroke-width:0.0264583;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+             id="rect56573"
+             width="10.583333"
+             height="10.583333"
+             x="51.593746"
+             y="130.96875"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <g
+             id="g56583">
+            <path
+               style="fill:#d87a3c;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m 51.593747,133.08543 2.116666,-2.11667 h -2.116666 z"
+               id="path56575"
+               inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+               inkscape:export-xdpi="67.973991"
+               inkscape:export-ydpi="67.973991" />
+            <path
+               style="fill:#d87a3c;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m 62.17708,133.08542 -2.116666,-2.11667 h 2.116666 z"
+               id="path56577"
+               inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+               inkscape:export-xdpi="67.973991"
+               inkscape:export-ydpi="67.973991" />
+            <path
+               style="fill:#d87a3c;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m 62.177081,139.43542 -2.116666,2.11667 h 2.116666 z"
+               id="path56579"
+               inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+               inkscape:export-xdpi="67.973991"
+               inkscape:export-ydpi="67.973991" />
+            <path
+               style="fill:#d87a3c;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m 51.593748,139.43542 2.116666,2.11667 h -2.116666 z"
+               id="path56581"
+               inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+               inkscape:export-xdpi="67.973991"
+               inkscape:export-ydpi="67.973991" />
+          </g>
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c67e4e;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 54.768747,130.96875 2.116666,2.11667 2.116667,-2.11667 z"
+             id="path56585"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c67e4e;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 59.002081,141.55209 -2.116666,-2.11667 -2.116667,2.11667 z"
+             id="path56587"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c67e4e;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 51.593746,138.37709 2.11667,-2.11666 -2.11667,-2.11667 z"
+             id="path56589"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c67e4e;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 62.177082,138.37709 -2.11667,-2.11666 2.11667,-2.11667 z"
+             id="path56591"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <path
+             id="path56593"
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#dfa27b;fill-opacity:1;stroke:none;stroke-width:0.999999px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 271,480.00001 -11,11 v 18 l 11,11 h 18 l 11,-11 v -18 l -11,-11 z"
+             transform="matrix(0.26458333,0,0,0.26458333,-17.197919,3.9687551)"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#cfa58b;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 54.504164,136.26042 2.38125,2.38125 2.38125,-2.38125 -2.38125,-2.38125 z"
+             id="path56595"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#d6d6d6;fill-opacity:1;stroke:none;stroke-width:0.264584px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56597"
+             width="5.8208361"
+             height="5.8208327"
+             x="53.974995"
+             y="133.35001"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <path
+             id="path56599"
+             style="opacity:1;vector-effect:none;fill:#999999;stroke-width:0.264582px;stop-color:#000000;stop-opacity:1"
+             d="m 59.795817,133.35 1.1e-5,5.82084 h -5.820833 z"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c2c2c2;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56601"
+             width="4.7624984"
+             height="4.7624907"
+             x="54.504166"
+             y="133.87917"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#75507b;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56603"
+             width="1.0583369"
+             height="1.0583292"
+             x="55.297913"
+             y="134.67293"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#4e9a06;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56605"
+             width="1.0583369"
+             height="1.0583292"
+             x="57.414577"
+             y="134.67293"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#f57900;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56607"
+             width="1.0583369"
+             height="1.0583292"
+             x="55.297913"
+             y="136.7896"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#cc0000;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56609"
+             width="1.0583369"
+             height="1.0583292"
+             x="57.414577"
+             y="136.7896"
+             inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+             inkscape:export-xdpi="67.973991"
+             inkscape:export-ydpi="67.973991" />
+          <text
+             xml:space="preserve"
+             style="font-size:10.5833px;line-height:1.25;font-family:roboto;-inkscape-font-specification:roboto;stroke-width:0.264583"
+             x="59.531246"
+             y="197.11459"
+             id="text56613"><tspan
+               id="tspan56611"
+               style="stroke-width:0.264583"
+               x="59.531246"
+               y="197.11459" /></text>
+        </g>
+        <g
+           id="g56659"
+           transform="matrix(1,0.50000012,0,1.25,-9.260412,-37.372394)"
+           style="stroke-width:0.894427"
+           inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+           inkscape:export-xdpi="67.973991"
+           inkscape:export-ydpi="67.973991">
+          <rect
+             style="fill:#915126;fill-opacity:1;stroke-width:0.0264583;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+             id="rect56617"
+             width="10.583333"
+             height="10.583333"
+             x="51.593746"
+             y="130.96875" />
+          <g
+             id="g56627">
+            <path
+               style="fill:#d87a3c;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m 51.593747,133.08543 2.116666,-2.11667 h -2.116666 z"
+               id="path56619" />
+            <path
+               style="fill:#d87a3c;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m 62.17708,133.08542 -2.116666,-2.11667 h 2.116666 z"
+               id="path56621" />
+            <path
+               style="fill:#d87a3c;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m 62.177081,139.43542 -2.116666,2.11667 h 2.116666 z"
+               id="path56623" />
+            <path
+               style="fill:#d87a3c;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m 51.593748,139.43542 2.116666,2.11667 h -2.116666 z"
+               id="path56625" />
+          </g>
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c67e4e;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 54.768747,130.96875 2.116666,2.11667 2.116667,-2.11667 z"
+             id="path56629" />
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c67e4e;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 59.002081,141.55209 -2.116666,-2.11667 -2.116667,2.11667 z"
+             id="path56631" />
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c67e4e;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 51.593746,138.37709 2.11667,-2.11666 -2.11667,-2.11667 z"
+             id="path56633" />
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c67e4e;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 62.177082,138.37709 -2.11667,-2.11666 2.11667,-2.11667 z"
+             id="path56635" />
+          <path
+             id="path56637"
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#dfa27b;fill-opacity:1;stroke:none;stroke-width:0.999999px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 271,480.00001 -11,11 v 18 l 11,11 h 18 l 11,-11 v -18 l -11,-11 z"
+             transform="matrix(0.26458333,0,0,0.26458333,-17.197919,3.9687551)" />
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#cfa58b;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 54.504164,136.26042 2.38125,2.38125 2.38125,-2.38125 -2.38125,-2.38125 z"
+             id="path56639" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#d6d6d6;fill-opacity:1;stroke:none;stroke-width:0.264584px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56641"
+             width="5.8208361"
+             height="5.8208327"
+             x="53.974995"
+             y="133.35001" />
+          <path
+             id="path56643"
+             style="opacity:1;vector-effect:none;fill:#999999;stroke-width:0.264582px;stop-color:#000000;stop-opacity:1"
+             d="m 59.795817,133.35 1.1e-5,5.82084 h -5.820833 z" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c2c2c2;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56645"
+             width="4.7624984"
+             height="4.7624907"
+             x="54.504166"
+             y="133.87917" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#75507b;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56647"
+             width="1.0583369"
+             height="1.0583292"
+             x="55.297913"
+             y="134.67293" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#4e9a06;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56649"
+             width="1.0583369"
+             height="1.0583292"
+             x="57.414577"
+             y="134.67293" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#f57900;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56651"
+             width="1.0583369"
+             height="1.0583292"
+             x="55.297913"
+             y="136.7896" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#cc0000;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56653"
+             width="1.0583369"
+             height="1.0583292"
+             x="57.414577"
+             y="136.7896" />
+          <text
+             xml:space="preserve"
+             style="font-size:10.5833px;line-height:1.25;font-family:roboto;-inkscape-font-specification:roboto;stroke-width:0.264583"
+             x="59.531246"
+             y="197.11459"
+             id="text56657"><tspan
+               id="tspan56655"
+               style="stroke-width:0.264583"
+               x="59.531246"
+               y="197.11459" /></text>
+        </g>
+        <rect
+           style="fill:#000000;fill-opacity:0.1;stroke-width:0.0279763;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+           id="rect56661"
+           width="11.832528"
+           height="13.229156"
+           x="47.330116"
+           y="130.96873"
+           transform="matrix(0.894427,0.44721398,0,1,0,0)"
+           inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+           inkscape:export-xdpi="67.973991"
+           inkscape:export-ydpi="67.973991" />
+        <g
+           id="use56663"
+           transform="matrix(1,-0.50000079,0,1.2500011,1.32292,19.512899)"
+           style="stroke-width:0.894427"
+           inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+           inkscape:export-xdpi="67.973991"
+           inkscape:export-ydpi="67.973991">
+          <rect
+             style="fill:#915126;fill-opacity:1;stroke-width:0.0264583;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+             id="rect56671"
+             width="10.583333"
+             height="10.583333"
+             x="51.593746"
+             y="130.96875" />
+          <g
+             id="g56681">
+            <path
+               style="fill:#d87a3c;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m 51.593747,133.08543 2.116666,-2.11667 h -2.116666 z"
+               id="path56673" />
+            <path
+               style="fill:#d87a3c;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m 62.17708,133.08542 -2.116666,-2.11667 h 2.116666 z"
+               id="path56675" />
+            <path
+               style="fill:#d87a3c;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m 62.177081,139.43542 -2.116666,2.11667 h 2.116666 z"
+               id="path56677" />
+            <path
+               style="fill:#d87a3c;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+               d="m 51.593748,139.43542 2.116666,2.11667 h -2.116666 z"
+               id="path56679" />
+          </g>
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c67e4e;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 54.768747,130.96875 2.116666,2.11667 2.116667,-2.11667 z"
+             id="path56683" />
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c67e4e;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 59.002081,141.55209 -2.116666,-2.11667 -2.116667,2.11667 z"
+             id="path56685" />
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c67e4e;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 51.593746,138.37709 2.11667,-2.11666 -2.11667,-2.11667 z"
+             id="path56687" />
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c67e4e;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 62.177082,138.37709 -2.11667,-2.11666 2.11667,-2.11667 z"
+             id="path56689" />
+          <path
+             id="path56691"
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#dfa27b;fill-opacity:1;stroke:none;stroke-width:0.999999px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 271,480.00001 -11,11 v 18 l 11,11 h 18 l 11,-11 v -18 l -11,-11 z"
+             transform="matrix(0.26458333,0,0,0.26458333,-17.197919,3.9687551)" />
+          <path
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#cfa58b;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             d="m 54.504164,136.26042 2.38125,2.38125 2.38125,-2.38125 -2.38125,-2.38125 z"
+             id="path56693" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#d6d6d6;fill-opacity:1;stroke:none;stroke-width:0.264584px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56695"
+             width="5.8208361"
+             height="5.8208327"
+             x="53.974995"
+             y="133.35001" />
+          <path
+             id="path56697"
+             style="opacity:1;vector-effect:none;fill:#999999;stroke-width:0.264582px;stop-color:#000000;stop-opacity:1"
+             d="m 59.795817,133.35 1.1e-5,5.82084 h -5.820833 z" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#c2c2c2;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56699"
+             width="4.7624984"
+             height="4.7624907"
+             x="54.504166"
+             y="133.87917" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#75507b;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56701"
+             width="1.0583369"
+             height="1.0583292"
+             x="55.297913"
+             y="134.67293" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#4e9a06;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56703"
+             width="1.0583369"
+             height="1.0583292"
+             x="57.414577"
+             y="134.67293" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#f57900;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56705"
+             width="1.0583369"
+             height="1.0583292"
+             x="55.297913"
+             y="136.7896" />
+          <rect
+             style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#cc0000;fill-opacity:1;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+             id="rect56707"
+             width="1.0583369"
+             height="1.0583292"
+             x="57.414577"
+             y="136.7896" />
+          <text
+             xml:space="preserve"
+             style="font-size:10.5833px;line-height:1.25;font-family:roboto;-inkscape-font-specification:roboto;stroke-width:0.264583"
+             x="59.531246"
+             y="197.11459"
+             id="text56711"><tspan
+               id="tspan56709"
+               style="stroke-width:0.264583"
+               x="59.531246"
+               y="197.11459" /></text>
+        </g>
+        <rect
+           style="fill:#000000;fill-opacity:0.25;stroke-width:0.0279763;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+           id="rect56665"
+           width="11.832535"
+           height="13.229156"
+           x="-70.995171"
+           y="183.88544"
+           transform="matrix(-0.89442713,0.44721372,0,1,0,0)"
+           inkscape:export-filename="/home/zocky/other_src/mclang/docs/mclang-logo-small.png"
+           inkscape:export-xdpi="67.973991"
+           inkscape:export-ydpi="67.973991" />
+      </g>
+    </g>
+  </g>
+</svg>

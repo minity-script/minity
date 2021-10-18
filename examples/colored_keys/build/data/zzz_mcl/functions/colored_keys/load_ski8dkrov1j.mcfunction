@@ -1,0 +1,1 @@
+# function colored_keys:give_book

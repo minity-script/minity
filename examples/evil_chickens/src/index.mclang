@@ -1,0 +1,45 @@
+namespace evil_chickens
+bossbar add chickens "Evil Chickens"
+var $running = 1
+
+tag playing 
+tag evil
+
+function start() {
+  ?max = 10
+  tag @player[distance<10] playing
+  bossbar chickens players = @a.playing
+  bossbar chickens visible = true
+  bossbar chickens max = ?max
+  var $count = 10
+  repeat {
+    summon chicken{
+      Passengers:[{id:"minecraft:endermite",Tags:["{.evil}"]}],
+      HandItems:[{},{},{},{Count:1,id:"minecraft:golden_helmet"}]
+    } then {
+      tag @s evil
+    }
+    $count --
+    print $count
+  } while ($count>0)
+  /spreadplayers ~ ~ 5 20 false {@chicken.evil}
+  $running = 1
+  every 2s {
+    as (random 1 @chicken.evil{OnGround:1b}) {
+      @s::Motion[1] = 1d
+    }
+  } while ($running>0)
+  every 2t {
+    bossbar chickens value = /execute if entity {@chicken.evil}
+  } while ($running>0)
+}
+
+function stop() {
+  /kill {@chicken.evil}
+  /kill {@endermite.evil}
+  /kill {@item}
+  
+  bossbar chickens visible = false
+  //reload
+}
+

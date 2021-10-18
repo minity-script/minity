@@ -1,0 +1,1 @@
+scoreboard objectives add --zzz_mcl--vars dummy

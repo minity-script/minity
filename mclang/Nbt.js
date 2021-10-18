@@ -1,6 +1,7 @@
 const IS_NBT = Symbol()
 const TO_NBT = Symbol()
 const TO_JSON = Symbol()
+const IS_JSON = Symbol()
 
 const Nbt = exports.Nbt = function Nbt(value,...args) {
   if (Nbt.isNbt(value)) return value;
@@ -60,7 +61,12 @@ class NbtNumber extends Number {
 }
 
 class NbtString extends String {
+  constructor(value,json) {
+    super(value)
+    if (json) this[IS_JSON] = true;
+  }
   [TO_NBT]() {
+    if(this[IS_JSON]) return this;
   	return JSON.stringify(this);
   } 
 	[IS_NBT] = true;

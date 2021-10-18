@@ -1,10 +1,20 @@
 namespace tutorial_2
-
-function hello {
-  // call this function with /function tutorial_2:hello from minecraft check
-  /say Datapack tutorial_2 is loaded.
+var $count 
+function foo() {
+  give @s written_book{
+    is_book: 1b,
+    "pages": [
+      json <t>
+        <h>hello</h>
+        hello <b>there</b>
+      </t>
+    ],
+    title: "Colored Keys Handbook",
+    author: "yockz",
+    display: {
+      Lore: [
+        "Commands and instructions for Colored Keys"
+      ]
+    }
+  }
 }
-
-// anything placed here will be run on load
-hello() 
-hello() 

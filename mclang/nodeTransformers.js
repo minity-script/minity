@@ -1,0 +1,399 @@
+
+const {Selector} = require("./Selector");
+
+const transformers = exports.transformers = {
+  file: ({ namespaces }, { T }) => {
+    namespaces.map(T);
+  },
+  import: ({ file }, { importFile, Nbt }) => {
+    importFile(Nbt(file));
+  },
+  DeclareNamespace: ({ ns, globals }, { T, declareNamespace }) => {
+    const fn = declareNamespace(ns, globals);
+    fn.addTag("minecraft", "load");
+    return "";
+  },
+  DeclareFunction: ({ name, tags, statements }, { T, declareFunction }) => {
+    const fn = declareFunction(name, statements);
+    for (const { ns, name } of tags) {
+      fn.addTag(T(ns), T(name));
+    }
+    return "# function " + fn.resloc;
+  },
+  CallSelf: ({ }, { resloc }) => "function " + resloc,
+  DeclareMacro(node, { declareMacro }) {
+    declareMacro(node);
+    return "";
+  },
+  string_lit: ({ value }, { Nbt }) => Nbt(String(value)),
+  number_lit: ({ value, suffix }, { Nbt }) => {
+    return Nbt(+value, suffix)
+  },
+  boolean_lit: ({ value }, { Nbt }) => Nbt(!!value),
+  object_lit: ({ members }, { T, Nbt, toJson }) => {
+    //console.log(members)
+
+    const ret = Nbt({});
+    for (const { name, value } of members) {
+      ret[Nbt(name)] = Nbt(value);
+      //console.log(name,JSON.stringify(ret))
+    }
+    return ret;
+  },
+  string_json: ({ value }, { Nbt, toJson }) => {
+    return Nbt("'" 
+		+ JSON.stringify(Nbt(value)).replace(/(['\\])/g,'\\$1')
+    + "'",true);
+  },
+  array_lit: ({ items }, { T, Nbt }) => Nbt(items.map(T)),
+  template_lit: ({ parts }, { T, Nbt }) => Nbt(parts.map(Nbt).join("")),
+
+  declare_var: ({ name, value }, { T, toNbt, declareVar, varId }) => {
+    declareVar(name);
+    if (value) return "scoreboard players set " + varId(name) + " " + toNbt(T(value));
+    return "";
+  },
+  declare_score: ({ name, criterion }, { T, declareScore }) => {
+    declareScore(name, criterion);
+    return "";
+  },
+  selector: ({ initial, conditions }, { T, toNbt }) => {
+    var spec = T(initial);
+    for (const c of conditions) T(c, { spec });
+    return spec.format();
+  },
+  selector_initial: ({ initial }) => new Selector(initial),
+  selector_initial_type: ({ type }, { T }) => new Selector(T(type)),
+  cond_brackets: ({ name, op, value }, { T }, { spec }) => {
+    //if (!value) console.log(name,op,value)
+    spec[op](name, T(value))
+  },
+  cond_brackets_lit: ({ name, op, value }, { T }, { spec }) => {
+    spec[op](name, value)
+  },
+  cond_brackets_score: ({ name, value }, { T }, { spec }) => {
+    spec.score(T(name), T(value))
+  },
+  cond_brackets_nbt: ({ name, op, value }, { T, toNbt }, { spec }) => {
+    spec[op](name, toNbt(value))
+  },
+  cond_brackets_pair: ({ name, value }, { T, toNbt }) => T(name) + "=" + T(value),
+  cond_brackets_braces: ({ items }, { T, toNbt }) => "{" + items.map(T).join(",") + "}",
+  block_spec_state: ({ name, value }, { T }) => T(name) + "=" + T(value),
+  block_spec_states: ({ states }, { T }) => "[" + states.map(T).join(",") + "]",
+  block_spec: ({ resloc, states, nbt }, { T, O }) => `${T(resloc)}${O(states)}${O(nbt)}`,
+  test_block: ({ spec }, { T }) => `block ~ ~ ~ ${T(spec)}`,
+  test_block_pos: ({ pos, spec }, { T }) => `block ${T(pos)} ${T(spec)}`,
+  test_predicate: ({ resloc }, { T }) => `predicate ${T(resloc)}`,
+  resloc(node, { T, ns }) {
+    return (node.ns ? T(node.ns) : ns) + ":" + T(node.name);
+  },
+  resloc_mc(node, { T }) {
+    return (node.ns ? T(node.ns) : "minecraft") + ":" + T(node.name);
+  },
+  restag(node, { T, ns }) {
+    return (node.ns ? T(node.ns) : ns) + ":#" + T(node.name);
+  },
+  restag_mc(node, { T }) {
+    return (node.ns ? T(node.ns) : "minecraft") + ":#" + T(node.name);
+  },
+  execute(node, { T }) {
+    return "execute " + node.mods.map(T).join(" ") + " run " + T(node.code)
+  },
+  range: ({ from, to }, { T }) => `${T(from)}..${T(to)}`,
+  range_from: ({ from }, { T }) => `${T(from)}..`,
+  range_to: ({ to }, { T }) => `..${T(to)}`,
+  range_gt_int: ({ from }, { Nbt }) => `${Nbt(from) + 1}..`,
+  range_lt_int: ({ to }, { Nbt }) => `..${Nbt(to) - 1}`,
+  range_gt: ({ from }, { Nbt }) => `${Nbt(from) + 0.000001}..`,
+  range_lt: ({ to }, { Nbt }) => `..${Nbt(to) - 0.000001}`,
+  command: ({ command }, { T }) => T(command),
+  cmd_summon: ({ pos, type, nbt, then }, { T, anonFunction, Nbt, toNbt }) => {
+    if (!then) return `summon ${pos ? T(pos) : "~ ~ ~"} ${T(type)}${nbt ? toNbt(nbt) : ''}`
+
+    nbt = Nbt(nbt || {});
+    nbt.Tags = [...nbt.Tags || [], "_mclang_summoned_"];
+    return anonFunction([
+      `summon ${T(type)} ${pos ? T(pos) : "~ ~ ~"} ${toNbt(nbt)}`,
+      `execute as @e[tag=_mclang_summoned_] run ${anonFunction([
+        'tag @s remove _mclang_summoned_',
+        ...then.statements.map(T)
+      ])}`
+    ])
+  },
+  cmd_give: ({ selector, type, nbt }, { toNbt, T }) => {
+    return `give ${T(selector)} ${T(type)}${toNbt(nbt || {})}`
+  },
+  cmd_after: ({ time, unit, fn }, { T, toNbt }) => {
+    return `schedule ${T(fn)} ${toNbt(time)}${unit}`
+  },
+
+  cmd_setblock: ({ pos, block }, { T }) => {
+    return `setblock ${pos ? T(pos) : "~ ~ ~"} ${T(block)}`
+  },
+
+  function_call({ resloc }, { T, ns }) {
+    return "function " + T(resloc);
+  },
+  var_id: ({ name }, { varId, Nbt }) => {
+    return varId(name)
+  },
+  score_id: ({ holder, id }, { T, scoreObjective }) => `${T(holder)} ${scoreObjective(T(id))}`,
+  constant_id: ({ value }, { constantId, Nbt }) => constantId(Nbt(value)),
+
+  datapath: ({ head, path }, { T }) => `${T(head)} ${T(path)}`,
+
+  datapath_var: ({ path }, { T, ns }) => `storage ${ns}:mcl_vars ${T(path)}`,
+  datahead_entity: ({ selector }, { T }) => `entity ${T(selector)}`,
+  datahead_storage: ({ name }, { T }) => `storage ${T(name)}`,
+  datahead_block: ({ position }, { T }) => `block ${T(position)}`,
+  datapath_modify_datapath: ({ modify, left, right }, { T }) => `data modify ${T(left)} ${modify} from ${T(right)}`,
+  datapath_modify_value: ({ modify, left, right }, { toNbt, T }) => {
+    return `data modify ${T(left)} ${modify} value ${toNbt(T(right))}`
+  },
+  datapath_modify_execute: ({ modify, scale, left, right }, { T, addBlock }) => "function " + addBlock([
+    [
+      `data modify ${T(left)} ${modify} value 0`,
+      `execute store ${T(left)}[${T(index)}] set ${T(right)}`,
+    ]
+  ]),
+  print: ({ selector, parts }, { T }) => {
+    return "tellraw " + (selector ? T(selector) : "@s") + " " + JSON.stringify(parts.map(T));
+  },
+  print_var: ({ name }, { T, varExists, varName, varObjective }) => {
+    return { score: { name: varName(name), objective: varObjective(name) } }
+  },
+  print_value: ({ value }, { toNbt }) => {
+    return { text: toNbt(value) }
+  },
+  print_string: ({ value }, { toNbt }) => {
+    return { text: "" + toNbt(value) }
+  },
+  print_space: () => {
+    return { text: " " }
+  },
+  delete_datapath: ({ path }, { T }) => `data remove ${T(path)}`,
+  template_chars: ({ chars }) => chars,
+  template_parts: ({ parts }, { T }) =>  parts.map(T).join(""),
+  template_expand_arg: ({ name }, { toNbt, Nbt, args }) => Nbt(args[Nbt(name)]),
+  template_expand_tag: ({ name }, { T, tagId }) => tagId(T(name)),
+  template_expand_var: ({ name }, { T, varId }) => varId(T(name)),
+  template_expand_score: ({ name }, { T, scoreId }) => scoreId(T(name)),
+  template_expand_selector: ({ selector }, { T, scoreId }) => T(selector),
+  ident(node) {
+    return node.ident;
+  },
+  assign_scoreboard_value: ({ left, right }, { T }) => `scoreboard players set ${T(left)} ${T(right)}`,
+  assign_scoreboard_add: ({ left, right }, { T }) => `scoreboard players add ${T(left)} ${T(right)}`,
+  assign_scoreboard_remove: ({ left, right }, { T }) => `scoreboard players remove ${T(left)} ${T(right)}`,
+  assign_scoreboard_inc: ({ left }, { T }) => `scoreboard players add ${T(left)} 1`,
+  assign_scoreboard_dec: ({ left }, { T }) => `scoreboard players remove ${T(left)} 1`,
+
+  assign_scoreboard_operation({ left, op, right }, { T }) {
+    return "scoreboard players operation " + T(left) + " " + op + " " + T(right);
+  },
+  assign_execute: ({ left, right }, { T }) => `execute store result ${T(left)} run ${T(right)}`,
+  assign_success: ({ left, right }, { T }) => `execute store success ${T(left)} run ${T(right)}`,
+  assign_store_scoreboard: ({ id }, { T }) => `score ${T(id)}`,
+  assign_store_datapath: ({ path, scale}, { T, Nbt  }) => {
+    if (!scale) return `${T(path)} int 1`;
+    scale = Nbt(scale);
+    const type = {s:"short",i:"int",b:"byte",l:"long",d:"double",f:"float"}[scale.suffix||"i"]
+    return `${T(path)} ${type} ${scale}`;
+  },
+  assign_store_bossbar: ({ id, prop }, { T }) => `bossbar ${T(id)} ${prop}`,
+  assign_run_scoreboard: ({ id }, { T }) => `scoreboard players get ${T(id)}`,
+  assign_run_datapath: ({ path }, { T }) => `data get ${T(path)}`,
+  assign_run_bossbar: ({ id }, { T }) => `bossbar get ${T(id)} ${prop}`,
+  assign_run_statement: ({ statement }, { T }) => `${T(statement)}`,
+  assign_run_conditions: ({ conds }, { T }) => `${T(conds)}`,
+
+  assign_bossbar_set: ({id, prop,value},{T})=>`bossbar set ${T(id)} ${prop} ${T(value)}`,
+
+  test_entity: ({ selector }, { T }) => `entity ${T(selector)}`,
+  test_datapath: ({ path }, { T }) => `data ${T(path)}`,
+  test_scoreboard: ({ left, op, right }, { T }) => `score ${T(left)} ${op} ${T(right)}`,
+  test_scoreboard_true: ({ left }, { T }) => `score ${T(left)} matches 1..`,
+  test_scoreboard_range: ({ left, right }, { T, Nbt }) => `score ${T(left)} matches ${T(right)}`,
+  tag_id: ({ name }, { T, tagId }) => tagId(T(name)),
+  declare_tag: ({ name }, { declareTag, T }) => {
+    declareTag(T(name));
+    return "";
+  },
+  tag_set: ({ selector, tag }, { T }) => `tag ${T(selector)} add ${T(tag)}`,
+  tag_unset: ({ selector, tag }, { T }) => `tag ${T(selector)} remove ${T(tag)}`,
+  nbt_path: ({ path }, { T }) => path.map(T).join(""),
+  nbt_path_root: ({ name, match }, { T }) => [name, match].filter(Boolean).map(T).join(""),
+  nbt_path_member: ({ name, match }, { T }) => "." + [name, match].filter(Boolean).map(T).join(""),
+  nbt_path_list: () => "[]",
+  nbt_path_list_element: ({ index }, { T }) => (`[${T(index)}]`),
+  nbt_path_list_match: ({ match }, { toNbt }) => `[${toNbt(match)}]`,
+  nbt_path_match: ({ match }, { toNbt }) => `${toNbt(match)}`,
+  tilde: ({ number }) => `~${number}`,
+  raw_tag: ({ tag, props, attr, parts, block, paragraph }, { T, Nbt, toNbt },state={block:true,first:true,last:true}) => {
+    const ret = Nbt({ ...props })
+    for (const { name, value } of attr) {
+      ret[Nbt(name)] = Nbt(value);
+    }
+    ret.text ??= "";
+    
+    if (parts) {
+      const mystate = Object.assign({},state)
+      ret.extra = [];
+      for (const i in parts) {
+        mystate.first = i == 0;
+        mystate.last = i == parts.length-1;
+        ret.extra.push(T(parts[i],mystate))
+      }
+    }
+    if (paragraph) {
+      state.block = true;
+      if (!state.block && (!state.last)) {
+        return ["\n",Nbt(ret),"\n\n"]
+      } else if (!state.last) {
+        return [Nbt(ret),"\n\n"]
+      } 
+    } else if (block) {
+      state.block = true;
+      if (!state.block && (!state.last)) {
+        return ["\n",Nbt(ret),"\n"]
+      } else if (!state.last) {
+        return [Nbt(ret),"\n"]
+      } 
+    } 
+    return Nbt(ret);
+  },
+  raw_chars: ({ chars }, { Nbt },state) => {
+    console.log(state,JSON.stringify(chars));
+    if (state.first) chars=chars.trimStart();
+    if (state.last) chars=chars.trimEnd();
+    state.block = false;
+    return Nbt(chars)
+  },
+  raw_chars_ws: ({ chars }, { Nbt },state) => {
+    if (state.last||state.first) {
+      return ""
+    }
+    if (!state.block) {
+      state.block = true;
+      return "\n";
+    }
+    return ""
+  },
+  mod_check_if: ({ test }, { T }) => `if ${T(test)}`,
+  mod_check_unless: ({ test }, { T }) => `unless ${T(test)}`,
+  mod_checks: ({ checks }, { T }) => checks.map(T).join(" "),
+
+ 
+
+  bossbar_add: ({id,name},{T,toNbt})=>`bossbar add ${T(id)} ${toNbt(name)}`,
+
+  /************************************************************************* */
+  Execution: ({ modifiers, executable }, { T }) => `execute ${modifiers.map(T).join(" ")} ${T(executable)}`,
+  Executable: ({ last }, { T }) => `run ${T(last)}`,
+
+  ModifierNative: ({ MOD, arg }, { T }) => `${MOD} ${T(arg)}`,
+  ModifierNativeLiteral: ({ MOD, ARG }, { T }) => `${MOD} ${ARG}`,
+  ModifierFor: ({ arg }, { T }) => `as ${T(arg)} at @s`,
+  StructureIfElse: ({ arg, then, otherwise }, { T, anonFunction, ifElse }) => (
+    otherwise
+      ? anonFunction(ifElse(T(arg), T(then), T(otherwise)))
+      : `execute ${T(arg)} ${T(then)}`
+  ),
+  Conditionals: ({ subs }, { T }) => subs.map(T).join(" "),
+  ConditionalIf: ({ arg }, { T }) => `if ${T(arg)}`,
+  ConditionalUnless: ({ arg }, { T }) => `unless ${T(arg)}`,
+
+  CodeBlock: ({ statements }, { T, addBlock }) => {
+    if (statements.length == 1) return T(statements[0]);
+    return "function " + addBlock(statements.map(T)).resloc;
+  },
+  AnonFunction: ({ statements }, { T, anonFunction }) => {
+    return anonFunction(statements.map(T));
+  },
+  RelativeCoords: ({ _coords }, { sumCoords }) => {
+    let { x, y, z } = sumCoords(_coords);
+    return `~${x || ""} ~${y || ""} ~${z || ""}`
+  },
+  LocalCoords: ({ _coords }, { sumCoords }) => {
+    let { x, y, z } = sumCoords(_coords);
+    return `^${x || ""} ^${y || ""} ^${z || ""}`
+  },
+  RelativeAngles: ({ _coords }, { sumCoords }) => {
+    let { x, y } = sumCoords(_coords);
+    return `~${x || ""} ~${y || ""}`
+  },
+  NativeAngles: ({ x, y }, { T }) => `${T(x)} ${T(y)}`,
+  NativeCoords: ({ x, y, z }, { T }) => `${T(x)} ${T(y)} ${T(z)}`,
+  TildeCoord: ({ arg }, { T }) => arg ? `~${T(arg)}` : '~',
+  CaretCoord: ({ arg }, { T }) => arg ? `^${T(arg)}` : '^',
+  StructureRepeat: ({ mods=[], statements=[], conds, then }, { T, ifElse, anonFunction, addBlock, ns }) => {
+    console.log(mods);
+    const MODS = (mods||[]).map(T).join(" ");
+    const CONDS = T(conds);
+    if (!then) {
+      const block = addBlock(statements.map(T));
+      block._content.push(`execute ${CONDS}${MODS} run function ${block.resloc}`)
+      return "function " + block.resloc;
+    } else {
+      const block = addBlock([]);
+      block._content = [
+        `execute ${MODS} run ` + anonFunction([
+          ...(statements||[]).map(T),
+          ...ifElse(CONDS,`run function ${block.resloc}`,T(then))
+        ])
+      ];
+      return "function "+block.resloc
+    }
+  },
+  every_until: ({ statements, conds, then, time, unit }, { T, Nbt, addBlock }) => {
+    if (!then) {
+      const lines = statements.map(T);
+      const block = addBlock(lines);
+      block._content.push(`execute ${T(conds)} run schedule function ${block.resloc} ${Nbt(time)}${unit}`)
+      return "function " + block.resloc;
+    } else {
+      const block = addBlock([]);
+      block._content = [
+        `execute ${MODS} run ` + anonFunction([
+          ...(statements||[]).map(T),
+          ...ifElse(CONDS,`run schedule function ${block.resloc} ${Nbt(time)}${unit}`,T(then))
+        ])
+      ];
+      return "function "+block.resloc
+    }
+  },
+  BlockArgThen: ({ }, { args }) => {
+    const ret = args[Symbol.for("BlockArgThen")]()
+    return ret;
+  },
+  BlockArgElse: ({ }, { args }) => args[Symbol.for("BlockArgElse")](),
+  assign_arg:({name,value},{args,Nbt}) => {
+    args[name]=Nbt(value);
+    return "";
+  },
+  macro_call({ name, args, then, otherwise }, { T, Nbt, expandMacro, macros }) {
+    const macro = macros[name];
+    const new_args = {};
+    for (const i in macro.args) {
+      const { name, def } = macro.args[i];
+      const { named, numbered } = args;
+      if (name in named) {
+        new_args[name] = Nbt(named[name])
+      } else if (i in numbered) {
+        new_args[name] = Nbt(numbered[i])
+      } else if (def) {
+        new_args[name] = Nbt(def)
+      } else {
+        throw new Error("arg " + name + " in macro " + macro.name + " is not optional")
+      }
+    }
+    const thenCode = new_args[Symbol.for("BlockArgThen")] = () => then ? T(then) : ""
+    const elseCode = new_args[Symbol.for("BlockArgElse")] = () => otherwise ? T(otherwise) : ""
+    return "function " + expandMacro(name, new_args).resloc
+  },
+  arg({name}, { args }) {
+    if (!(name in args)) throw new Error("Unknown arg ?"+name)
+    return args[name];
+  },
+}
