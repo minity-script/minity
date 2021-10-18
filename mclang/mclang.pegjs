@@ -137,24 +137,11 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       }
 
 //\\ print
-  print = "print" selector:(__ @selector)? __ parts:print_parts {
-    return N('print',{selector,parts})
+  print = "print" selector:(__ @selector)? __ line:raw_line {
+    return N('print',{selector,line})
   }
 
-  print_parts = head:print_part tail:(print_sep print_part)* {
-    return [head,...tail].flat().filter(Boolean);
-  }
-
-  print_sep 
-  =  __ { return N('print_space')}
-  / __? "," __? { return false }
-
-  print_part 
-  = name:var_name { return N('print_var',{name})}
-  / value:string { return N('print_string',{value})}
-  / value:value { return N('print_value',{value})}
-
-//\\ commands
+ //\\ commands
 
   command = "/" command:command_parts {
     return N('command', { command  } )
@@ -176,7 +163,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
 
   command_char 
     	= ![{] @char
-      / @"{" ![.?$@]
+      / @"{" ![.?$@(]
       / "\\" @.
     
   cmd 
@@ -207,6 +194,9 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
     / "tag" __ name:string {
         return N('declare_tag',{name})
       }
+    / "say" __ parts:command_parts {
+      return N('cmd_say',{parts})
+    }
 
   builtin
    =  "import" __ file:string {
@@ -751,7 +741,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
   restag
     = restag_full
     / "#" name:ident {
-        return N('resloc', { name } )
+        return N('restag', { name } )
       }
 
   restag_full 
@@ -1114,7 +1104,7 @@ SGT = ___ "/>"
 raw_tag 
   = open:raw_tag_open ___ GT
     ___
-  	parts:raw_tag_part*
+  	parts:raw_part*
     ___
     close:(
       tag:raw_tag_close {
@@ -1146,15 +1136,44 @@ raw_tag_open
 raw_tag_close
   = LTS @WORD GT
 
-raw_tag_part 
+raw_line = parts:(raw_tag/raw_expand/raw_chars)* {
+  return N('raw_line',{parts})
+}
+
+raw_part 
   = raw_tag 
-  /  chars:EOL {
-      return N('raw_chars_ws',{chars:chars})
+  / raw_expand 
+  /  chars:$(EOL) {
+      return N('raw_chars_ws',{chars})
     }
-  /  chars:$(!(LT) (char))+ {
-      return N('raw_chars',{chars})
-    }
+  /  raw_chars
+
+ raw_chars = chars:$(!(LT) (raw_char))+ {
+    return N('raw_chars',{chars})
+  }
+
+ raw_char 
+  = ![{] @char
+  / @"{" ![.?$@(]
+  / "\\" @.
+ raw_expand
+  = template_expand_arg
+  / raw_expand_var
+  / raw_expand_score_id
+  / template_expand_tag
+  / template_expand_score
+  / template_expand_selector
+  / template_expand_coords
   
+  raw_expand_var  
+    = "{$" name:template_parts "}" {
+        return N('raw_expand_var', { name } )
+      }
+  
+  raw_expand_score_id  
+    = "{" holder:score_holder _ "->" _ id:score_objective "}" {
+        return N('raw_expand_score_id', { holder, id } )
+      }
 
 raw_tag_name "raw tag"
 	=  tag:( "black" 

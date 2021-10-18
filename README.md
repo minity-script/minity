@@ -3,11 +3,9 @@
 
 Mclang is a scripting language which compiles to Vanilla Minecraft datapacks. It will allow you to develop complex datapacks in just a few files, and make your work easier by providing intuitive syntax for using some of the most powerful, but also hardest to use, Minecraft commands.
 
-For some examples of what mclang can do, see [features](#features) below. Also check out the examples and full docs. Or just read on to get started.
+For some examples of what mclang can do, see [features](#features) below. Also check out the examples and [full syntax docs](docs/SYNTAX.md). Or just read on to get started.
 
-<blockquote>
-<b>Want to help?</b> Check out how you can contribute, and/or support us on Patreon.
-</blockquote>
+- <b>Want to help?</b> Check out how you can [contribute](#contributing), and/or support us on Patreon.
 
 ## Getting Started
 #### Prerequisites

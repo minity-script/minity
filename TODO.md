@@ -1,6 +1,8 @@
-- command / string / raw interpolation 
+- document commands
+- vscode extension
 - examples
 
+- mclang.org
 - github
 - npm
 - patreon

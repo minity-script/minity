@@ -1,30 +1,7 @@
 // Declare the namespace. This is where all the following functions will go.
 namespace colored_keys
 
-// use /<commend...> to execute minecraft commands. This is useful
-// for reusing generated commands from the web, or for commands 
-// that don't have syntax sugar provided by McLang
-/say Hello World
-
-
-// All the statements in the root scope of the namespace will be
-// executed on (re)load.
-/say Tutorial loaded
-
-// Declare an integer variable that will be available in this namespace.
-// Variables are stored on the scoreboard under namespaced identifiers
-// so you don't need to worry about name clashes with other namespaces.
-
-
-// If we don't assign a value to the variable, it will be retained from
-// between reloads.
-var $enabled =1
-
-as @p print enabled $enabled
-
-// Define a function in the current namespaces. 
-// You can call it with function_name() from McLang, or 
-// with /function namespace:function:name from the Minecraft command prompt
+var $enabled
 
 if ($enabled>0) update_all_locks()
 

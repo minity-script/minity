@@ -42,10 +42,12 @@ const Frame = exports.Frame =
         process.exit(-1);
       }
       const ret = node.transform(this,...args);
-      if (typeof ret === 'object') {
-        console.log((node.$ + " ").padEnd(24, "_"), '=> [obj]', JSON.stringify(ret));
-      } else {
-        console.log((node.$ + " ").padEnd(24, "_"), '=>', "" + ret);
+      if (process.env.DEBUG) {
+        if (typeof ret === 'object') {
+          console.log((node.$ + " ").padEnd(24, "_"), '=> [obj]', JSON.stringify(ret));
+        } else {
+          console.log((node.$ + " ").padEnd(24, "_"), '=>', "" + ret);
+        }
       }
       return ret;
     }
@@ -150,7 +152,6 @@ const Frame = exports.Frame =
     }
 
     scopedName(name) {
-      console.log("PREFIX",this.prefix,this.ns,this.constructor.name)
       return this.prefix + name;
     }
 

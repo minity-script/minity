@@ -1,2 +1,2 @@
 # give_key(red,Red,14)
-function zzz_mcl:colored_keys/give_key_5iu32xwxpvw
+function zzz_mcl:colored_keys/give_key_m08estspdu

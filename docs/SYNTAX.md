@@ -3,7 +3,7 @@
   - [Using native Minecraft commands](#using-native-minecraft-commands)
   - [Comments](#comments)
   - [Importing mclang files](#importing-mclang-files)
-- [Functions and namespaces](#functions-and-namespaces)
+- [Namespaces and functions](#namespaces-and-functions)
   - [Setting the namespace](#setting-the-namespace)
   - [Defining functions](#defining-functions)
   - [Tagging functions](#tagging-functions)
@@ -11,24 +11,34 @@
 - [Control structures](#control-structures)
   - [A replacement for `execute ... run`](#a-replacement-for-execute--run)
   - [Grouping commands](#grouping-commands)
-  - [<tt>**for** *selector* ...</tt>](#ttfor-selector-tt)
-  - [<tt>**pos**</tt> and <tt>**rot**</tt>](#ttpostt-and-ttrottt)
-  - [<tt>(**north**|**south**|**east**|**west**|**up**|**down**) *float*</tt>](#ttnorthsoutheastwestupdown-floattt)
-  - [<tt>(**forward**|**back**|**left**|**right**|**upward**|**downward**) *float*</tt>](#ttforwardbackleftrightupwarddownward-floattt)
-  - [<tt>(**left**|**right**|**up**|**down**) *float*<b>deg</b></tt>](#ttleftrightupdown-floatbdegbtt)
+  - [Execution context modifiers](#execution-context-modifiers)
+    - [<tt>**as** *selector* ...</tt>](#ttas-selector-tt)
+    - [<tt>**at** *selector* ...</tt>](#ttat-selector-tt)
+    - [<tt>**for** *selector* ...</tt>](#ttfor-selector-tt)
+    - [<tt>**positioned** *position*</tt>](#ttpositioned-positiontt)
+    - [<tt>**rotated** *rotation*</tt>](#ttrotated-rotationtt)
+    - [<tt>**anchored** **(eyes|feet)**</tt>](#ttanchored-eyesfeettt)
+    - [<tt>**align** *axes*</tt>](#ttalign-axestt)
+    - [Relative direction modifiers: <tt>(**north**|**south**|**east**|**west**|**up**|**down**) *float*</tt>](#relative-direction-modifiers-ttnorthsoutheastwestupdown-floattt)
+    - [Local direction modifiers: <tt>(**forward**|**back**|**left**|**right**|**upward**|**downward**) *float*</tt>](#local-direction-modifiers-ttforwardbackleftrightupwarddownward-floattt)
+    - [Rotation modifiers: <tt>(**left**|**right**|**up**|**down**) *float*<b>deg</b></tt>](#rotation-modifiers-ttleftrightupdown-floatbdegbtt)
   - [<tt>(**if|unless)** *condition* /  ... [**else** ...]</tt>](#ttifunless-condition----else-tt)
+    - [Else](#else)
+    - [Combining conditionals](#combining-conditionals)
     - [Compare integers](#compare-integers)
-    - [Test a single block](#test-a-single-block)
+      - [Test a single block](#test-a-single-block)
     - [Test for existence of entities](#test-for-existence-of-entities)
     - [Test for existence of NBT data](#test-for-existence-of-nbt-data)
     - [Test predicate](#test-predicate)
   - [<tt>**repeat** ... (**while**|**until**) *condition* ... [**then** ...] </tt>](#ttrepeat--whileuntil-condition--then--tt)
   - [<tt>**every** *interval* ... [(**until**|**while**) *condition*]</tt>](#ttevery-interval--untilwhile-conditiontt)
+  - [<tt>**after** *interval* ...</tt>](#ttafter-interval-tt)
 - [Variables, entity scores and tags](#variables-entity-scores-and-tags)
   - [Integer variables](#integer-variables)
   - [Entity scores](#entity-scores)
   - [Assignment](#assignment)
   - [Arithmetics](#arithmetics)
+  - [Tags](#tags)
 - [Working with NBT Data](#working-with-nbt-data)
   - [Assignment](#assignment-1)
   - [<tt>(**prepend**|**append**) *NBT_path* *data*</tt>](#ttprependappend-nbt_path-datatt)
@@ -61,7 +71,7 @@
   - [JSON String](#json-string)
   - [SNBT String](#snbt-string)
   - [Raw Text Markup](#raw-text-markup)
-    - [<tt>&lt;span> &lt;t> &lt;p></tt>](#ttspan-t-ptt)
+    - [<tt>&lt;span> &lt;div> &lt;p></tt>](#ttspan-div-ptt)
     - [Attributes](#attributes)
     - [<tt>&lt;b> &lt;i> &lt;u> &lt;s></tt>](#ttb-i-u-stt)
     - [<tt>&lt;h></tt>](#tthtt)
@@ -78,10 +88,9 @@
 
 ## mclang syntax
 
-Mclang code is written in files with `.mclang` efile xtension. Mclang will parse your code and compile it into `.mcfunction` files in your datapack. Some mclang statements will also produce or alter `.json` files in your datapack.
+Mclang code is written in files with the `.mclang` file extension. Mclang will parse your code and compile it into `.mcfunction` files in your datapack. Some mclang statements will also produce or alter `.json` files in your datapack.
 
 You can use IDE extensions for syntax highlighting and error reporting.
-
 
 ## Basic Syntax
 
@@ -137,7 +146,7 @@ Some mclang features (variables, macros, etc.) need to be declared or defined be
 This requirement could be relaxed in the future.
 </blockquote>
 
-## Functions and namespaces
+## Namespaces and functions
 ````
 namespace tutorial
 
@@ -168,6 +177,11 @@ function hello() {
 }
 ````
 This will create a function named "hello" in `hello.mcfunction` in your current namespace. Functions must go into namespaces, so they must appear after a namespace statement.
+<blockquote>
+Mclang is currently quite particular about the placement of braces. It allows newlines inside them, but not before them, nor after them if the statement continues after the braces. You should generally follow the use of whitespace as shown in this documentation.
+
+This might be relaxed in the future, but it must first be thoroughly tested for ambiguity.
+</blockquote>
 
 ````
 //let's call our functions on load
@@ -276,7 +290,7 @@ macro raycast_destroy(?block) {
 }
 raycast_destroy(stone)
 ````
-Note that this will run forever, i.e. until Minecraft cuts off execution at 65,535 commands, if no stone is found. For better ways to do raycasting, see [recipes](#Recipes) and examples.
+Note that this will run forever, i.e. until Minecraft cuts off execution at 65,535 commands, if no stone is found, so it's not a good enough solution for raycasting by itself.
 
 ## Control structures
 ### A replacement for `execute ... run`
@@ -289,7 +303,7 @@ as @a at @s summon_enemies()
 // calls the function as and at each player
 ````
 ### Grouping commands
-If you need to do several things in the same execution context (i.e. current entity, position, rotation, etc.), put them in `{}` brackets. 
+If you need to do several things in the same execution context (i.e. current entity, position, rotation, etc.), put them in `{}` braces. 
 
 You don't have to use `()` brackets around the arguments to execution modifiers, but you can if it helps you make sense of your code.
 ````
@@ -316,10 +330,24 @@ function protect_base {
 }
 ````
 You can use all builtin subcommands of `execute`: `as`, `at`, ... Some additional subcommands are provided by maclang. See also if/unless/else statements below for an upgraded version of if/unless.
+### Execution context modifiers
+#### <tt>**as** *selector* ...</tt>
+Selects the matching items, and runs the following statement(s) for each of them, setting the current entity (`@s`) to each matching entity in turn. 
+````
+as @e[distance=...3] { 
+  tag @s is_near
+}
+````
+#### <tt>**at** *selector* ...</tt>
+Selects the matching items, and runs the following statement(s) at each of their positions and rotations in turn, without changing the current entity. 
+````
+as @e[distance=...3] { 
+  tag @s is_near
+}
+````
 
-### <tt>**for** *selector* ...</tt>
+#### <tt>**for** *selector* ...</tt>
 Shorthand for to set the execution entity and position at the same time. 
-
 ````
 for @e[distance=...3] { ... }
 
@@ -327,11 +355,42 @@ for @e[distance=...3] { ... }
 
 as @e[distance=...3] at @s { ... }
 ````
-### <tt>**pos**</tt> and <tt>**rot**</tt>
+#### <tt>**positioned** *position*</tt>
+Changes the current execution position, thus changing the meaning of relative coordinates in the following statement(s):
+````
+positioned 0 0 0 { 
+  // ~ ~ ~ is now at world origin
+}
+positioned ~ ~3 ~ { 
+  // ~ ~ ~ is now three blocks above
+}
+````
+You will probably use this only for absolute coordinates, because mclang provides a more convenient way to change position with direction modifiers.
 
-These are shorthands for `positioned` and `rotated`. They also work for `pos as` and `rot as`.
+#### <tt>**rotated** *rotation*</tt>
+Changes the current execution position, thus changing the meaning of local coordinates in the following statement(s):
+````
+rotated 0 0 { 
+  // looking straight north
+}
+rotated ~ ~30 { 
+  // rotate 30 degrees upwards
+}
+````
+You will probably use this only for absolute rotation, because mclang provides a more convenient way to change rotation with direction modifiers.
 
-### <tt>(**north**|**south**|**east**|**west**|**up**|**down**) *float*</tt>
+#### <tt>**anchored** **(eyes|feet)**</tt>
+Changes the current execution position and rotation to match that of the current item's eyes or feet.
+
+#### <tt>**align** *axes*</tt>
+Rounds down the current coordinates in the chosen axes. Note that you must specify the axes in the correct order, unlike in `.mcfunction`
+````
+align xyz ...   // align in all three axes
+align xz ...    // align in horizontal axes
+align xzy ...   // error, you must sort the axes corretly
+````
+
+#### Relative direction modifiers: <tt>(**north**|**south**|**east**|**west**|**up**|**down**) *float*</tt>
 Syntactic sugar for changing the execution position in relative world coordinates.
 ```
 at @p up 2 do_something()
@@ -346,7 +405,7 @@ at @p up 2 west 3 down 4 do_something()
 // ... is the same as ...
 at @p positioned ~ ~-2 ~3 do_something()
 ```
-### <tt>(**forward**|**back**|**left**|**right**|**upward**|**downward**) *float*</tt>
+#### Local direction modifiers: <tt>(**forward**|**back**|**left**|**right**|**upward**|**downward**) *float*</tt>
 Syntactic sugar for changing the execution position in the current entity's coordinate system.
 ```
 at @p left 2 forward 3 do_something()
@@ -356,7 +415,7 @@ at @p left 2 forward 3 do_something()
 at @p positioned ^-2 ^ ^3 do_something()
 ```
 
-### <tt>(**left**|**right**|**up**|**down**) *float*<b>deg</b></tt>
+#### Rotation modifiers: <tt>(**left**|**right**|**up**|**down**) *float*<b>deg</b></tt>
 Syntactic sugar for changing the execution rotation.
 ```
 at @p left 90deg up 30deg do_something()
@@ -376,6 +435,51 @@ unless $a > 3 {
   say Not larger than 3
 }
 ```
+#### Else 
+Mclang provides a true else, by pushing results of tests to a stack in data storage and running the else statement(s) only if the test originally failed. The following example will work completely as expected.
+```
+$a = 4
+if $a > 3 {
+  say Larger than 3
+  $a = 0
+} else if $a < 3 {          
+  say Smaller than 3      
+  $a++
+} else {
+  say Exactly 3!
+}
+```
+#### Combining conditionals
+```
+$a = 4
+
+if $a > 3 and unless $a > 5 {
+  say Just right!
+} else {          
+  say Outside range
+} 
+```
+Minecraft doesn't provide logical operators (AND, OR, etc.), but it does allow chaining of if/unless. The `and` keyword is needed to ensure that `else` blocks apply to the correct conditions:
+```
+// these two are the same, but different from above
+
+if $a > 3 unless $a > 5 {
+  say Just right!
+} else {
+  say Outside range
+}
+
+if $a > 3 {
+  unless $a > 5 {
+    say Just right!
+  } else {
+    say Outside range
+  }
+}
+
+```
+
+
 #### Compare integers
 You can compare variables, scores and integer values.
 
@@ -386,7 +490,7 @@ if ( $a < @s->my_score ) ...  // you can use brackets if you prefer
 if @s -> my_score == 3 ...
 if ($a == 1..4) ....          // works with ranges
 ````
-#### Test a single block
+##### Test a single block
 To test for a block, you need to provide a block predicate, possibly preceded by a coordinate or directions. The block predicate can be as little as the id of the block. The block id can be namespaced, and the namespace defaults to `minecraft:`.
 ```` 
 if air ...                    // is the block at the current position air
@@ -455,12 +559,9 @@ repeat forward 0.1 {
   if(stone) say Stone found!
 }
 ````
-See [recipes](#recipes) for an even better way to do raycasting.
-
-
 
 ### <tt>**every** *interval* ... [(**until**|**while**) *condition*]</tt>
-Will run your statements at a regular interval.
+Run your statements at a regular interval.
 
 ````
 every 300s {
@@ -498,6 +599,21 @@ as nearest @chicken.evil {    // run following commands as the nearest chicken
   }
 }
 ````
+If you provide a `then` statement, it will be run when the repetition ends:
+````
+every 1t {
+  minigame_on_tick()
+} while ($running == true) then {
+  say Game Over
+}
+````
+### <tt>**after** *interval* ...</tt>
+Run your statements once after an interval has passed.
+````
+after 3600s {
+  say You've been playing for an hour
+}
+````
 
 ## Variables, entity scores and tags
 Variables and entity scores can be used to store integers and do arithmetics on them. Tags are used for grouping entities in useful ways.
@@ -510,7 +626,7 @@ To declare a variable, use the `var` keyword. Variable names are prefixed with `
 var $my_var = 0
 var $my_other_var
 ````
-The variable will be namespaced to the namespace and function where it is declared, and shared between all the calls to the function. Variables that are not redeclared are inherited from parents scope.
+The variable will be namespaced to the namespace and function where it is declared, and shared between all the calls to the function. Variables that are not redeclared are inherited from parent scope.
 
 ````
 var $foo = 0
@@ -550,7 +666,7 @@ By default scores use the `dummy` criterion, so they behave like regular integer
 score my_trigger trigger
 score died deathCount
 ````
-
+To select entities by score, use the `@e[->score_name <op> value]` selector condition. See selector syntax below.
 ### Assignment
 Anything that is or returns an integer can be assigned to a variable or an entity score.
 ````
@@ -578,8 +694,6 @@ Or the success of conditionals or statements:
 $foo    ?= test if ($a > $b) and unless ($b < 3)
 @s->bar ?= /command ...
 ````
-
-
 You can swap the values of two variables and/or entity scores:
 ````
 $foo >< $bar   // using minecraft's original syntax
@@ -608,6 +722,35 @@ $foo %= ...   // modulo (remainder on division)
 $foo >= ...   // set $foo to at most ...
 $foo <= ...   // set $foo to at least ...
 ````
+### Tags
+You need to declare tags before using them. 
+````
+tag my_tag
+````
+Use `tag` and `untag` to add and remove tags:
+````
+tag @chicken evil
+untag @s processed
+````
+Tags are namespaced and scoped to the local function.
+````
+function process_chickens() {
+  tag processed
+  for @chicken!processed {
+    process_entity()
+    tag @s processed
+  }
+}
+
+function process_entities() {
+  tag processed               // different tag from above. chickens processed 
+  for @e!processed {          // by process_chicken() will still match here
+    process_entity()
+    tag @s processed
+  }
+}
+````
+To select entities by tags, use the `.tag_name` and `!tag_name` selector conditions. See selector syntax below.
 
 ## Working with NBT Data
 You can access NBT data with the `::` operator, followed by a NBT path.
@@ -1011,11 +1154,13 @@ Raw Text is a powerful feature of Minecraft, but also notoriously hard to write.
 <tt>Click <u style="color:blue">here</u> to say something.</tt><br/>
 </blockquote>
 
-#### <tt>&lt;span> &lt;t> &lt;p></tt>
+#### <tt>&lt;span> &lt;div> &lt;p></tt>
 These are the three general tags that will create a raw text object. The difference between them is how they handle whitespace.
-* `<p>` will remove all whitespace directly on its inside, and ensure that there is exactly one newline before and after it, except at beginning or end of raw text.
-* `<span>` will remove all whitespace directly on its inside, and ensure that there is at most one space before and after its contents if there was any whitespace there in the code.
+* `<div>` will remove all whitespace directly on its inside, and ensure that there is exactly one newline before and after it, except at beginning or end of raw text.
+* `<p>` will remove all whitespace directly on its inside, and ensure that there is exactly one newline before it and two after it, except at beginning or end of raw text.
+* `<span>` will remove all whitespace directly on its inside.
 * `<t>` is a shorthand for `<span>`.
+* `<d>` is a shorthand for `<div>`.
 
 In all three cases, the spaces and newlines within the tag, but not directly adjacent to it will be preserved, but each line will be trimmed, i.e. all spaces at begnning and end of line removed. Text within the `text` attribute will be included as is.
 

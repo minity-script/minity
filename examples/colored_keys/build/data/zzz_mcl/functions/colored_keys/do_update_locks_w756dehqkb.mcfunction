@@ -9,4 +9,4 @@
 #        down ?delta setblock glass
 #     } 
 #   }
-execute as @s[tag=--colored_keys-is_blue_lock] at @s run execute positioned ~ ~1 ~ run function zzz_mcl:colored_keys/1_v6e1yrttozq
+execute as @s[tag=--colored_keys-is_blue_lock] at @s run execute positioned ~ ~1 ~ run function zzz_mcl:colored_keys/1_3jd8ddluosk

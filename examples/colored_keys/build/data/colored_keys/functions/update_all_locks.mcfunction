@@ -16,8 +16,8 @@
 #       }
 #     }
 #   }
-execute as @e[tag=--colored_keys-is_lock] at @s run function zzz_mcl:colored_keys/5_402ndekvztw
+execute as @e[tag=--colored_keys-is_lock] at @s run function zzz_mcl:colored_keys/5_rqt6cyekk3
 # after 2t {
 #     if ( $enabled > 0)  update_all_locks()
 #   }
-schedule function zzz_mcl:colored_keys/6_sb45b159e7h 2t
+schedule function zzz_mcl:colored_keys/6_h2lhgbm18tl 2t

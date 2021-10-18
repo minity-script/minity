@@ -92,10 +92,10 @@ const transformers = exports.transformers = {
     return (node.ns ? T(node.ns) : "minecraft") + ":" + T(node.name);
   },
   restag(node, { T, ns }) {
-    return (node.ns ? T(node.ns) : ns) + ":#" + T(node.name);
+    return '#'+(node.ns ? T(node.ns) : ns) + ":" + T(node.name);
   },
   restag_mc(node, { T }) {
-    return (node.ns ? T(node.ns) : "minecraft") + ":#" + T(node.name);
+    return '#'+(node.ns ? T(node.ns) : "minecraft") + ":" + T(node.name);
   },
   execute(node, { T }) {
     return "execute " + node.mods.map(T).join(" ") + " run " + T(node.code)
@@ -108,6 +108,7 @@ const transformers = exports.transformers = {
   range_gt: ({ from }, { Nbt }) => `${Nbt(from) + 0.000001}..`,
   range_lt: ({ to }, { Nbt }) => `..${Nbt(to) - 0.000001}`,
   command: ({ command }, { T }) => T(command),
+  cmd_say: ({ parts }, { T }) => `say T(parts)`,
   cmd_summon: ({ pos, type, nbt, then }, { T, anonFunction, Nbt, toNbt }) => {
     if (!then) return `summon ${pos ? T(pos) : "~ ~ ~"} ${T(type)}${nbt ? toNbt(nbt) : ''}`
 
@@ -157,29 +158,32 @@ const transformers = exports.transformers = {
       `execute store ${T(left)}[${T(index)}] set ${T(right)}`,
     ]
   ]),
-  print: ({ selector, parts }, { T }) => {
-    return "tellraw " + (selector ? T(selector) : "@s") + " " + JSON.stringify(parts.map(T));
+  print: ({ selector, line }, { T }) => {
+    return "tellraw " + (selector ? T(selector) : "@s") + " " + JSON.stringify(T(line));
   },
-  print_var: ({ name }, { T, varExists, varName, varObjective }) => {
-    return { score: { name: varName(name), objective: varObjective(name) } }
-  },
-  print_value: ({ value }, { toNbt }) => {
-    return { text: toNbt(value) }
-  },
-  print_string: ({ value }, { toNbt }) => {
-    return { text: "" + toNbt(value) }
-  },
-  print_space: () => {
-    return { text: " " }
-  },
+  raw_line:({parts},{T}) => parts.map(T),
   delete_datapath: ({ path }, { T }) => `data remove ${T(path)}`,
   template_chars: ({ chars }) => chars,
   template_parts: ({ parts }, { T }) =>  parts.map(T).join(""),
   template_expand_arg: ({ name }, { toNbt, Nbt, args }) => Nbt(args[Nbt(name)]),
   template_expand_tag: ({ name }, { T, tagId }) => tagId(T(name)),
   template_expand_var: ({ name }, { T, varId }) => varId(T(name)),
-  template_expand_score: ({ name }, { T, scoreId }) => scoreId(T(name)),
-  template_expand_selector: ({ selector }, { T, scoreId }) => T(selector),
+  template_expand_score: ({ name }, { T, scoreObjective }) => scoreObjective(T(name)),
+  template_expand_score_id: ({ id }, { T }) => (T(id)),
+  template_expand_selector: ({ selector }, { T }) => T(selector),
+
+  raw_expand_var: ({ name }, { T, Nbt, varObjective,varName}) => Nbt({
+    score:{
+      objective: varObjective(T(name)),
+      name: varName(T(name)),
+    }
+  }),
+  raw_expand_score: ({ holder, id }, { T, Nbt, scoreObjective}) => Nbt({
+    score:{
+      objective: scoreObjective(T(id)),
+      name: Nbt(T(holder)),
+    }
+  }),
   ident(node) {
     return node.ident;
   },
@@ -264,7 +268,6 @@ const transformers = exports.transformers = {
     return Nbt(ret);
   },
   raw_chars: ({ chars }, { Nbt },state) => {
-    console.log(state,JSON.stringify(chars));
     if (state.first) chars=chars.trimStart();
     if (state.last) chars=chars.trimEnd();
     state.block = false;
@@ -328,7 +331,6 @@ const transformers = exports.transformers = {
   TildeCoord: ({ arg }, { T }) => arg ? `~${T(arg)}` : '~',
   CaretCoord: ({ arg }, { T }) => arg ? `^${T(arg)}` : '^',
   StructureRepeat: ({ mods=[], statements=[], conds, then }, { T, ifElse, anonFunction, addBlock, ns }) => {
-    console.log(mods);
     const MODS = (mods||[]).map(T).join(" ");
     const CONDS = T(conds);
     if (!then) {
