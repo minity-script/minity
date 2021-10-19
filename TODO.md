@@ -1,7 +1,19 @@
-- document commands
 - vscode extension
+- document commands
 - examples
+  - raycasting
+  - bossbar timer
+  - 
+- extract keywords
+- document keywords
 
+- persistent vars vs. reset objective 
+- alias/external for vars etc
+- check objective names
+- accept any raw tag, apply settings from a helper, possibly make configurable
+- define json?
+- macros within macros?
+ 
 - mclang.org
 - github
 - npm

@@ -205,12 +205,12 @@ class ResultJson extends ResultFile {
     super(namespace, { ext: ".json", content, ...rest });
   }
   get text() {
-    return JSON.stringify(this.content);
+    return JSON.stringify(this.content,null,2);
   }
   merge(obj) {
     this._content = merge(this.content, obj);
   }
   overwrite(path) {
-    return JSON.stringify(merge(require(path), this.content));
+    return JSON.stringify(merge(require(path), this.content),null,2);
   }
 }

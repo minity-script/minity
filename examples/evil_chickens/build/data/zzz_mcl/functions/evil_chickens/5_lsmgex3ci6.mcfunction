@@ -1,2 +1,0 @@
-execute store result bossbar evil_chickens:chickens value run execute if entity @e[type=minecraft:chicken,tag=--evil_chickens-evil]
-execute if score --evil_chickens-running --evil_chickens--vars matches 1.. run schedule function zzz_mcl:evil_chickens/5_lsmgex3ci6 2t

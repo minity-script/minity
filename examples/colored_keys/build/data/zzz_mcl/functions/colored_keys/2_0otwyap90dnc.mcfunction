@@ -1,2 +1,0 @@
-summon minecraft:slime ~ ~ ~ {CustomName:'"Blue Lock"',Invulnerable:true,Silent:true,Size:0.5d,Tags:["--colored_keys-is_blue_lock","--colored_keys-is_lock","_mclang_summoned_"]}
-execute as @e[tag=_mclang_summoned_] run function zzz_mcl:colored_keys/1_6fnl753yovp

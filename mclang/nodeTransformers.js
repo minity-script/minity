@@ -1,5 +1,6 @@
 
 const {Selector} = require("./Selector");
+const { randomString } = require("./utils");
 
 const transformers = exports.transformers = {
   file: ({ namespaces }, { T }) => {
@@ -25,6 +26,16 @@ const transformers = exports.transformers = {
     declareMacro(node);
     return "";
   },
+  DeclareEvent({trigger,conditions,then}, { T, ns, declareEvent, addBlock }) {
+    const id = randomString();
+    const block = addBlock([
+      ...then.map(T),
+      `advancement revoke @s only ${ns}:${id}`
+    ])
+    
+    declareEvent(id, T(trigger),T(conditions),block.resloc);
+    return "";
+  },
   string_lit: ({ value }, { Nbt }) => Nbt(String(value)),
   number_lit: ({ value, suffix }, { Nbt }) => {
     return Nbt(+value, suffix)
@@ -41,9 +52,10 @@ const transformers = exports.transformers = {
     return ret;
   },
   string_json: ({ value }, { Nbt, toJson }) => {
-    return Nbt("'" 
-		+ JSON.stringify(Nbt(value)).replace(/(['\\])/g,'\\$1')
-    + "'",true);
+    return Nbt(JSON.stringify(Nbt(value)),true);
+  },
+  string_snbt: ({ value }, { Nbt, toNbt }) => {
+    return Nbt(toNbt(value),true);
   },
   array_lit: ({ items }, { T, Nbt }) => Nbt(items.map(T)),
   template_lit: ({ parts }, { T, Nbt }) => Nbt(parts.map(Nbt).join("")),
@@ -108,17 +120,17 @@ const transformers = exports.transformers = {
   range_gt: ({ from }, { Nbt }) => `${Nbt(from) + 0.000001}..`,
   range_lt: ({ to }, { Nbt }) => `..${Nbt(to) - 0.000001}`,
   command: ({ command }, { T }) => T(command),
-  cmd_say: ({ parts }, { T }) => `say T(parts)`,
+  cmd_say: ({ parts }, { T }) => `say ${T(parts)}`,
   cmd_summon: ({ pos, type, nbt, then }, { T, anonFunction, Nbt, toNbt }) => {
-    if (!then) return `summon ${pos ? T(pos) : "~ ~ ~"} ${T(type)}${nbt ? toNbt(nbt) : ''}`
-
+    if (!then) return `summon ${T(type)}${nbt ? toNbt(nbt) : ''} ${pos ? T(pos) : "~ ~ ~"}`
+    const tag = "--mclang--internal-summoned"
     nbt = Nbt(nbt || {});
-    nbt.Tags = [...nbt.Tags || [], "_mclang_summoned_"];
+    nbt.Tags = [...nbt.Tags || [], tag];
     return anonFunction([
       `summon ${T(type)} ${pos ? T(pos) : "~ ~ ~"} ${toNbt(nbt)}`,
-      `execute as @e[tag=_mclang_summoned_] run ${anonFunction([
-        'tag @s remove _mclang_summoned_',
-        ...then.statements.map(T)
+      `execute as @e[tag=${tag}] run ${anonFunction([
+        `tag @s remove ${tag}`,
+        ...then.map(T)
       ])}`
     ])
   },
@@ -126,7 +138,7 @@ const transformers = exports.transformers = {
     return `give ${T(selector)} ${T(type)}${toNbt(nbt || {})}`
   },
   cmd_after: ({ time, unit, fn }, { T, toNbt }) => {
-    return `schedule ${T(fn)} ${toNbt(time)}${unit}`
+    return `schedule function ${T(fn)} ${toNbt(time)}${unit}`
   },
 
   cmd_setblock: ({ pos, block }, { T }) => {
@@ -169,6 +181,9 @@ const transformers = exports.transformers = {
   template_expand_tag: ({ name }, { T, tagId }) => tagId(T(name)),
   template_expand_var: ({ name }, { T, varId }) => varId(T(name)),
   template_expand_score: ({ name }, { T, scoreObjective }) => scoreObjective(T(name)),
+  template_expand_value: ({ value }, { Nbt }) => {
+    return JSON.stringify(Nbt(value))
+  },
   template_expand_score_id: ({ id }, { T }) => (T(id)),
   template_expand_selector: ({ selector }, { T }) => T(selector),
 
@@ -178,7 +193,7 @@ const transformers = exports.transformers = {
       name: varName(T(name)),
     }
   }),
-  raw_expand_score: ({ holder, id }, { T, Nbt, scoreObjective}) => Nbt({
+  raw_expand_score_id: ({ holder, id }, { T, Nbt, scoreObjective}) => Nbt({
     score:{
       objective: scoreObjective(T(id)),
       name: Nbt(T(holder)),
@@ -283,11 +298,6 @@ const transformers = exports.transformers = {
     }
     return ""
   },
-  mod_check_if: ({ test }, { T }) => `if ${T(test)}`,
-  mod_check_unless: ({ test }, { T }) => `unless ${T(test)}`,
-  mod_checks: ({ checks }, { T }) => checks.map(T).join(" "),
-
- 
 
   bossbar_add: ({id,name},{T,toNbt})=>`bossbar add ${T(id)} ${toNbt(name)}`,
 
@@ -298,10 +308,11 @@ const transformers = exports.transformers = {
   ModifierNative: ({ MOD, arg }, { T }) => `${MOD} ${T(arg)}`,
   ModifierNativeLiteral: ({ MOD, ARG }, { T }) => `${MOD} ${ARG}`,
   ModifierFor: ({ arg }, { T }) => `as ${T(arg)} at @s`,
+  ModifierFacing: ({ selector, anchor }, { T }) => `facing entity ${T(selector)} ${anchor||'eyes'}`,
   StructureIfElse: ({ arg, then, otherwise }, { T, anonFunction, ifElse }) => (
     otherwise
       ? anonFunction(ifElse(T(arg), T(then), T(otherwise)))
-      : `execute ${T(arg)} ${T(then)}`
+      : `execute ${T(arg)} run ${T(then)}`
   ),
   Conditionals: ({ subs }, { T }) => subs.map(T).join(" "),
   ConditionalIf: ({ arg }, { T }) => `if ${T(arg)}`,
@@ -311,8 +322,8 @@ const transformers = exports.transformers = {
     if (statements.length == 1) return T(statements[0]);
     return "function " + addBlock(statements.map(T)).resloc;
   },
-  AnonFunction: ({ statements }, { T, anonFunction }) => {
-    return anonFunction(statements.map(T));
+  AnonFunctionResloc: ({ statements }, { T, anonFunctionResloc }) => {
+    return anonFunctionResloc(statements.map(T));
   },
   RelativeCoords: ({ _coords }, { sumCoords }) => {
     let { x, y, z } = sumCoords(_coords);
@@ -342,7 +353,7 @@ const transformers = exports.transformers = {
       block._content = [
         `execute ${MODS} run ` + anonFunction([
           ...(statements||[]).map(T),
-          ...ifElse(CONDS,`run function ${block.resloc}`,T(then))
+          ...ifElse(CONDS,`function ${block.resloc}`,T(then))
         ])
       ];
       return "function "+block.resloc
@@ -359,7 +370,7 @@ const transformers = exports.transformers = {
       block._content = [
         `execute ${MODS} run ` + anonFunction([
           ...(statements||[]).map(T),
-          ...ifElse(CONDS,`run schedule function ${block.resloc} ${Nbt(time)}${unit}`,T(then))
+          ...ifElse(CONDS,`schedule function ${block.resloc} ${Nbt(time)}${unit}`,T(then))
         ])
       ];
       return "function "+block.resloc

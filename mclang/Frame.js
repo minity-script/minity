@@ -4,9 +4,11 @@ const { Result } = require("./Result");
 const { TreeNode } = require("./TreeNode");
 const { Nbt } = require("./Nbt");
 const { resolve, dirname } = require("path");
+const { randomString } = require("./utils.js");
 const { isNbt, toNbt, toSnbt, toJson } = Nbt;
 
-
+let blockCount = 0
+   
 const Frame = exports.Frame =
   class Frame extends Function {
     constructor() {
@@ -70,11 +72,22 @@ const Frame = exports.Frame =
       const C = new Frame.Macro(macro.parent,{name,args})
       return C.fn
     }
-   
-    blockCount = 0
-   
+    declareEvent = (id, trigger, conditions, then) => {
+      this.result.addJson(this.ns, ["advancements",id], {
+        criteria: {
+          [id]: {
+            trigger,
+            conditions  
+          }
+        },
+        rewards: {
+          function: then
+        }
+      })
+    }
+    
     addBlock = (lines, ns = this.ns) => {
-      return this.result.addAnonFunction(ns, this.resloc, lines, (++this.blockCount));
+      return this.result.addAnonFunction(ns, this.resloc, lines, (++blockCount));
     }
     
     anonFunction = (lines, ns = this.ns) => {
@@ -91,8 +104,8 @@ const Frame = exports.Frame =
       return [
         `data modify ${stack} append value [B;]`,
         `execute ${checks} run data modify ${top} append value 1b`,
-        `execute if data ${top}[0] ${thenCode}`,
-        `execute unless data ${top}[0] ${elseCode}`,
+        `execute if data ${top}[0] run ${thenCode}`,
+        `execute unless data ${top}[0] run ${elseCode}`,
         `data remove ${top}`
       ]
     }
@@ -133,6 +146,7 @@ const Frame = exports.Frame =
     }
 
     declareScore = (s, criterion) => {
+      criterion ||= "dummy"
       const objective = this.scopedName(s);
       this.scores[s] = { objective, criterion, ns: this.ns };
       this.namespace.addObjective(objective, criterion);

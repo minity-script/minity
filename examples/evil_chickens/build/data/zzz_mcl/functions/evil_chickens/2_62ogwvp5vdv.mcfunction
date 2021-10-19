@@ -1,2 +1,0 @@
-summon minecraft:chicken ~ ~ ~ {Passengers:[{id:"minecraft:endermite",Tags:["--evil_chickens-evil"]}],HandItems:[{},{},{},{Count:1,id:"minecraft:golden_helmet"}],Tags:["_mclang_summoned_"]}
-execute as @e[tag=_mclang_summoned_] run function zzz_mcl:evil_chickens/1_110p77lvfth

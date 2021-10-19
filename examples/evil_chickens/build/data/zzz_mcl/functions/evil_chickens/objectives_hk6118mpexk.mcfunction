@@ -1,1 +1,0 @@
-scoreboard objectives add --evil_chickens--vars dummy

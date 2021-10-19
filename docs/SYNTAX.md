@@ -33,12 +33,14 @@
   - [<tt>**repeat** ... (**while**|**until**) *condition* ... [**then** ...] </tt>](#ttrepeat--whileuntil-condition--then--tt)
   - [<tt>**every** *interval* ... [(**until**|**while**) *condition*]</tt>](#ttevery-interval--untilwhile-conditiontt)
   - [<tt>**after** *interval* ...</tt>](#ttafter-interval-tt)
-- [Variables, entity scores and tags](#variables-entity-scores-and-tags)
+- [Variables and entity scores](#variables-and-entity-scores)
   - [Integer variables](#integer-variables)
   - [Entity scores](#entity-scores)
   - [Assignment](#assignment)
   - [Arithmetics](#arithmetics)
-  - [Tags](#tags)
+- [Entity tags](#entity-tags)
+- [Bossbars](#bossbars)
+  - [Adding a bossbar](#adding-a-bossbar)
 - [Working with NBT Data](#working-with-nbt-data)
   - [Assignment](#assignment-1)
   - [<tt>(**prepend**|**append**) *NBT_path* *data*</tt>](#ttprependappend-nbt_path-datatt)
@@ -50,7 +52,7 @@
     - [<tt><b>@p</b> <b>@r</b> <b>@a</b> <b>@e</b></tt>](#ttbpb-brb-bab-bebtt)
     - [<tt><b>@[</b>*player_id*<b>]</b></tt>](#ttbbplayer_idbbtt)
     - [<tt><b>@</b>*type*</tt>](#ttbbtypett)
-    - [<tt><b>@#</b>*entity_tag*</tt>](#ttbbentity_tagtt)
+    - [<tt><b>@#</b>*entity_type_tag*</tt>](#ttbbentity_type_tagtt)
     - [<tt><b>[</b>*condition* *op* *value*<b>]</b></tt>](#ttbbcondition-op-valuebbtt)
     - [<tt><b>.</b>*tag*</tt>](#ttbbtagtt)
     - [<tt><b>!</b>*tag*</tt>](#ttbbtagtt-1)
@@ -81,6 +83,16 @@
   - [Arithmetics](#arithmetics-1)
   - [Comparison](#comparison)
   - [Other punctuation](#other-punctuation)
+- [Keywords](#keywords)
+  - [Selector keywords](#selector-keywords)
+  - [Execution context keywords](#execution-context-keywords)
+  - [Mclang keywords](#mclang-keywords)
+  - [Commands](#commands)
+- [Mclang Commands](#mclang-commands)
+  - [<tt>append *NBTpath* *value*</tt>](#ttappend-nbtpath-valuett)
+  - [<tt>bossbar add *id* *name*</tt>](#ttbossbar-add-id-namett)
+  - [<tt>bossbar remove *id* </tt>](#ttbossbar-remove-id-tt)
+  - [<tt>merge *NBTpath* *value*</tt>](#ttmerge-nbtpath-valuett)
 
 </div>
 
@@ -615,10 +627,10 @@ after 3600s {
 }
 ````
 
-## Variables, entity scores and tags
-Variables and entity scores can be used to store integers and do arithmetics on them. Tags are used for grouping entities in useful ways.
+## Variables and entity scores
+Variables and entity scores can be used to store integers and do arithmetics on them. 
 
-Varuables, entity scores and tags need to be declared. The declared identifiers will not be used directly, they will be namespaced and scoped, so you don't need to worry about naming clashes with other namespaces or functions.
+Varuables and entity scores need to be declared. The declared identifiers will not be used directly, they will be namespaced and scoped, so you don't need to worry about naming clashes with other namespaces or functions.
 
 ### Integer variables
 To declare a variable, use the `var` keyword. Variable names are prefixed with `$`
@@ -677,7 +689,8 @@ $foo = ...
 ... = $foo
 ... = @p::Inventory[{Slot:1b}].Count   // Entity data
 ... = (up 2)::Items[{Slot:1b}].Count   // Block data
-... = @@storage_name::nbt.path          // Storage data
+... = @@storage_name::nbt.path         // Storage data
+... = bossbar my_bossbar max           // Bossbar properties (max, value, visible)
 ````
 You can also use any native command or mclang statement:
 ````
@@ -722,12 +735,13 @@ $foo %= ...   // modulo (remainder on division)
 $foo >= ...   // set $foo to at most ...
 $foo <= ...   // set $foo to at least ...
 ````
-### Tags
-You need to declare tags before using them. 
+## Entity tags
+Tags are used for grouping entities in useful ways. You need to declare tags before using them. 
+
 ````
 tag my_tag
 ````
-Use `tag` and `untag` to add and remove tags:
+Use `tag` and `untag` to add and remove tags from entities:
 ````
 tag @chicken evil
 untag @s processed
@@ -751,6 +765,28 @@ function process_entities() {
 }
 ````
 To select entities by tags, use the `.tag_name` and `!tag_name` selector conditions. See selector syntax below.
+
+## Bossbars
+### Adding a bossbar
+````
+?max_time = 300
+
+var $seconds_left = ?max_time
+
+bossbar add timer "Time left"
+bossbar timer max = ?max_time
+bossbar timer value = ?max_time
+bossbar timer players = @a
+bossbar timer visible = true
+
+every 1s {
+  $seconds_left --
+  bossbar timer value = $seconds_left
+} while ($seconds_left > 0)  then {
+  say Time has run out.
+}
+
+````
 
 ## Working with NBT Data
 You can access NBT data with the `::` operator, followed by a NBT path.
@@ -870,7 +906,7 @@ Sets the `type` condition of the selector. The type can include a namespace, if 
 
 This will set the *target selector variable* to `@e`, and will match all live entities of the given type. This means that `@player` will match only live players, and you need to use `@a` if you want to target dead players as well. 
 
-#### <tt><b>@#</b>*entity_tag*</tt>
+#### <tt><b>@#</b>*entity_type_tag*</tt>
 Sets the `type` condition of the selector. If namespace is not provided, it defaults to `minecraft`.
 ````
 @#raider            // match all raiders                       
@@ -1194,7 +1230,7 @@ Heading. Like a `p` tag, but with bold already set to true.
 
 ## Argument interpolation
 
-| token | in strings and commands| in raw text markup|
+| `token` | in strings and commands| in raw text markup|
 |-|-|-|
 |<nobr>`{?color}`</nobr>| value of the constant<br>e.g. `red` | same |
 |<nobr>`{.processed}`</nobr>|internal name of the tag<br>e.g.`--my_ns-processed"`| same |
@@ -1206,14 +1242,14 @@ Heading. Like a `p` tag, but with bold already set to true.
 
 ## Operators
 ### Assignment
-| operator | description |
+| `operator` | description |
 |-|-|
 |`=`| assign value |
 |`?=`| assign success |
 |`<=>`| swap values |
 
 ### Arithmetics
-| operator | description |
+| `operator` | description |
 |-|-|
 |`--`| plus 1 |
 |`--`| minus 1 |
@@ -1226,7 +1262,7 @@ Heading. Like a `p` tag, but with bold already set to true.
 |`>=`| choose smaller |
 
 ### Comparison
-| operator | description |
+| `operator` | description |
 |-|-|
 |`==`| equals |
 |`-=`| does not equal |
@@ -1237,7 +1273,7 @@ Heading. Like a `p` tag, but with bold already set to true.
 
 ### Other punctuation
 Other non-alphanumeric characters that can appear in the code. Some can mean different things in different contexts.
-| operator | description |
+| `operator` | description |
 |-|-|
 |`?`|  constant/macro arg prefix |
 |`$`|  variable prefix |
@@ -1254,4 +1290,192 @@ Other non-alphanumeric characters that can appear in the code. Some can mean dif
 |`:`| namespace |
 |`#`| tags for functions/entities/blocks, as set in JSON files |
 
+
+## Keywords
+
+### Selector keywords
+
+| `keyword`             |  |
+|---------------------|-------------|
+| `arbitrary`           | selector.sorting
+| `any`                 | slector.sorting
+| `advancements`        | selector.condition
+| `adventure`           | selector.gamemode
+| `closest`             | sorting in selectors
+| `creative`            | gamemode in selectors
+| `distance`            | condition in selectors
+| `farthest`            | sorting in selectors
+| `furthest`            | sorting in selectors
+| `gamemode`            | condition in selectors
+| `limit`               | 
+| `level`               | 
+| `nbt`                 | 
+| `nearest`             | 
+| `oldest`              | 
+| `predicate`           | 
+| `random`              | 
+| `scores`              | 
+| `sort`                | 
+| `spectator`           | 
+| `survival`            | 
+| `team`                | 
+| `tag`                 | 
+| `type`                | 
+| `x`                   | 
+| `x_rotation`          | 
+| `y`                   | 
+| `y_rotation`          | 
+| `z`                   | 
+
+### Execution context keywords
+| `keyword`             |  |
+|---------------------|-------------|
+| `align`               | context.position
+| `anchored`            | context.location
+| `as`                  | context.entity
+| `at`                  | context.position
+| `back`                | context.direction.local
+| `deg`                 | angle float suffix
+| `down`                | execution position modifier 
+| `downward`            | execution position modifier
+| `east`                | execution position modifier
+| `eyes`                | anchor argument
+| `feet`                | anchor argument
+| `forward`             | execution position modifier
+| `in`                  | 
+| `left`                | 
+| `north`               | 
+| `pos`                 | 
+| `positioned`          | 
+| `predicate`           | 
+| `right`               | 
+| `rot`                 | 
+| `rotated`             | 
+| `south`               | 
+| `up`                  | 
+| `upward`              | 
+| `west`                | 
+| `x`                   | 
+| `xy`                  | 
+| `xyz`                 | 
+| `xz`                  | 
+| `y`                   | 
+| `yz`                  | 
+| `z`                   | 
+
+### Mclang keywords
+
+| `keyword`             |  |
+|---------------------|-------------|
+| [`after`](#ttafter-interval-tt)               | (#ttafter-interval-tt)
+| `and`                 | mclang.flow
+| `else`                | control flow keyword
+| `every`               | scheduling keyword
+| `for`                 | execution context modifier
+| `function`            | declaration
+| `if`                  | 
+| `import`              | 
+| `json`                | 
+| `macro`               | 
+| `namespace`           | 
+| `repeat`              | 
+| `score`               | 
+| `self`                | 
+| `tag`                 | 
+| `test`                | 
+| `then`                | 
+| `unless`              | 
+| `until`               | 
+| `var`                 | 
+| `while`               | 
+
+### Commands
+
+| `keyword`             |  |
+|---------------------|-------------|
+| `append`              | nbt.operation
+| `merge`               | 
+| `bossbar`             | wrapped.bossbar
+| `add`                 | wrapped.bossbar.subcommand 
+| `remove`              | wrapped.bossbar.subcommand 
+| `color`               | bossbar property
+| `max`                 | bossbar property
+| `name`                | bossbar property
+| `players`             | bossbar property
+| `style`               | 
+| `value`               | bossbar property
+| `visible`             | bossbar property
+| `delete`              | synonym of remove
+| `give`                | 
+| `prepend`             | 
+| `print`               | 
+| `remove`              | 
+| `say`                 | 
+| `setblock`            | 
+| `summon`              | 
+| `tag`                 | 
+| `untag`               | 
+
+| `aqua`                | color
+| `black`               | color
+| `blue`                | color
+| `b`                   | raw markup tag
+| `d`                   | raw markup tag
+| `dark_aqua`           | 
+| `dark_blue`           | 
+| `dark_gray`           | 
+| `dark_green`          | 
+| `dark_purple`         | 
+| `dark_red`            | 
+| `h`                   | 
+| `i`                   | 
+| `div`                 | 
+| `gold`                | 
+| `gray`                | 
+| `green`               | 
+| `light_purple`        | 
+| `red`                 | 
+| `reset`               | 
+| `yellow`              | 
+| `white`               | 
+| `span`                | 
+
+
+## Mclang Commands
+
+Mclang has a small but growing set of commands that wrap the functionality of native Minecraft commands. 
+### <tt>append *NBTpath* *value*</tt>
+Append a value to a list at a NBTpath. The value can be anything that can be assigned to a NBT path. See [Working with NBT data](#working-with-nbt-data).
+
+### <tt>bossbar add *id* *name*</tt>
+Add a bossbar. Works exactly like in Minecraft. The namespace of the id defaults to the current namespace. S
+
+### <tt>bossbar remove *id* </tt>
+Removes a bossbar. Works exactly like in Minecraft. The namespace of the id defaults to the current namespace.
+
+### <tt>merge *NBTpath* *value*</tt>
+Merge a value with the value of NBTpath. The value can be a compound, a list of another NBTpath. See [Working with NBT data](#working-with-nbt-data).
+
+| `append`              | nbt.operation
+| `merge`               | 
+| `bossbar`             | wrapped.bossbar
+| `add`                 | wrapped.bossbar.subcommand 
+| `remove`              | wrapped.bossbar.subcommand 
+| `color`               | bossbar property
+| `max`                 | bossbar property
+| `name`                | bossbar property
+| `players`             | bossbar property
+| `style`               | 
+| `value`               | bossbar property
+| `visible`             | bossbar property
+| `delete`              | synonym of remove
+| `give`                | 
+| `prepend`             | 
+| `print`               | 
+| `remove`              | 
+| `say`                 | 
+| `setblock`            | 
+| `summon`              | 
+| `tag`                 | 
+| `untag`               | 
 

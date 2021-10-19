@@ -66,7 +66,11 @@ class NbtString extends String {
     if (json) this[IS_JSON] = true;
   }
   [TO_NBT]() {
-    if(this[IS_JSON]) return this;
+    if(this[IS_JSON]) return (
+      "'" 
+      + this.replace(/(['\\])/g,'\\$1')
+      + "'"
+    );
   	return JSON.stringify(this);
   } 
 	[IS_NBT] = true;
