@@ -13,10 +13,10 @@
 #     } then {
 #       $chickens ++
 #       bossbar chickens value = $chickens  
-#       /effect give {@s} minecraft:resistance {?max_time} 2 true
-#       /effect give {@endermite.evil} minecraft:invisibility {?max_time} 120 true
+#       /effect give {@s} minecraft:resistance {?max_time} 1 true
+#       /effect give {@endermite.evil} minecraft:invisibility {?max_time} 1 true
 #       tag @s evil
 #       /spreadplayers ~ ~ 5 20 false {@s}
 #     }
 #   }
-execute if score --evil_chickens-running --evil_chickens--vars matches 1.. run execute positioned ~ ~30 ~ run function zzz_mcl:evil_chickens/568_mcazhhy3s7
+execute if score --evil_chickens-running --evil_chickens--vars matches 1.. run execute positioned ~ ~30 ~ run function zzz_mcl:evil_chickens/2_vdh566vyfx9

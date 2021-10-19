@@ -185,7 +185,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
     / "setblock" pos:(_ @Position)? __ block:block_spec {
         return N('cmd_setblock', { pos, block } )
       }
-    / "after" __ time:untyped_float unit:[tds]? __ fn:cmd_arg_function {
+    / "after" __ time:float unit:[tds]? __ fn:cmd_arg_function {
         return N('cmd_after', { time, unit: (unit ?? "t"), fn } )
       } 
     / "bossbar" __ "add" __ id:resloc __ name:string? {
@@ -257,12 +257,16 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
     = OPEN @test CLOSE
     / __ @test
   
+  mod_arg_test_inverse 
+    = OPEN @test_inverse CLOSE
+    / __ @test_inverse
+  
   mod_arg_resloc 
     = OPEN @resloc CLOSE
     / __ @resloc
   
-  dir_number = @untyped_float !"deg"
-  rot_angle = @untyped_float "deg"
+  dir_number = @float !"deg"
+  rot_angle = @float "deg"
   
   mod_arg_number
   	= OPEN @dir_number CLOSE
@@ -277,17 +281,26 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
     / FunctionCallResloc
 
 //\\ selector
+  selector_single = spec:selector_spec {
+    return N('selector_single', { spec } )
+  }
   selector 
-    = OPEN @_selector CLOSE
-    / _selector_name
-    / _selector
+    = spec: selector_spec {
+      return N('selector', { spec } )
+    }
 
-  _selector_name
-    = "@[" _ @string _ "]"
+  selector_spec
+    = selector_uuid
+    / selector_complex
 
-  _selector 'selector'
+  selector_uuid
+    = "@[" _ uuid:string _ "]" {
+      return N('selector_uuid', { uuid } )
+    }
+
+  selector_complex 'selector'
     = sort:selector_sort? "@" !"@" initial:(selector_initial/selector_initial_type) conditions:conditions {
-      return N('selector', { initial,conditions:[...sort||[],...conditions] } )
+      return N('selector_spec', { initial,conditions:[...sort||[],...conditions] } )
     }
     
   //\\ sort
@@ -446,6 +459,9 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
   //\\ test
     test = test_predicate/test_entity/test_datapath/test_scoreboard/test_block
 
+    test_inverse = test_scoreboard_inverse
+
+
     test_predicate = "predicate" __ predicate:resloc {
       return N('test_predicate', { predicate } )
     }
@@ -534,7 +550,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
     / score_id
 
   declare_var 
-    = "var" __ name:var_name value:(EQUALS @number)? {
+    = "var" __ name:var_name value:(EQUALS @int)? {
         return N('declare_var',{name,value})
       }
  
@@ -600,6 +616,15 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
           return N('test_scoreboard',{left,op,right})
         }
       
+    test_scoreboard_inverse
+      = left:scoreboard_id _ "!=" _ right:scoreboard_id {
+          return N('test_scoreboard',{left,op:"=",right})
+        }
+      / id:scoreboard_lhand  {
+          return N('test_scoreboard_zero',{id})
+        }
+        
+
     test_scoreboard_op 
       = "<="
       / ">="
@@ -705,7 +730,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       = modify:("merge"/"append"/"prepend") __ left:datapath __ right:datapath {
           return N('datapath_modify_datapath',{modify,left,right})
         }
-      /  modify:("merge"/"append"/"prepend") __ left:datapath __ right:value {
+      /  modify:("merge"/"append"/"prepend") __ left:datapath __ right:typed_value {
           return N('datapath_modify_value',{modify,left,right})
         }
       / modify:"append" __ left:datapath __ scale:(_ @number _ "*" _)? right:assign_run {
@@ -714,7 +739,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       / modify:"prepend" __ left:datapath __ scale:(_ @number _ "*" _)? right:assign_run {
           return N('datapath_modify_execute',{modify,left,right,index:0, scale})
         }
-      / left:datapath EQUALS  right:value !(_ "*") {
+      / left:datapath EQUALS  right:typed_value !(_ "*") {
           return N('datapath_modify_value', {modify: 'set', left, right } )
         }
       / left:datapath EQUALS  right:datapath  {
@@ -832,11 +857,27 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       }
 
   value_lit
-    = bool
-    / object
+    = object
     / array
     / number
     / string
+
+
+  typed_value
+    = typed_value_arg
+    / typed_value_lit
+
+  typed_value_arg
+    = name:arg_name {
+        return N('arg', { type:'value',name } )
+      }
+
+  typed_value_lit
+    = object
+    / array
+    / typed_number
+    / string
+
 
   //\\ bool
     bool 
@@ -871,7 +912,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
         END
         { return N('object_lit', { type:'object',members:members||[] } ) }
     member
-      = name:(string) _":" ___ value:value {
+      = name:(string) _":" ___ value:typed_value {
           return { name: name, value: value };
         }
 
@@ -887,8 +928,8 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
     array_lit
       = "[" ___
         items:(
-          head:value
-          tail:(COMMA @value )*
+          head:typed_value
+          tail:(COMMA @typed_value )*
           COMMA?
           { return [head].concat(tail); }
         )?
@@ -896,6 +937,16 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
         { return N('array_lit', { type:'array', items: items || [] } ) }
   
   //\\ number
+    typed_number 
+      = name:arg_name {	
+          return N('arg', { type:'number',name } ) 
+        }
+      / typed_number_lit
+
+    typed_number_lit 
+      = typed_float_lit
+      / typed_int_lit
+
     number 
       = name:arg_name {	
           return N('arg', { type:'number',name } ) 
@@ -914,9 +965,38 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       / int_lit
 
     int_lit  'integer'
-      = value:INT suffix:[bsli]? {
+      = "true" {
+          return N('number_lit', { type:'int',value:1 } )
+        }
+      / "false" {
+          return N('number_lit', { type:'int',value:0 } )
+        }
+      / value:INT {
+          return N('number_lit', { type:'int',value:+value } )
+        }
+
+    typed_int 
+      =  name:arg_name {	
+          return N('arg', { type:'int',name } ) 
+        }
+      / typed_int_lit
+
+    typed_int_lit  'integer'
+      = "true" {
+          return N('number_lit', { type:'int',value:1,suffix:"b" } )
+        }
+      / "false" {
+          return N('number_lit', { type:'int',value:0,suffix:"b" } )
+        }
+      / value:INT suffix:[bsli]? {
           return N('number_lit', { type:'int',value:+value,suffix } )
         }
+
+    typed_float  
+      = name:arg_name {	
+          return N('arg', { type:'float',name } ) 
+        }
+      / typed_float_lit
 
     float  
       = name:arg_name {	
@@ -924,15 +1004,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
         }
       / float_lit
 
-    untyped_float  
-      = name:arg_name {	
-          return N('arg', { type:'float',name } ) 
-        }
-      / untyped_float_lit
-
-    float_lit
-      = typed_float_lit
-
+    
     typed_float_lit 
       = value:FLOAT suffix:[fd]? {
           return N('number_lit', { type:'float',value:+value,suffix:suffix||"f" } )
@@ -941,7 +1013,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
           return N('number_lit', { type:'float',value:+value,suffix } )
         }
         
-    untyped_float_lit
+    float_lit
       = value:(FLOAT/INT) {
           return N('number_lit', { type:'float',value:+value } )
         } 
@@ -1098,7 +1170,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
           return N('arg', { type:'string_snbt',name } ) 
         }
     string_snbt_lit 
-      = "snbt" __ value:value { 
+      = "snbt" __ value:typed_value { 
         return N('string_snbt', { type:'string_snbt', value: value  } )
         } 
 
@@ -1406,10 +1478,10 @@ SELECTOR
     
 
   Coord 
-    = untyped_float
+    = float
 
   Angle 
-    = @untyped_float "deg"
+    = @float "deg"
 
   TildeCoord 
     = "~" arg:Coord?  {
@@ -1519,38 +1591,47 @@ SELECTOR
         return N('StructureRepeat',{mods,statements,conds,then})
       }
 
-    / "every" __ time:untyped_float unit:[tds]? 
-      statements:Braces 
-      __ conds:LoopConditionals 
+    / "every" __ time:float unit:[tds]? 
+      statements:Instructions 
+      conds:(__ @LoopConditionals)?
       then:(__ "then" @Instructable)?{
       return N('every_until',{statements,conds,time,unit,then})
     }
 
   Conditionals
-  = head:Conditional tail:(__ "and" __ @Conditional)* {
-    return N('Conditionals',{subs:[head,...tail]})
-  } 
+    = head:Conditional tail:(__ "and" __ @Conditional)* {
+        return N('Conditionals',{subs:[head,...tail]})
+      } 
+
+  TestTrue
+    = arg:mod_arg_test {
+        return N('ConditionalIf',{arg})
+      } 
+    / arg:mod_arg_test_inverse {
+        return N('ConditionalUnless',{arg})
+      } 
+
+  TestFalse = 
+    arg:mod_arg_test {
+        return N('ConditionalUnless',{arg})
+      } 
+    / arg:mod_arg_test_inverse {
+        return N('ConditionalIf',{arg})
+      } 
+  
 
   Conditional
-  = "if" arg:mod_arg_test {
-    return N('ConditionalIf',{arg})
-  } 
-  / "unless" arg:mod_arg_test {
-    return N('ConditionalUnless',{arg})
-  } 
-
+    = "if" @TestTrue
+    / "unless" @TestFalse 
+    
   LoopConditionals
   = head:LoopConditional tail:(__ "and" __ @LoopConditional)* {
     return N('Conditionals',{subs:[head,...tail]})
   } 
 
   LoopConditional
-  = "while" arg:mod_arg_test {
-    return N('ConditionalIf',{arg})
-  } 
-  / "until" arg:mod_arg_test {
-    return N('ConditionalUnless',{arg})
-  } 
+  = "while" @TestTrue
+  / "until" @TestFalse
 
 /*
    /  "repeat" __ mods:mods? _ statements:Braces conds:(__ @repeat_cond)+ then:(__ "then" @Braces)? {

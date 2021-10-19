@@ -256,7 +256,7 @@ const CLI = {
         "Usage:\n",
         "mclang create [project_dir]\n",
         "mclang example [project_dir]\n",
-        "mclang link [source_dir]",
+        "mclang link [source_dir]\n",
         "mclang build [source_dir]\n",
         "mclang watch [source_dir]\n",
         "mclang (build|watch) [source_dir] --target=target_dir\n",

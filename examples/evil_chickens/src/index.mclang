@@ -4,12 +4,12 @@ bossbar add chickens "Evil Chickens"
 bossbar add timer "Time Left"
 
 ?max_chickens = 40
-?init_chickens = 10
-?chicken_time = 10
+?init_chickens = 3
+?chicken_time = 6
 ?max_time = 120
 ?blink_time = 20
 
-var $running = 0
+var $running = false
 var $chickens = 0
 var $time = 0
 
@@ -37,9 +37,9 @@ function summon_chicken() {
     } then {
       $chickens ++
       bossbar chickens value = $chickens  
-      /effect give {@s} minecraft:resistance {?max_time} 2 true
+      /effect give {@s} minecraft:resistance {?max_time} 1 true
 
-      /effect give {@endermite.evil} minecraft:invisibility {?max_time} 120 true
+      /effect give {@endermite.evil} minecraft:invisibility {?max_time} 1 true
       tag @s evil
       /spreadplayers ~ ~ 5 20 false {@s}
     }
@@ -67,17 +67,18 @@ function start() {
   repeat {
     at any @player.playing summon_chicken()
     $count ++
-    print {$count}
+    print @player.playing {$count}
   } while ($count < ?init_chickens) 
 
   every 10s {
     at any @player.playing back 10 {
       summon_chicken()
     }
-  } while $running > 0 and while $count<?max_chickens 
+  } while $running and while $count<?max_chickens 
 
   tag lunging
   every 4s {
+    say still running
     as (random 1 @chicken.evil{OnGround:1b}) {
       @s::Motion[1] = 1d
       tag @s lunging
@@ -90,18 +91,21 @@ function start() {
         }
       }
     }
+
     as @endermite.evil {
       @s::Lifetime = 0
     }
+
     for @chicken.evil unless (@player.playing[distance<20]) {
       up 1 facing nearest @player.playing forward 10 {
         if (air) /tp @s ~ ~ ~ facing entity {nearest @player.playing} eyes
-      }
+      } 
+      
       at nearest @player.playing[distance>50] {
         /tp ~ 10 ~
       }
     }
-  } while ($running>0)
+  } while ($running)
 
   every 1s {
     $time -- 
@@ -116,7 +120,7 @@ function start() {
         bossbar timer visible = false
       }
     }
-  } while ($running>0)
+  } while ($running)
 }
 
 function chicken_killed() {

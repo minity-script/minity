@@ -66,6 +66,7 @@ class ResultNamespace {
     this.jsons = {};
     //this.addObjective(`--${ns}--vars`, "dummy")
     this.functions = {};
+    this.macros = {}
   }
   addObjective(objective, criterion = "dummy") {
     return this.objectives[objective] = {
@@ -83,6 +84,7 @@ class ResultNamespace {
   addFunction(self, name, content) {
     const fn = new ResultFunction(this, { self, name, content })
     assert(!this.functions[fn.name], "duplicate function " + fn.resloc)
+    assert(!this.macros[fn.name], "duplicate function " + fn.resloc)
     return this.functions[fn.name] = fn;
   }
   addAnonFunction(self, content,prefix="") {

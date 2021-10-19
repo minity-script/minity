@@ -4,6 +4,7 @@ exports.Selector = class SelectorSpec {
   scores = {}
   initial = "e";
 
+  limit = null
 
   constructor(initial) {
     if (initial.length > 1) {
@@ -14,8 +15,14 @@ exports.Selector = class SelectorSpec {
     }
   }
 
+  get isSingle() {
+    return this.limit === 1 || this.initial.match(/[psr]/)
+  }
+
   include(key, cond) {
     switch (key) {
+      case "limit":
+        this.limit = cond
       case "x": case "dx":
       case "y": case "dy":
       case "z": case "dz":
@@ -24,7 +31,6 @@ exports.Selector = class SelectorSpec {
       case "distance":
       case "type":
       case "sort":
-      case "limit":
       case "team":
       case "level":
       case "gamemode":
@@ -80,4 +86,17 @@ exports.Selector = class SelectorSpec {
     if (conditions.length === 0) return `@${initial}`;
     return `@${initial}[${conditions.join(",")}]`
   }
+}
+
+exports.SelectorUUID = class SelectorUUID {
+  constructor(uuid) {
+    this.uuid = uuid
+  }
+
+  get isSingle() {
+    return true
+  }
+  format() {
+    return JSON.stringify(this.uuid);
+  }    
 }

@@ -27,17 +27,18 @@ scoreboard players set --evil_chickens-start-count --evil_chickens--vars 0
 # repeat {
 #     at any @player.playing summon_chicken()
 #     $count ++
-#     print {$count}
+#     print @player.playing {$count}
 #   } while ($count < ?init_chickens)
-function zzz_mcl:evil_chickens/569_p69jwpsqskj
+function zzz_mcl:evil_chickens/3_8jadptk8xj3
 # every 10s {
 #     at any @player.playing back 10 {
 #       summon_chicken()
 #     }
-#   } while $running > 0 and while $count<?max_chickens
-function zzz_mcl:evil_chickens/570_jfukiqmlxpk
+#   } while $running and while $count<?max_chickens
+function zzz_mcl:evil_chickens/4_i1ux717f82k
 # tag lunging
 # every 4s {
+#     say still running
 #     as (random 1 @chicken.evil{OnGround:1b}) {
 #       @s::Motion[1] = 1d
 #       tag @s lunging
@@ -56,13 +57,14 @@ function zzz_mcl:evil_chickens/570_jfukiqmlxpk
 #     for @chicken.evil unless (@player.playing[distance<20]) {
 #       up 1 facing nearest @player.playing forward 10 {
 #         if (air) /tp @s ~ ~ ~ facing entity {nearest @player.playing} eyes
-#       }
+#       } 
+#       
 #       at nearest @player.playing[distance>50] {
 #         /tp ~ 10 ~
 #       }
 #     }
-#   } while ($running>0)
-function zzz_mcl:evil_chickens/575_3zs3vqvpwh7
+#   } while ($running)
+function zzz_mcl:evil_chickens/9_fnguzgpcv3
 # every 1s {
 #     $time -- 
 #     bossbar timer value = $time
@@ -76,5 +78,5 @@ function zzz_mcl:evil_chickens/575_3zs3vqvpwh7
 #         bossbar timer visible = false
 #       }
 #     }
-#   } while ($running>0)
-function zzz_mcl:evil_chickens/578_vw8tejrb8d
+#   } while ($running)
+function zzz_mcl:evil_chickens/12_ioijajmx27

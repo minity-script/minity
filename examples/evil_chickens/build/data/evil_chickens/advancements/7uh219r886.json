@@ -1,6 +1,6 @@
 {
   "criteria": {
-    "qe9bvvj3yzc": {
+    "7uh219r886": {
       "trigger": "minecraft:player_killed_entity",
       "conditions": {
         "entity": {
@@ -14,6 +14,6 @@
     }
   },
   "rewards": {
-    "function": "zzz_mcl:evil_chickens/583_6tuztylf5h7"
+    "function": "zzz_mcl:evil_chickens/17_eaabqbn59a"
   }
 }

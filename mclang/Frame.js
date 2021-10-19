@@ -203,6 +203,7 @@ Frame.Child = class FrameChild extends Frame {
       this.scores = Object.assign({}, parent.scores)
       this.tags = Object.assign({}, parent.tags)
       this.args = Object.assign({}, parent.args,args)
+      this.scope = this;
     } else {
       this.args = parent.args;
       this.vars = parent.vars;

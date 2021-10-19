@@ -1,7 +1,7 @@
 
-const {Selector} = require("./Selector");
+const {Selector, SelectorUUID} = require("./Selector");
 const { randomString } = require("./utils");
-
+const assert = require("assert");
 const transformers = exports.transformers = {
   file: ({ namespaces }, { T }) => {
     namespaces.map(T);
@@ -69,10 +69,17 @@ const transformers = exports.transformers = {
     declareScore(name, criterion);
     return "";
   },
-  selector: ({ initial, conditions }, { T, toNbt }) => {
-    var spec = T(initial);
+  selector_spec: ({ initial, conditions }, { T, toNbt }) => {
+    const spec = T(initial);
     for (const c of conditions) T(c, { spec });
-    return spec.format();
+    return spec
+  },
+  selector_uuid: ({uuid},T) => new SelectorUUID(T(uuid)),
+  selector: ({spec},{T}) => T(spec).format(),
+  selector_single: ({ spec }, { T, toNbt }) => {
+    const it = T(spec);
+    assert(it.isSingle,"Selector must select a single entity")
+    return it.format();
   },
   selector_initial: ({ initial }) => new Selector(initial),
   selector_initial_type: ({ type }, { T }) => new Selector(T(type)),
@@ -233,6 +240,7 @@ const transformers = exports.transformers = {
   test_datapath: ({ path }, { T }) => `data ${T(path)}`,
   test_scoreboard: ({ left, op, right }, { T }) => `score ${T(left)} ${op} ${T(right)}`,
   test_scoreboard_true: ({ left }, { T }) => `score ${T(left)} matches 1..`,
+  test_scoreboard_zero: ({ id }, { T }) => `score ${T(id)} matches 0`,
   test_scoreboard_range: ({ left, right }, { T, Nbt }) => `score ${T(left)} matches ${T(right)}`,
   tag_id: ({ name }, { T, tagId }) => tagId(T(name)),
   declare_tag: ({ name }, { declareTag, T }) => {
