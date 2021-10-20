@@ -21,9 +21,8 @@ const transformers = exports.transformers = {
     }
     return "# function " + fn.resloc;
   },
-  CallSelf: ({ }, { resloc }) => "function " + resloc,
-  DeclareMacro(node, { declareMacro }) {
-    declareMacro(node);
+  DeclareMacro:({name,...props}, { declareMacro }) => {
+    declareMacro(name,props);
     return "";
   },
   DeclareEvent({trigger,conditions,then}, { T, ns, declareEvent, addBlock }) {
@@ -36,6 +35,7 @@ const transformers = exports.transformers = {
     declareEvent(id, T(trigger),T(conditions),block.resloc);
     return "";
   },
+  CallSelf: ({ }, { resloc }) => "function " + resloc,
   string_lit: ({ value }, { Nbt }) => Nbt(String(value)),
   number_lit: ({ value, suffix }, { Nbt }) => {
     return Nbt(+value, suffix)
@@ -144,17 +144,16 @@ const transformers = exports.transformers = {
   cmd_give: ({ selector, type, nbt }, { toNbt, T }) => {
     return `give ${T(selector)} ${T(type)}${toNbt(nbt || {})}`
   },
-  cmd_after: ({ time, unit, fn }, { T, toNbt }) => {
-    return `schedule function ${T(fn)} ${toNbt(time)}${unit}`
+  cmd_after: ({ time, unit, statements,then }, { T, anonFunction, toNbt }) => {
+    const lines = statements.map(T);
+    if (then) lines.push(T(then));
+    const fn = anonFunction(lines)
+    return `schedule ${fn} ${toNbt(time)}${unit}`
   },
-
   cmd_setblock: ({ pos, block }, { T }) => {
     return `setblock ${pos ? T(pos) : "~ ~ ~"} ${T(block)}`
   },
 
-  function_call({ resloc }, { T, ns }) {
-    return "function " + T(resloc);
-  },
   var_id: ({ name }, { varId, Nbt }) => {
     return varId(name)
   },
@@ -184,7 +183,7 @@ const transformers = exports.transformers = {
   delete_datapath: ({ path }, { T }) => `data remove ${T(path)}`,
   template_chars: ({ chars }) => chars,
   template_parts: ({ parts }, { T }) =>  parts.map(T).join(""),
-  template_expand_arg: ({ name }, { toNbt, Nbt, args }) => Nbt(args[Nbt(name)]),
+  template_expand_arg: ({ name }, { toNbt, Nbt, getArg }) => Nbt(getArg(Nbt(name))),
   template_expand_tag: ({ name }, { T, tagId }) => tagId(T(name)),
   template_expand_var: ({ name }, { T, varId }) => varId(T(name)),
   template_expand_score: ({ name }, { T, scoreObjective }) => scoreObjective(T(name)),
@@ -367,7 +366,7 @@ const transformers = exports.transformers = {
       return "function "+block.resloc
     }
   },
-  every_until: ({ statements, conds, then, time, unit }, { T, Nbt, addBlock }) => {
+  every_until: ({ statements, conds, then, time, unit }, { T, Nbt, addBlock, anonFunction, ifElse }) => {
     if (!then) {
       const lines = statements.map(T);
       const block = addBlock(lines);
@@ -376,9 +375,9 @@ const transformers = exports.transformers = {
     } else {
       const block = addBlock([]);
       block._content = [
-        `execute ${MODS} run ` + anonFunction([
+        anonFunction([
           ...(statements||[]).map(T),
-          ...ifElse(CONDS,`schedule function ${block.resloc} ${Nbt(time)}${unit}`,T(then))
+          ...ifElse(T(conds),`schedule function ${block.resloc} ${Nbt(time)}${unit}`,T(then))
         ])
       ];
       return "function "+block.resloc
@@ -389,16 +388,23 @@ const transformers = exports.transformers = {
     return ret;
   },
   BlockArgElse: ({ }, { args }) => args[Symbol.for("BlockArgElse")](),
-  assign_arg:({name,value},{args,Nbt}) => {
-    args[name]=Nbt(value);
+  assign_arg:({name,value},{setArg,Nbt}) => {
+    setArg(name,Nbt(value));
     return "";
   },
-  macro_call({ name, args, then, otherwise }, { T, Nbt, expandMacro, macros }) {
-    const macro = macros[name];
+  FunctionCall:(
+    {ns, name, args, then, otherwise }, 
+    { T, Nbt, macroExists, expandMacro, getMacro, ns:NS }
+  ) => {
+    if (!macroExists(ns,name) && !args && !then && !otherwise) {
+      return `function ${ns||NS}:${name}`;
+    }
+    assert(macroExists(ns,name),`no such macro ${ns||NS}:${name}`)
+    const macro = getMacro(ns,name);
     const new_args = {};
+    const { named={}, numbered=[] } = args||{};
     for (const i in macro.args) {
       const { name, def } = macro.args[i];
-      const { named, numbered } = args;
       if (name in named) {
         new_args[name] = Nbt(named[name])
       } else if (i in numbered) {
@@ -411,10 +417,7 @@ const transformers = exports.transformers = {
     }
     const thenCode = new_args[Symbol.for("BlockArgThen")] = () => then ? T(then) : ""
     const elseCode = new_args[Symbol.for("BlockArgElse")] = () => otherwise ? T(otherwise) : ""
-    return "function " + expandMacro(name, new_args).resloc
+    return "function " + expandMacro(ns,name, new_args).resloc
   },
-  arg({name}, { args }) {
-    if (!(name in args)) throw new Error("Unknown arg ?"+name)
-    return args[name];
-  },
+  arg:({name}, { getArg }) => getArg(name)
 }

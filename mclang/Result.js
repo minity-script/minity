@@ -35,6 +35,12 @@ const Result = exports.Result = class Result {
     }
     return this.constants[value];
   }
+  macroExists(ns,...args) {
+    return this.namespaces[ns]?.macroExists(...args)
+  }
+  getMacro(ns,name) {
+    return this.namespaces[ns].macros[name]
+  }
   addFunction(ns, ...args) {
     return this.getNamespace(ns).addFunction(...args);
   }
@@ -81,6 +87,14 @@ class ResultNamespace {
   get main() {
     return this.result.main;
   }
+  macroExists = (name) => {
+    return(!!this.macros[name])
+  }
+  addMacro = (name,props) => {
+    assert(!this.functions[name], "duplicate function " + name)
+    assert(!this.macros[name], "duplicate function " + name)
+    this.macros[name]={ name, ...props };
+  }
   addFunction(self, name, content) {
     const fn = new ResultFunction(this, { self, name, content })
     assert(!this.functions[fn.name], "duplicate function " + fn.resloc)
@@ -112,6 +126,7 @@ ResultNamespace.Custom = class ResultNamespaceCustom extends ResultNamespace {
     super(result,rest);
     this.addObjective(`--${this.ns}--vars`, "dummy");
     this.addAnonFunction("",()=>[
+      `data modify storage zzz_mcl:${this.ns}} stack set value []`,
       ... Object.values(this.objectives).map(it=>it.declare)
     ],"objectives").addTag("minecraft","load");
   }

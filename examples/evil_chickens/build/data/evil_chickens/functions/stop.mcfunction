@@ -4,7 +4,7 @@ scoreboard players set --evil_chickens-running --evil_chickens--vars 0
 #     @s::Motion[1] = 1d
 #     @s::Motion[1] = 1d
 #   }
-execute as @e[type=minecraft:chicken,tag=--evil_chickens-evil] run function zzz_mcl:evil_chickens/14_vk54y32gfs
+execute as @e[type=minecraft:chicken,tag=--evil_chickens-evil] run function zzz_mcl:evil_chickens/22_gxzrqnta2jl
 # /effect clear {@player.playing} minecraft:blindness
 effect clear @e[type=minecraft:player,tag=--evil_chickens-playing] minecraft:blindness
 # /kill {@e.evil}
@@ -13,3 +13,5 @@ kill @e[tag=--evil_chickens-evil]
 bossbar set evil_chickens:chickens visible false
 # bossbar timer visible = false
 bossbar set evil_chickens:timer visible false
+# untag @a.playing playing
+tag @a[tag=--evil_chickens-playing] remove --evil_chickens-playing

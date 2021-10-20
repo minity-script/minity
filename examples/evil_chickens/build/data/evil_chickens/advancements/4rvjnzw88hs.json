@@ -1,0 +1,18 @@
+{
+  "criteria": {
+    "4rvjnzw88hs": {
+      "trigger": "minecraft:entity_killed_player",
+      "conditions": {
+        "entity": {
+          "nbt": "{Tags:[\"--evil_chickens-evil\"]}"
+        },
+        "player": {
+          "nbt": "{Tags:[\"--evil_chickens-playing\"]}"
+        }
+      }
+    }
+  },
+  "rewards": {
+    "function": "zzz_mcl:evil_chickens/27_iksvss6f8so"
+  }
+}

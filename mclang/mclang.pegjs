@@ -39,18 +39,16 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
 
 //\\ macro
 
-  DeclareMacro = "macro" __ name:NAME_OR_DIE args:macro_args statements:Braces {
-      return N('DeclareMacro', { name,args,statements } )
-  }
-
   arg_name 'macro argument'
     = "?" @WORD
 
   //\\ macro_args
-    macro_args = _ "(" ___ head:macro_arg tail:(COMMA @macro_arg)* ___ ")" {
+    macro_args = OPEN head:macro_arg tail:(COMMA @macro_arg)* CLOSE {
       return [head,...tail]
     }
-
+    / OPEN ___ CLOSE {
+      return []
+    }
 
     macro_arg = name:arg_name def:macro_arg_default? {
       return {name,def}
@@ -66,7 +64,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       return {numbered,named:named||{}}
     }
     / named:call_args_named {
-      return {numbered:[],named}
+      return {numbered:[],named:named}
     }
 
     call_args_numbered = head:call_arg_numbered tail:(COMMA @call_arg_numbered)* {
@@ -171,8 +169,8 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
   command_char 
     	= no_expand_char_inline
       / &"{" !template_expand @"{"
-    
-  cmd 
+
+    cmd 
     = "summon" pos:(_ @Position)? 
       __ type:resloc_mc CONCAT 
       nbt:(@object)? 
@@ -185,8 +183,10 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
     / "setblock" pos:(_ @Position)? __ block:block_spec {
         return N('cmd_setblock', { pos, block } )
       }
-    / "after" __ time:float unit:[tds]? __ fn:cmd_arg_function {
-        return N('cmd_after', { time, unit: (unit ?? "t"), fn } )
+    / "after" __ time:float unit:[tds]? 
+      statements:Instructions 
+      then:(__ "then" @Instructable)? {
+        return N('cmd_after', { time, unit: (unit ?? "t"), statements, then } )
       } 
     / "bossbar" __ "add" __ id:resloc __ name:string? {
         return N('bossbar_add', { id, name} )
@@ -214,13 +214,6 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
     
 
 
-//\\ call
-  function_call 
-    = resloc:FunctionCallResloc {
-      return N('function_call', { resloc } )
-    }
-
-  FunctionCallResloc = !RESERVED @resloc:resloc_or_tag _ OPEN _ CLOSE 
 
 //\\ execute
 
@@ -1372,7 +1365,7 @@ NAME_OR_DIE
   / word:WORD &{ error(word +' is a reserved word')}
 
 NAME 
-  = !RESERVED @WORD
+  = !RESERVED @$([a-z_][a-z0-9_]*)
 
 RESERVED 
   = (KEYWORD / COMMAND / MOD / SELECTOR) ![a-z-_]i
@@ -1639,14 +1632,21 @@ SELECTOR
    } 
    
 */
+  function_call 
+    =  ns:(@NAME ":")? name:NAME _ OPEN _ CLOSE  {
+      return N('FunctionCall', { ns,name } )
+    }
+
+  FunctionCallResloc = !RESERVED @resloc:resloc_or_tag _ OPEN _ CLOSE 
 
 
   MacroCall
-    = name:NAME _ OPEN args:call_args CLOSE 
+    = ns:(@NAME ":")? name:NAME _ OPEN args:call_args CLOSE 
       then:(__ "then" __ @Instructable)? 
       otherwise:(__ "else" __ @Instructable)? {
-        return N('macro_call', { name, args, then, otherwise } )
+        return N('FunctionCall', { ns, name, args, then, otherwise } )
       }
+      
   BlockArg
     = "{{" _ "then" _ "}}" {
         return N('BlockArgThen')
@@ -1660,6 +1660,14 @@ SELECTOR
   }
 
   DeclareFunction 
-    = "function" __ name:NAME_OR_DIE tags:(__ @restag)* (_ OPEN CLOSE _)? statements:Braces {
+    = "function" __ name:DeclareName tags:(__ @restag)* (_ OPEN CLOSE _)? statements:Braces {
         return N('DeclareFunction', { name,tags,statements } )
     }
+
+  
+  DeclareMacro = "macro" __ name:DeclareName args:macro_args statements:Braces {
+      return N('DeclareMacro', { name,args,statements } )
+  }
+
+  DeclareName 
+    = NAME_OR_DIE 

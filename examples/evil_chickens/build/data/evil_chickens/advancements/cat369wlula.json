@@ -1,6 +1,6 @@
 {
   "criteria": {
-    "7uh219r886": {
+    "cat369wlula": {
       "trigger": "minecraft:player_killed_entity",
       "conditions": {
         "entity": {
@@ -14,6 +14,6 @@
     }
   },
   "rewards": {
-    "function": "zzz_mcl:evil_chickens/17_eaabqbn59a"
+    "function": "zzz_mcl:evil_chickens/26_b9gdr3gqjx5"
   }
 }

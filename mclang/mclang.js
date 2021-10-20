@@ -16,7 +16,7 @@ const mclang = module.exports = {
   },
   findError(text) {
     try {
-      parser.parse(text);
+      mclang.compile(text,{});
       return false;
     } catch (error) {
       return error;

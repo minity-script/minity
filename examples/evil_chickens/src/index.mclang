@@ -4,10 +4,12 @@ bossbar add chickens "Evil Chickens"
 bossbar add timer "Time Left"
 
 ?max_chickens = 40
-?init_chickens = 3
+?init_chickens = 6
 ?chicken_time = 6
 ?max_time = 120
 ?blink_time = 20
+?passenger = endermite
+
 
 var $running = false
 var $chickens = 0
@@ -21,34 +23,38 @@ tag evil
 
 stop()
 
-function summon_chicken() {
-  if ($running>0) {
-    up 30 summon chicken{
-      DeathLootTable:"minecraft:empty",
-      Glowing: true,
-      Attributes: [{Base:0.35d, Name:"minecraft:generic.movement_speed"}],
-      Passengers:[{
-        DeathLootTable:"minecraft:empty",
-        id:"minecraft:endermite",
-        Tags:["{.evil}"],
-        Invulnerable: true,
-        Silent: true,
-      }],
-    } then {
-      $chickens ++
-      bossbar chickens value = $chickens  
-      /effect give {@s} minecraft:resistance {?max_time} 1 true
-
-      /effect give {@endermite.evil} minecraft:invisibility {?max_time} 1 true
-      tag @s evil
-      /spreadplayers ~ ~ 5 20 false {@s}
-    }
-  }
+function start() {
+  unless $running intro()
 }
 
-function start() {
+function intro() {
+  tag @player[distance<10] playing
+ 
+  after 1s {
+    for @player.playing {
+      / playsound minecraft:entity.lightning_bolt.thunder player {@s}
+      / effect give {@s} minecraft:blindness 1 1 false
+    }
+  } then after 3s {
+    for @player.playing {
+      / playsound minecraft:entity.lightning_bolt.thunder player {@s}
+      / effect give {@s} minecraft:blindness 1 1 false
+    }
+  } then after 2s {
+    / title {@player.playing} title {=<t>The Chickens are Coming!</t>}
+    / title {@player.playing} subtitle {=<t>You have {?max_time} seconds</t>}
+  } then after 4s {
+    for @player.playing {
+      / playsound minecraft:entity.lightning_bolt.thunder player {@s}
+      / playsound minecraft:entity.lightning_bolt.thunder player {@s}
+      / effect give {@s} minecraft:blindness {?max_time} 120 true
+    }
+  } then after 1s start_game()
+}
 
-  as @player[distance<10] begin()
+function start_game() {
+  for @player.playing begin()
+
 
   $chickens = 0
   bossbar chickens players = @a.playing
@@ -63,17 +69,20 @@ function start() {
   bossbar timer value = ?max_time
   $running = 1
 
+  every 2t {
+    if(@player.playing[->death>0]) defeat()
+  } while $running
+
+
   var $count = 0
-  repeat {
+  every 3s {
     at any @player.playing summon_chicken()
     $count ++
-    print @player.playing {$count}
-  } while ($count < ?init_chickens) 
-
-  every 10s {
+  } while $running and while $count<?init_chickens then every 10s {
     at any @player.playing back 10 {
       summon_chicken()
     }
+    $count ++
   } while $running and while $count<?max_chickens 
 
   tag lunging
@@ -92,16 +101,16 @@ function start() {
       }
     }
 
-    as @endermite.evil {
+    as @e[type=?passenger].evil {
       @s::Lifetime = 0
     }
 
     for @chicken.evil unless (@player.playing[distance<20]) {
-      up 1 facing nearest @player.playing forward 10 {
-        if (air) /tp @s ~ ~ ~ facing entity {nearest @player.playing} eyes
+      up 1 facing furthest @player.playing forward 10 {
+        if (air) /tp @s ~ ~ ~ facing entity {furthest @player.playing} eyes
       } 
       
-      at nearest @player.playing[distance>50] {
+      at furthest @player.playing[distance>50] {
         /tp ~ 10 ~
       }
     }
@@ -110,7 +119,6 @@ function start() {
   every 1s {
     $time -- 
     bossbar timer value = $time
-    if ($time<1) and if ($running>0) defeat()
     if ($time < ?blink_time ) {
       bossbar timer visible = true
       for @player.playing {
@@ -120,11 +128,12 @@ function start() {
         bossbar timer visible = false
       }
     }
-  } while ($running)
+    if ($time<1) and if ($running>0) out_of_time()
+  } while ($running) 
 }
 
 function chicken_killed() {
-  for @endermite.evil {
+  for @e[type=?passenger].evil {
     as @s{OnGround:1b} /kill @s
     unless @chicken.evil[distance<0.5] /kill @s
   }
@@ -147,11 +156,11 @@ function stop() {
   
   bossbar chickens visible = false
   bossbar timer visible = false
-  
+  untag @a.playing playing
 }
 
 function victory() {
-  as @player.playing {
+  as @a.playing {
     /title @s title {=<t>Victory!</t>}
     /title @s subtitle {=<t>Evil chickens are vanquished.</t>}
   }
@@ -159,23 +168,52 @@ function victory() {
 }
 
 function defeat() {
-  as @player.playing {
-    /title @s title {=<t>Defeat!</t>}
-    /title @s subtitle {=<t>Evil chickens got the best of you.</t>}
-  }
+  /title {@a.playing} title {=<t>Defeat!</t>}
+  /title {@a.playing} subtitle {=<t>Evil chickens got the best of you.\nBetter luck next time!</t>}
   stop()
 }
 
-function begin() {
-  tag @s playing
-  @s->played ++
-  @s->chickens_killed = 0
-  /title @s title {=<t>The Chickens are Coming!</t>}
-  /title @s subtitle {=<t>You have {?max_time} seconds</t>}
-  /playsound minecraft:entity.lightning_bolt.thunder ambient @s
-  /effect give {@s} minecraft:blindness {?max_time} 120 true
+function out_of_time() {
+  /title {@a.playing} title {=<t>Out of time!</t>}
+  /title {@a.playing} subtitle {=<t>Evil chickens will be back!</t>}
+  stop()
 }
 
+score death deathCount
+
+function begin() {
+  tag @s playing
+  @s->death = 0
+  @s->played ++
+  @s->chickens_killed = 0
+}
+
+
+function summon_chicken() {
+  if ($running) {
+    up 30 summon chicken{
+      DeathLootTable:"minecraft:empty",
+      CustomName: json <red>Evil Chicken</red>,
+      Glowing: true,
+      Attributes: [{Base:0.35d, Name:"minecraft:generic.movement_speed"}],
+      Passengers:[{
+        CustomName: json <green>Evil Chicken</green>,
+        DeathLootTable:"minecraft:empty",
+        id:"minecraft:{?passenger}",
+        Tags:["{.evil}"],
+        Invulnerable: true,
+        Silent: true,
+      }],
+    } then {
+      $chickens ++
+      bossbar chickens value = $chickens  
+      /effect give {@s} minecraft:resistance {?max_time} 2 true
+      /effect give {@e[type=?passenger]} minecraft:invisibility {?max_time} 1 true
+      tag @s evil
+      /spreadplayers ~ ~ 5 30 false {@s}
+    }
+  }
+}
 
 when player_killed_entity{
   entity: {
@@ -189,4 +227,16 @@ when player_killed_entity{
   @s->chickens_killed++
   print @a.playing I killed one, that's {@s->chickens_killed} so far
   chicken_killed()
+}
+
+when entity_killed_player{
+  entity: {
+    nbt: snbt {Tags:["{.evil}"]}
+  },
+  player: {
+    nbt: snbt {Tags:["{.playing}"]}
+  }
+} then {
+  print @a.playing I got killed
+  defeat()
 }

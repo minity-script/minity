@@ -1,0 +1,3 @@
+execute at @e[type=minecraft:player,sort=random,limit=1,tag=--evil_chickens-playing] positioned ^ ^ ^-10 run function evil_chickens:summon_chicken
+scoreboard players add --evil_chickens-start_game-count --evil_chickens--vars 1
+execute unless score --evil_chickens-running --evil_chickens--vars matches 0 if score --evil_chickens-start_game-count --evil_chickens--vars matches ..39 run schedule function zzz_mcl:evil_chickens/11_fg6vx3usopo 10s

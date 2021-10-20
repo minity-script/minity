@@ -60,15 +60,34 @@ const Frame = exports.Frame =
       const C = new Frame.Namespace(this,{ns,statements})
       return C.fn;
     }
+    allowFunctionName = name => !this.namespace.functions[name] && !this.namespace.macros[name]
     declareFunction = (name, statements) => {
       const C = new Frame.Function(this,{name,statements})
       return C.fn;
     }
-    declareMacro = ({name,...rest}) => {
-      this.macros[name]={name,...rest,parent:this};
+    declareMacro = (name, props) => {
+      this.namespace.addMacro(name,{...props, parent:this})
+      console.log('adding macro',name)
     }
-    expandMacro = (name,args) => {
-      const macro = this.macros[name];
+    getMacro = (ns,name) => {
+      return this.result.getMacro(ns||this.ns,name);
+    }
+    setArg = (name,value)=> {
+      assert (!this.args.hasOwnProperty(name),"Cannot redeclare constant ?"+name);
+      this.args[name]=value;
+    }
+    getArg = (name,type="value")=> {
+      console.log(this.args)
+      assert (name in this.args,"Undeclared constant ?"+name);
+      return this.args[name];
+    }
+    macroExists = (ns,name) => {
+      return this.result.macroExists(ns||this.ns,name);
+    }
+    expandMacro = (ns,name,args) => {
+      ns ||= this.ns;
+      assert(this.macroExists(ns,name),"no such macro "+ns,name)
+      const macro = this.result.getMacro(ns,name);
       const C = new Frame.Macro(macro.parent,{name,args})
       return C.fn
     }
@@ -85,7 +104,6 @@ const Frame = exports.Frame =
         }
       })
     }
-    
     addBlock = (lines, ns = this.ns) => {
       return this.result.addAnonFunction(ns, this.resloc, lines, (++blockCount));
     }
@@ -202,7 +220,7 @@ Frame.Child = class FrameChild extends Frame {
       this.vars = Object.assign({}, parent.vars)
       this.scores = Object.assign({}, parent.scores)
       this.tags = Object.assign({}, parent.tags)
-      this.args = Object.assign({}, parent.args,args)
+      this.args = Object.assign(Object.create(parent.args),args)
       this.scope = this;
     } else {
       this.args = parent.args;
@@ -214,7 +232,7 @@ Frame.Child = class FrameChild extends Frame {
   }
 
   get macros() {
-    return this.root.macros;
+    return this.namespace.macros;
   }
   get constants() {
     return this.root.constants;

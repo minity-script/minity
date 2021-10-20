@@ -13,6 +13,10 @@ namespace tutorial
 // Define a function which will be stored in separate .mcfunction 
 // files in your namespace. 
 
+macro hello(?a=3) {
+  /say hi
+}
+
 function hello {
   /say Hello World!
 }

@@ -24,11 +24,16 @@ namespace tutorial
 // with /function namespace:function:name from the Minecraft command prompt
 
 
+
 var $enabled =1
 function greet() {
   say hello
   as @p print enabled {$enabled}
 
 }
+ 
+macro greek() {
+  /say greeck {?a}
+}
 
-greet()
+greek()
