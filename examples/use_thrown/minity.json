@@ -1,0 +1,14 @@
+{
+  "name": "use_thrown",
+  "description": "Use Thown Item, example for minity",
+  "main": "src/index.minity",
+  "directories": {
+    "copy": [
+      "files"
+    ],
+    "watch": [
+      "files",
+      "src"
+    ]
+  }
+}

@@ -21,8 +21,7 @@ const { resolve, relative, absolute, basename, dirname } = require("path");
 const assert = require("assert");
 const { spawnSync: spawn, spawnSync, execSync } = require('child_process');
 const watch = require('node-watch');
-console.log(require("@mclang/parser"));
-const { utils:{walk}, Builder } = require("@mclang/parser");
+const { utils:{walk}, Builder } = require("@minity/parser");
 const chalk = require("chalk");
 const prompt = require('inquirer').createPromptModule();
 
@@ -52,7 +51,7 @@ const CLI = {
       }
     });
 //    const version = require("../package.json").version;
-//    inform(chalk.bold.yellow("mclang v" + version))
+//    inform(chalk.bold.yellow("minity v" + version))
     if (!CLI.commands[cmd]) {
       await CLI.commands.usage.exec();
     } else {
@@ -70,7 +69,7 @@ const CLI = {
     if (pack) return {
       code: "CANNOT",
       box: "-",
-      explain: "Is within mclang project directory.",
+      explain: "Is within minity project directory.",
       format: chalk.red,
     };
 
@@ -167,7 +166,7 @@ const CLI = {
   resolveSource(dir) {
     return find(resolve(".", dir));
     function find(cur) {
-      const file = resolve(cur, "mclang.json");
+      const file = resolve(cur, "minity.json");
       if (stat(file)?.isFile()) {
         return cur
       }
@@ -179,8 +178,8 @@ const CLI = {
   checkTarget(path) {
     if (!exists(path)) return true;
     if (readdir(path).length === 0) return true;
-    if (exists(resolve(path, ".mclang.fecit"))) return true;
-    throw new Error(path + " exists, but was not built by mclang");
+    if (exists(resolve(path, ".minity.fecit"))) return true;
+    throw new Error(path + " exists, but was not built by minity");
   },
   resolveTarget(pack_name, { world, target }) {
     assert(!world || !target, "You cannot specify both --target or --world");
@@ -197,8 +196,8 @@ const CLI = {
   },
   getSourceOptions(dir) {
     const source = CLI.resolveSource(dir);
-    assert(!!source, resolve(dir) + " is not within a mclang project");
-    const settings = require(resolve(source, "mclang.json"));
+    assert(!!source, resolve(dir) + " is not within a minity project");
+    const settings = require(resolve(source, "minity.json"));
     const dirs = settings.directories || {}
     const defaultTarget = resolve(dir, dirs.target || "build");
     const name = settings.name || basename(source)
@@ -243,9 +242,9 @@ const CLI = {
   commands: {
     create: {
       params: chalk`[{dim new_project_dir}]`,
-      title: "Create a new mclang project",
+      title: "Create a new minity project",
       describe:
-`Creates a mclang starter project.
+`Creates a minity starter project.
 
 All arguments are optional:
 * Defaults to the current directory. The directory must be empty if it already exists.
@@ -263,17 +262,17 @@ All arguments are optional:
             mkdir(dirname(target), { recursive: true })
             writeFile(target, output, { encoding: "utf8" })
           }
-          console.log('Created a fresh mclang project in', createDirectory);
+          console.log('Created a fresh minity project in', createDirectory);
         } else {
-          console.log('Would create a fresh mclang project in', createDirectory);
+          console.log('Would create a fresh minity project in', createDirectory);
         }
       },
     },
     example: {
       params: chalk`[{dim new_project_dir}]`,
-      title: "Create a new mclang project from an example",
+      title: "Create a new minity project from an example",
       describe: 
-`Creates a new mclang project from one of the provided examples. You will be given a list of examples to choose from.
+`Creates a new minity project from one of the provided examples. You will be given a list of examples to choose from.
 
 All arguments are optional:
 * Defaults to the current directory. The directory must be empty if it already exists.
@@ -309,7 +308,7 @@ overwritten.
 
 All arguments are optional:
 * If you provide neither --world nor --target path, you will be given a list of Minecraft saves to choose from.
-* Project directory defaults to the current directory. It must be a mclang project directory or within a mclang
+* Project directory defaults to the current directory. It must be a minity project directory or within a minity
   project directory.`,
 
       async exec([dir = "."], options) {
@@ -354,7 +353,7 @@ or from any path. If the target path is not a symbolic link, this will fail. No 
 
 All arguments are optional:
 * If you provide neither --world nor --target path, you will be given a list of Minecraft saves to choose from.
-* Project directory defaults to the current directory. It must be a mclang project directory or within a mclang
+* Project directory defaults to the current directory. It must be a minity project directory or within a minity
   project directory.`,
      async exec([dir = "."], options) {
         const {
@@ -390,15 +389,15 @@ All arguments are optional:
     },
     build: {
       params: chalk`[{dim project_dir}] [--world={dim minecraft_save_name}|--target={dim target_directory}]`,
-      title: `Compile and build a mclang project`,
+      title: `Compile and build a minity project`,
       describe:  
-`Builds a datapack from your mclang project, either in the project build directory (the default), or in a 
+`Builds a datapack from your minity project, either in the project build directory (the default), or in a 
 specific location.
 
 All arguments are optional:
 * If you provide neither --world nor --target path, the datapack will be built in the project build directory.
 * If you provide --world without a world name, you will be given a list of Minecraft saves to choose from.
-* Project directory defaults to the current directory. It must be a mclang project directory or within a mclang
+* Project directory defaults to the current directory. It must be a minity project directory or within a minity
   project directory.`,
       async exec([dir = "."], options) {
         const buildOptions = CLI.getBuildOptions(dir, options);
@@ -407,9 +406,9 @@ All arguments are optional:
     },
     watch: {
       params: chalk`[{dim project_dir}] [--world={dim minecraft_save_name}|--target={dim target_directory}]`,
-      title: `Compile and build a mclang project and watch for changes`,
+      title: `Compile and build a minity project and watch for changes`,
       describe:  
-`Builds a datapack from your mclang project, and rebuilds on every source file change in the project. You still
+`Builds a datapack from your minity project, and rebuilds on every source file change in the project. You still
 have to type /reload in Minecraft to see the changes in linked worlds.
 
 You can build either in the project build directory (the default), or in a specific location. 
@@ -417,7 +416,7 @@ You can build either in the project build directory (the default), or in a speci
 All arguments are optional:
 * If you provide neither --world nor --target path, the datapack will be built in the project build directory.
 * If you provide --world without a world name, you will be given a list of Minecraft saves to choose from.
-* Project directory defaults to the current directory. It must be a mclang project directory or within a mclang
+* Project directory defaults to the current directory. It must be a minity project directory or within a minity
   project directory.`,
       async exec([dir = "."], options) {
         const buildOptions = CLI.getBuildOptions(dir, options);
@@ -436,12 +435,12 @@ All arguments are optional:
     },
     help: {
       params: chalk`[{dim command}]`,
-      title: "Help with mclang commands",
+      title: "Help with minity commands",
       describe: "You asked for help about help.",
       exec([id], options) {
         const cmd = CLI.commands[id]; 
         if (!id) {
-          console.log("Mclang is a scripting language for Vanilla Minecraft JE.\n");
+          console.log("Minity is a scripting language for Vanilla Minecraft JE.\n");
         } else if (!cmd) {
           console.log("No such command",id);
         }
@@ -452,8 +451,8 @@ All arguments are optional:
         }
 
         const {title,params,describe} = CLI.commands[id];
-        console.log(chalk`{bold mclang ${id} - {yellow ${title}}}\n`);
-        console.log("Usage:", chalk.bold("mclang "+id+" "+params));
+        console.log(chalk`{bold minity ${id} - {yellow ${title}}}\n`);
+        console.log("Usage:", chalk.bold("minity "+id+" "+params));
         console.log("\n"+describe);
       },
     },
@@ -461,7 +460,7 @@ All arguments are optional:
       exec() {
         for (const id in CLI.commands) {
           const {params} = CLI.commands[id];
-          if (params) console.log("mclang "+id.padEnd(8),params)
+          if (params) console.log("minity "+id.padEnd(8),params)
         }
       }
     }

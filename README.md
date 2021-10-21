@@ -1,38 +1,38 @@
-# ![logo](docs/mclang-logo-small.png) &nbsp;&nbsp;<big>mclang</big>
+# ![logo](docs/minity-logo-small.png) &nbsp;&nbsp;<big>minity</big>
 <big><b>scripting for Vanilla Minecraft</b></big>
 
-Mclang is a scripting language which compiles to Vanilla Minecraft datapacks. It will allow you to develop complex datapacks in just a few files, and make your work easier by providing intuitive syntax for using some of the most powerful, but also hardest to use, Minecraft commands.
+Minity is a scripting language which compiles to Vanilla Minecraft datapacks. It will allow you to develop complex datapacks in just a few files, and make your work easier by providing intuitive syntax for using some of the most powerful, but also hardest to use, Minecraft commands.
 
-For some examples of what mclang can do, see [features](#features) below. Also check out the examples and [full syntax docs](docs/SYNTAX.md). Or just read on to get started.
+For some examples of what minity can do, see [features](#features) below. Also check out the examples and [full syntax docs](docs/SYNTAX.md). Or just read on to get started.
 
 - <b>Want to help?</b> Check out how you can [contribute](#contributing), and/or support us on Patreon.
 
 ## Getting Started
 #### Prerequisites
-Mclang requires Minecraft 1.18 snapshots or later, and Node JS v16 or later.
-#### Install mclang
+Minity requires Minecraft 1.18 snapshots or later, and Node JS v16 or later.
+#### Install minity
 ````
-npm install -g mclang
+npm install -g minity
 ````
-#### Create a mclang project
+#### Create a minity project
 ````
 mkdir my_pack
 cd my_pack
-mclang create
+minity create
 ````
-This will create a basic mclang datapack for you, which will announce that it's loaded and do nothing else. The source code is in `./src/index.mclang`.
+This will create a basic minity datapack for you, which will announce that it's loaded and do nothing else. The source code is in `./src/index.minity`.
 
 #### Build your datapack
 ````
-mclang build
+minity build
 ````
 This will compile your datapack in the `./build` directory.
 
 #### Install your datapack in a Minecraft world
 ````
-mclang link
+minity link
 ````
-You will be presented with a list of your saves. Choose a world in which you want to test your datapack. You can run `mclang link` multiple times to add the datapack to multiple saves.
+You will be presented with a list of your saves. Choose a world in which you want to test your datapack. You can run `minity link` multiple times to add the datapack to multiple saves.
 
 #### Enable and test your datapack in Minecraft.
 Open your chosen world in Minecraft. 
@@ -46,13 +46,13 @@ Your datapack will load and announce that it's loaded.
 Read the full docs [here](docs/intro.md).
 ##### Try the examples
 ````
-mclang example 
+minity example 
 ````
 Will create an example project. You will be given a list of examples to choose from.
 
 ##### Watch and recompile on change
 ````
-mclang watch
+minity watch
 ````
 All files in your `src` and `files` directories will be watch, and your datapack rebuilt on every change. Run `/reload` in Minecraft to load the rebuilt pack.
 
@@ -62,13 +62,13 @@ There is currenty an extension for vscode, which provides syntax highlighting an
 Its source code can be useful for creating extensions for other IDEs. If you create an extension, let us know and we will add it here.
 
 ## Contributing
-Mclang is feature-rich, but it is a new software under development, so there might be rough edges.
+Minity is feature-rich, but it is a new software under development, so there might be rough edges.
 
 You can help by reporting bugs, or if you are a programmer, by checking out the development page and contibuting patch requests.
 
-For questions and answers, go to the mclang subreddit, or join our discord.
+For questions and answers, go to the minity subreddit, or join our discord.
 
-To help us devote more time to developing mclang, please consider supporting us on patreon.
+To help us devote more time to developing minity, please consider supporting us on patreon.
 
 ## Features
 
@@ -154,8 +154,8 @@ greet("Everybody")    // says "Hello Everybody!"
 ````
 @chicken              // select by type
 @#raider              // select by JSON tag
-@e.my_tag             // select by mclang tag
-@e!my_tag             // select by not mclang tag
+@e.my_tag             // select by minity tag
+@e!my_tag             // select by not minity tag
 @e{prop:value}        // select by NBT data
 @e[->my_score > 10]   // select by entity score
 

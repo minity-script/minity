@@ -1,0 +1,14 @@
+{
+  "name": "tutorial",
+  "description": "tutorial datapack",
+  "main": "src/index.minity",
+  "directories": {
+    "copy": [
+      "files"
+    ],
+    "watch": [
+      "files",
+      "src"
+    ]
+  }
+}

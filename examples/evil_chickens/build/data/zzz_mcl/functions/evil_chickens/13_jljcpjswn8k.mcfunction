@@ -1,2 +1,0 @@
-execute facing entity @e[type=minecraft:player,sort=nearest,limit=1,tag=--evil_chickens-playing,distance=10.000001..] eyes positioned ^ ^ ^10 run execute if block ~ ~ ~ minecraft:air run tp ~ ~ ~
-tag @s remove --evil_chickens-start_game-lunging

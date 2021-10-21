@@ -1,1 +1,0 @@
-bossbar set evil_chickens:timer visible false

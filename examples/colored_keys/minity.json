@@ -1,0 +1,14 @@
+{
+  "name": "colored_keys",
+  "description": "Colored Keys example for minity",
+  "main": "src/index.minity",
+  "directories": {
+    "copy": [
+      "files"
+    ],
+    "watch": [
+      "files",
+      "src"
+    ]
+  }
+}

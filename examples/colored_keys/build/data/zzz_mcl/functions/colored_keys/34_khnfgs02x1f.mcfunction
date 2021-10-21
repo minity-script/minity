@@ -1,1 +1,0 @@
-execute if score --colored_keys-enabled --colored_keys--vars matches 1.. run function colored_keys:update_all_locks

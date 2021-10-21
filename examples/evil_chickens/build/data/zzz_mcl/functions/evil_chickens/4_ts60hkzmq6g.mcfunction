@@ -1,1 +1,0 @@
-function evil_chickens:start_game

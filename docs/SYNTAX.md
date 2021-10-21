@@ -1,8 +1,8 @@
-- [mclang syntax](#mclang-syntax)
+- [minity syntax](#minity-syntax)
 - [Basic Syntax](#basic-syntax)
   - [Using native Minecraft commands](#using-native-minecraft-commands)
   - [Comments](#comments)
-  - [Importing mclang files](#importing-mclang-files)
+  - [Importing minity files](#importing-minity-files)
 - [Namespaces and functions](#namespaces-and-functions)
   - [Setting the namespace](#setting-the-namespace)
   - [Defining functions](#defining-functions)
@@ -86,9 +86,9 @@
 - [Keywords](#keywords)
   - [Selector keywords](#selector-keywords)
   - [Execution context keywords](#execution-context-keywords)
-  - [Mclang keywords](#mclang-keywords)
+  - [Mclang keywords](#minity-keywords)
   - [Commands](#commands)
-- [Mclang Commands](#mclang-commands)
+- [Mclang Commands](#minity-commands)
   - [<tt>append *NBTpath* *value*</tt>](#ttappend-nbtpath-valuett)
   - [<tt>bossbar add *id* *name*</tt>](#ttbossbar-add-id-namett)
   - [<tt>bossbar remove *id* </tt>](#ttbossbar-remove-id-tt)
@@ -98,19 +98,19 @@
 
 <div style="overflow:auto;padding-left:30px">
 
-## mclang syntax
+## minity syntax
 
-Mclang code is written in files with the `.mclang` file extension. Mclang will parse your code and compile it into `.mcfunction` files in your datapack. Some mclang statements will also produce or alter `.json` files in your datapack.
+Mclang code is written in files with the `.minity` file extension. Mclang will parse your code and compile it into `.mcfunction` files in your datapack. Some minity statements will also produce or alter `.json` files in your datapack.
 
 You can use IDE extensions for syntax highlighting and error reporting.
 
 ## Basic Syntax
 
-Most mclang syntax is concerned with naming of variables, accesing and assigning of data, arithmetics, and control structures. It is a complete replacement for .mcfunction commands `execute ... run`, `scoreboard` and `data`. 
+Most minity syntax is concerned with naming of variables, accesing and assigning of data, arithmetics, and control structures. It is a complete replacement for .mcfunction commands `execute ... run`, `scoreboard` and `data`. 
 
-Each .mclang file can contain mclang statements, as well as comments and native minecraft commands for any functionality that is not included in mclang.
+Each .minity file can contain minity statements, as well as comments and native minecraft commands for any functionality that is not included in minity.
 
-Any statements in the root of the file (i.e. outside any functions) will be executed when the datapack is (re)loaded. The following `index.mclang` will display "Hello world" on (re)load and do nothing else:
+Any statements in the root of the file (i.e. outside any functions) will be executed when the datapack is (re)loaded. The following `index.minity` will display "Hello world" on (re)load and do nothing else:
 
 ````
 /say Hello world
@@ -123,9 +123,9 @@ Any statements in the root of the file (i.e. outside any functions) will be exec
 /say Hello world
 ````
 
-Mclang has a small, but growing, set of builtin replacements for native commands, which allow you to easily use mclang goodies like advanced selector syntax, variables, etc. See below for details.
+Mclang has a small, but growing, set of builtin replacements for native commands, which allow you to easily use minity goodies like advanced selector syntax, variables, etc. See below for details.
 
-In other situations, when you have to use native minecraft commands, mclang can offer some help with replacement patterns in curly brackets:
+In other situations, when you have to use native minecraft commands, minity can offer some help with replacement patterns in curly brackets:
 
 ````
 /execute as {@armor_stand.is_marker} run say I'm a {?color} marker
@@ -134,12 +134,12 @@ In other situations, when you have to use native minecraft commands, mclang can 
 See below for details.
 
 ### Comments
-Use `//` to introduce comments. Anything between `//` and the end of the line is a comment and will be ignored by mclang.
+Use `//` to introduce comments. Anything between `//` and the end of the line is a comment and will be ignored by minity.
 ````
 // this is a comment
 if ($a>3) setblock air // this is a comment too
 ````
-The exception are native commands prefixed with `/` and a few mclang commands that encapsulate "greedy" native commands like `say` and `tellraw`, which will eat up everything until the end of the line:
+The exception are native commands prefixed with `/` and a few minity commands that encapsulate "greedy" native commands like `say` and `tellraw`, which will eat up everything until the end of the line:
 ````
 /setblock ~ ~ ~ minecraft:stone //not a comment, will throw syntax error in minecraft
 
@@ -147,13 +147,13 @@ say Everything's fine //also not a comment, it will be printed out in minecraft 
 ````
 
 
-### Importing mclang files
+### Importing minity files
 Keeping your whole program in one file can become impractical, so you may decide to split into multiple files.
 ````
-import "./helpers.mclang"
-import "./minigame.mclang"
+import "./helpers.minity"
+import "./minigame.minity"
 ````
-Some mclang features (variables, macros, etc.) need to be declared or defined before they are used, the order of imports and where in your file you put them can be important.
+Some minity features (variables, macros, etc.) need to be declared or defined before they are used, the order of imports and where in your file you put them can be important.
 <blockquote>
 This requirement could be relaxed in the future.
 </blockquote>
@@ -168,7 +168,7 @@ function hello() {
 hello() 
 ````
 ### Setting the namespace
-Most mclang statements requires a namespace to be set. This will among other things determine where `.mcfunction` files are located, and namespaced identifiers for your variables, scores, etc.
+Most minity statements requires a namespace to be set. This will among other things determine where `.mcfunction` files are located, and namespaced identifiers for your variables, scores, etc.
 ````
 namespace tutorial          // applies from this point on
 
@@ -220,7 +220,7 @@ function greet() {
 
 greet()
 ````
-Function calls compile directly to `function <name>` in .mcfunction, so you can use them to call functions in other namespaces and datapacks, whether they were written in mclang or not.
+Function calls compile directly to `function <name>` in .mcfunction, so you can use them to call functions in other namespaces and datapacks, whether they were written in minity or not.
 ````
 namespace tutorial
 some_other_namespace:do_stuff()
@@ -306,7 +306,7 @@ Note that this will run forever, i.e. until Minecraft cuts off execution at 65,5
 
 ## Control structures
 ### A replacement for `execute ... run`
-There is no `execute` and `run` in mclang. You simply write the execution modifiers (`as`, `at`, `positioned`, etc.) and commands without them. 
+There is no `execute` and `run` in minity. You simply write the execution modifiers (`as`, `at`, `positioned`, etc.) and commands without them. 
 ````
 as @a /say hello
 // each player says hello
@@ -328,7 +328,7 @@ as (@a)  {
 // then we call our function to build
 // a grave where the player died
 ````
-Statements within braces will be put in an *anonymous function* which will be saved under a unique name in the `zzz_mclang` namespace. This guarantees that all statements in the block (including subfunctions) will be called with the same execution context, even if anything changes in between. Compare the two different cases below:
+Statements within braces will be put in an *anonymous function* which will be saved under a unique name in the `zzz_minity` namespace. This guarantees that all statements in the block (including subfunctions) will be called with the same execution context, even if anything changes in between. Compare the two different cases below:
 
 ````
 function protect_base {
@@ -377,7 +377,7 @@ positioned ~ ~3 ~ {
   // ~ ~ ~ is now three blocks above
 }
 ````
-You will probably use this only for absolute coordinates, because mclang provides a more convenient way to change position with direction modifiers.
+You will probably use this only for absolute coordinates, because minity provides a more convenient way to change position with direction modifiers.
 
 #### <tt>**rotated** *rotation*</tt>
 Changes the current execution position, thus changing the meaning of local coordinates in the following statement(s):
@@ -389,7 +389,7 @@ rotated ~ ~30 {
   // rotate 30 degrees upwards
 }
 ````
-You will probably use this only for absolute rotation, because mclang provides a more convenient way to change rotation with direction modifiers.
+You will probably use this only for absolute rotation, because minity provides a more convenient way to change rotation with direction modifiers.
 
 #### <tt>**anchored** **(eyes|feet)**</tt>
 Changes the current execution position and rotation to match that of the current item's eyes or feet.
@@ -692,7 +692,7 @@ $foo = ...
 ... = @@storage_name::nbt.path         // Storage data
 ... = bossbar my_bossbar max           // Bossbar properties (max, value, visible)
 ````
-You can also use any native command or mclang statement:
+You can also use any native command or minity statement:
 ````
 $foo    = function_name() 
 @s->bar = /command ...
@@ -710,7 +710,7 @@ $foo    ?= test if ($a > $b) and unless ($b < 3)
 You can swap the values of two variables and/or entity scores:
 ````
 $foo >< $bar   // using minecraft's original syntax
-$foo <=> $bar  // using mclang's more conventional alternative
+$foo <=> $bar  // using minity's more conventional alternative
 ````
 
 ### Arithmetics
@@ -795,7 +795,7 @@ You can access NBT data with the `::` operator, followed by a NBT path.
 (0 0 0)::Items[{Slot:1}]       // block data
 @@ns:storage_name::nbt.path     // storage data, ns is optional and defaults 
                                 // to the current namespace
-@@nbt.path                      // shorthand for @@current_ns:mclang_vars storage
+@@nbt.path                      // shorthand for @@current_ns:minity_vars storage
 ````
 ### Assignment
 You can assign anything to a data path, subject to limitations imposed by Minecraft itself.
@@ -864,7 +864,7 @@ prepend @s::MyList "First String"
 ````
 
 ## Advanced target selectors
-All valid minecraft selectors should work in mclang. The only exception are bare player ids, which are instead accepted in the form of `@[player_id]`
+All valid minecraft selectors should work in minity. The only exception are bare player ids, which are instead accepted in the form of `@[player_id]`
 
 In addition, syntactic sugar is provided for some selector conditions. Similar to css, multiple conditions can be applied in series, as long as there is no whitespace betwen them. See below for the conditions that you can apply this way.
 ### Selector conditions
@@ -922,13 +922,13 @@ Match entities for which the test in the brackets is true. The condition is one 
 * Allowed for all conditions:
 ````
 @e[team = my_team]   // test if condition matches value
-@e[team == my_team]  // alias of =, for consistency with mclang syntax
+@e[team == my_team]  // alias of =, for consistency with minity syntax
                      => @e[team = my_team]
 ````
 * Allowed for some conditions, see Minecraft documentation:
 ````
 @e[team =! my_team]  // negates the condition, only allowed for some conditions
-@e[team != my_team]  // alias of =!, for consistency with mclang syntax
+@e[team != my_team]  // alias of =!, for consistency with minity syntax
                      => @e[team =! my_team]
 ````
 * Allowed for conditions that accept ranges:
@@ -1012,7 +1012,7 @@ Mclang will accept standard minecraft coordinates (e.g. `~3 ~ ~2` or `^ ^ ^0.1`)
   setblock (forward 1) stone
   setblock (forward 1 north 2) stone   // won't work, mixing different coordinate systems
 ````
-Most mclang commands that accept coordinates will default to the current position, so these two will have the same effect, though they will compile slightly differently:
+Most minity commands that accept coordinates will default to the current position, so these two will have the same effect, though they will compile slightly differently:
 ````
   setblock (forward 1) stone
     ==> setblock ^ ^ ^1 stone
@@ -1076,19 +1076,19 @@ In some contexts, notable when dealing with NBT data, typed numbers are required
 
 #### String expansion
 
-Some bracketed sequences have a special meaning within doublequoted strings. These are all expanded by mclang during compilation. They can be used anywhere where strings are accepted in the code.
+Some bracketed sequences have a special meaning within doublequoted strings. These are all expanded by minity during compilation. They can be used anywhere where strings are accepted in the code.
 
 ````
 "The color is {?color}"     // expand constants and macro arguments
 
                             // the following can be useful for using variables, tags and scores
-                            // declared in mclang with native minecraft commands
+                            // declared in minity with native minecraft commands
 
-"{.processed}"              // expand a tag declared in mclang to the namespaced version
+"{.processed}"              // expand a tag declared in minity to the namespaced version
                             => "--my_ns-processed"
-"{->my_score}"              // expand a score name declared in mclang to the namespaced objective
+"{->my_score}"              // expand a score name declared in minity to the namespaced objective
                             => "--my_ns-my_score"                           
-"{$my_var}"                 // expand variable name declared in mclang to the target and objective
+"{$my_var}"                 // expand variable name declared in minity to the target and objective
                             => "--my_ns-my_var --my_ns--vars"
 
 "{.is_{?color}_key}"        // brackets can be nested
@@ -1159,7 +1159,7 @@ snbt [1,2,"not_a_number"]   // not allowed
 ````
 
 ### Raw Text Markup
-Raw Text is a powerful feature of Minecraft, but also notoriously hard to write. The ability for array and objects to span across multiple lines can help to an extent. But mclang can make it even easier for you, by using raw text markup, which is similar to HTML.
+Raw Text is a powerful feature of Minecraft, but also notoriously hard to write. The ability for array and objects to span across multiple lines can help to an extent. But minity can make it even easier for you, by using raw text markup, which is similar to HTML.
 
 ````
 < div>
@@ -1368,7 +1368,7 @@ Other non-alphanumeric characters that can appear in the code. Some can mean dif
 | `keyword`             |  |
 |---------------------|-------------|
 | [`after`](#ttafter-interval-tt)               | (#ttafter-interval-tt)
-| `and`                 | mclang.flow
+| `and`                 | minity.flow
 | `else`                | control flow keyword
 | `every`               | scheduling keyword
 | `for`                 | execution context modifier

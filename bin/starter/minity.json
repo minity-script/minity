@@ -1,0 +1,14 @@
+{
+  "name": "###PACK###",
+  "description": "###PACK### datapack",
+  "main": "src/index.minity",
+  "directories": {
+    "copy": [
+      "files"
+    ],
+    "watch": [
+      "files",
+      "src"
+    ]
+  }
+}

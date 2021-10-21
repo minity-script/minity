@@ -14,7 +14,7 @@
 - define json?
 - macros within macros?
  
-- mclang.org
+- minity-script.org
 - github
 - npm
 - patreon

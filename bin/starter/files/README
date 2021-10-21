@@ -1,9 +1,9 @@
 FILE STRUCTURE
 ==============
 
-└─┬─ ###PACK###               your mclang project
-  ├─┬─ src                    keep your mclang files here
-  │ └─── index.mclang         default entry point for your mclang program
+└─┬─ ###PACK###               your minity project
+  ├─┬─ src                    keep your minity files here
+  │ └─── index.minity         default entry point for your minity program
   ├─┬- files                  wil be copied to your datapack on build
   │ ├─── pack.mcmeta          your pack description, as per minecraft docs
   │ └─┬─ data                 here is where json files go, as per minecraft docs
@@ -16,11 +16,11 @@ FILE STRUCTURE
 USAGE
 =====
 
-$ mclang build [target]
+$ minity build [target]
 
 Will build your datapack in the directory <target>. If you don't specify a target directory, the default build directory will be used.
 
-$ mclang watch [target]
+$ minity watch [target]
 
 Will watch for changes in ./src and ./files and rebuild your datapack on every change. 
 If you don't specify a target directory, the default build directory will be used.
