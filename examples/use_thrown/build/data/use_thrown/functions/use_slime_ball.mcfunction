@@ -12,4 +12,4 @@ scoreboard players set --use_thrown-use_slime_ball-flag --use_thrown--vars 1
 #       say no owner found
 #     }
 #   }
-execute if entity @s[nbt={Item:{tag:{"--use_thrown-special_slime_ball":1b}}}] run function zzz_mcl:use_thrown/find_owner_7wg9kyanq42
+execute if entity @s[nbt={Item:{tag:{"--use_thrown-special_slime_ball":1b}}}] run function zzz_mcl:use_thrown/find_owner_96gkacp8gfn
