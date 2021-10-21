@@ -125,21 +125,22 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
 
 
   assign_run 
-    = id: scoreboard_id {
-        return N('assign_run_scoreboard',{id})
-      }
-    / path: datapath {
-        return N('assign_run_datapath',{path})
-      }
-    / "bossbar" __ id:resloc __ prop:("value"/"max"/"visible") {
-        return N('assign_run_bossbar',{id, prop})
-      }
-    / "test" __ conds:Conditionals {
-        return N('assign_run_test',{id, conds})
-    }
-    / statement:Instruction {
+    = statement:Instruction {
         return N('assign_run_statement',{statement})
       }
+      /id: scoreboard_id {
+          return N('assign_run_scoreboard',{id})
+        }
+      / path: datapath {
+          return N('assign_run_datapath',{path})
+        }
+      / "bossbar" __ id:resloc __ prop:("value"/"max"/"visible") {
+          return N('assign_run_bossbar',{id, prop})
+        }
+      / "test" __ conds:Conditionals {
+          return N('assign_run_test',{id, conds})
+      }
+
 
 //\\ print
   print = "print" selector:(__ @selector)? __ line:raw_line {
@@ -177,8 +178,11 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       then:(__ "then" __ @Instructions )? {
         return N('cmd_summon', { pos,type,nbt, then } )
       }
-    / "give" __ selector:selector __ type:resloc_mc CONCAT nbt:(@object)? {
-        return N('cmd_give', { selector,type,nbt } )
+    / "give" selector:cmd_arg_selector_optional count:(__ @int)?  __ type:resloc_mc CONCAT nbt:(@object)? {
+        return N('cmd_give', { selector,type,nbt, count } )
+      }
+    / "clear" selector:cmd_arg_selector_optional count:(__ @int)?  __ type:resloc_mc CONCAT nbt:(@object)? {
+        return N('cmd_clear', { selector,type,nbt, count } )
       }
     / "setblock" pos:(_ @Position)? __ block:block_spec {
         return N('cmd_setblock', { pos, block } )
@@ -273,16 +277,20 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
     = AnonFunctionResloc
     / FunctionCallResloc
 
+  cmd_arg_selector_optional = spec:(__ @selector_spec)? {
+    return N('selector_optional', { spec } )
+  }
+
 //\\ selector
   selector_single = spec:selector_spec {
     return N('selector_single', { spec } )
   }
-  selector 
+  selector
     = spec: selector_spec {
       return N('selector', { spec } )
     }
 
-  selector_spec
+  selector_spec  'selector'
     = selector_uuid
     / selector_complex
 
@@ -291,7 +299,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       return N('selector_uuid', { uuid } )
     }
 
-  selector_complex 'selector'
+  selector_complex 
     = sort:selector_sort? "@" !"@" initial:(selector_initial/selector_initial_type) conditions:conditions {
       return N('selector_spec', { initial,conditions:[...sort||[],...conditions] } )
     }
@@ -771,14 +779,18 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
 
 //\\ parts
   
+  resname = head:ident tail:("/" @ident)* {
+    return N("resname",{parts:[head,...tail]})
+  }
+
   resloc
     = resloc_full
-    / name: ident {
+    / name: resname {
         return N('resloc', { name } )
       }
 
   resloc_full 
-  	= ns:ident ":" name:ident {
+  	= ns:ident ":" name:resname {
         return N('resloc', { ns,name } )
       }
 
@@ -788,24 +800,24 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
 
   resloc_mc
     = resloc_full
-    / name: ident {
+    / name: resname {
         return N('resloc_mc', { name } )
       }
 
   restag
     = restag_full
-    / "#" name:ident {
+    / "#" name:resname {
         return N('restag', { name } )
       }
 
   restag_full 
-  	= "#" ns:ident ":" name:ident {
+  	= "#" ns:ident ":" name:resname {
         return N('restag', { ns,name } )
       }
 
   restag_mc
     = restag_full
-    / "#" name: ident {
+    / "#" name: resname {
         return N('resloc_mc', { name } )
       }
 
@@ -1494,7 +1506,7 @@ SELECTOR
   	return [head,...tail]
   }
   Declaration = declare 
-  Instruction = Structure / assign / command / cmd / builtin / CallSelf / function_call / MacroCall 
+  Instruction = Structure / assign / command / cmd / builtin / CallSelf / FunctionCall / MacroCall 
   Executable = last:(CodeBlock / (__ @Instruction)) {
       return N( 'Executable', { last } )
   }
@@ -1632,19 +1644,22 @@ SELECTOR
    } 
    
 */
-  function_call 
-    =  ns:(@NAME ":")? name:NAME _ OPEN _ CLOSE  {
-      return N('FunctionCall', { ns,name } )
+  FunctionCall
+    =  resloc:FunctionCallResloc {
+      return N('FunctionCall', { resloc } )
     }
 
   FunctionCallResloc = !RESERVED @resloc:resloc_or_tag _ OPEN _ CLOSE 
 
 
   MacroCall
-    = ns:(@NAME ":")? name:NAME _ OPEN args:call_args CLOSE 
-      then:(__ "then" __ @Instructable)? 
+    = "with" __ ns:(@NAME ":")? name:NAME _ OPEN args:call_args CLOSE 
+      then:Instructable? 
       otherwise:(__ "else" __ @Instructable)? {
-        return N('FunctionCall', { ns, name, args, then, otherwise } )
+        return N('MacroCall', { ns, name, args, then, otherwise } )
+      }
+    / ns:(@NAME ":")? name:NAME _ OPEN args:call_args CLOSE {
+        return N('MacroCall', { ns, name, args } )
       }
       
   BlockArg
@@ -1660,7 +1675,7 @@ SELECTOR
   }
 
   DeclareFunction 
-    = "function" __ name:DeclareName tags:(__ @restag)* (_ OPEN CLOSE _)? statements:Braces {
+    = "function" __ name:resname tags:(__ @restag)* (_ OPEN CLOSE _)? statements:Braces {
         return N('DeclareFunction', { name,tags,statements } )
     }
 

@@ -1,0 +1,62 @@
+namespace use_thrown
+
+// we won't actually use this tag to tag any entity, but it
+// will give us a namespaced identifier.
+tag undroppable
+tag special_cake
+
+
+clear @a cake{
+  "{.special_cake}": true
+}
+
+give @a cake{
+  CustomName: json <b>Special cake</b>,
+  "{.undroppable}": true,
+  "{.special_cake}": true
+}
+
+
+function keep_stuff #minecraft:tick {
+  tag processed
+  for @item{Item:{tag:{"{.undroppable}":true}}}!processed {
+    /effect give @s minecraft:invisibility 1 1 true
+    @s::Silent = true
+    @s::Owner = @s::Thrower
+    @s::PickupDelay = 0
+    tag @s processed
+    #dropped()
+  }
+}
+
+macro raycast(?count=20) {
+  var $count = 0
+  repeat forward 0.2 {
+    $count ++
+  } while ($count<20) and while(air) then {
+    if($count<20) {
+      {{then}}
+    } else {
+      {{else}}
+    }
+  }
+}
+
+function use_cake #dropped  {
+  var $flag = true
+  if (@s{Item:{tag:{ "{.special_cake}":true }} }) {
+    for (@player[distance<30]) {
+      @s::Finder = @s::Owner
+      $flag = @s::Finder = @p::UUID
+      unless ($flag) {
+        /say I dropped it
+      }
+      anchored eyes with raycast(20) {
+        up 1 if air setblock redstone_block
+      } else {
+        say not found
+      }
+    }   
+  }
+}
+

@@ -20,4 +20,4 @@ tag @e[type=minecraft:player,distance=..9.999999] add --evil_chickens-playing
 #       / effect give {@s} minecraft:blindness {?max_time} 120 true
 #     }
 #   } then after 1s start_game()
-schedule function zzz_mcl:evil_chickens/8_iyi0878vz1e 1s
+schedule function zzz_mcl:evil_chickens/8_8656ws9nzcj 1s

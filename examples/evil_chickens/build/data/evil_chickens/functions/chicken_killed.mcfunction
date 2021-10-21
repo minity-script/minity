@@ -2,7 +2,7 @@
 #     as @s{OnGround:1b} /kill @s
 #     unless @chicken.evil[distance<0.5] /kill @s
 #   }
-execute as @e[type=minecraft:endermite,tag=--evil_chickens-evil] at @s run function zzz_mcl:evil_chickens/21_w42w4t8zp6n
+execute as @e[type=minecraft:endermite,tag=--evil_chickens-evil] at @s run function zzz_mcl:evil_chickens/21_378ga89oqa5
 # $chickens --
 scoreboard players remove --evil_chickens-chickens --evil_chickens--vars 1
 # bossbar chickens value = $chickens

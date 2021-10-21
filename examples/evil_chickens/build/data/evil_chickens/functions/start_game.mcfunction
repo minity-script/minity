@@ -25,7 +25,7 @@ scoreboard players set --evil_chickens-running --evil_chickens--vars 1
 # every 2t {
 #     if(@player.playing[->death>0]) defeat()
 #   } while $running
-function zzz_mcl:evil_chickens/9_0ui3fgb006
+function zzz_mcl:evil_chickens/9_3a48xwmdfoi
 # var $count = 0
 scoreboard players set --evil_chickens-start_game-count --evil_chickens--vars 0
 # every 3s {
@@ -37,7 +37,7 @@ scoreboard players set --evil_chickens-start_game-count --evil_chickens--vars 0
 #     }
 #     $count ++
 #   } while $running and while $count<?max_chickens
-function zzz_mcl:evil_chickens/10_y8v707w2sf
+function zzz_mcl:evil_chickens/10_5kyey9cflya
 # tag lunging
 # every 4s {
 #     say still running
@@ -66,7 +66,7 @@ function zzz_mcl:evil_chickens/10_y8v707w2sf
 #       }
 #     }
 #   } while ($running)
-function zzz_mcl:evil_chickens/17_rcvemtv8d58
+function zzz_mcl:evil_chickens/17_y3ci5rnzj7
 # every 1s {
 #     $time -- 
 #     bossbar timer value = $time
@@ -81,4 +81,4 @@ function zzz_mcl:evil_chickens/17_rcvemtv8d58
 #     }
 #     if ($time<1) and if ($running>0) out_of_time()
 #   } while ($running)
-function zzz_mcl:evil_chickens/20_wes7kzgzf1
+function zzz_mcl:evil_chickens/20_vmj95ux79b

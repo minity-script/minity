@@ -28,12 +28,5 @@ namespace tutorial
 var $enabled =1
 function greet() {
   say hello
-  as @p print enabled {$enabled}
-
+  as @a print enabled {$enabled}
 }
- 
-macro greek() {
-  /say greeck {?a}
-}
-
-greek()

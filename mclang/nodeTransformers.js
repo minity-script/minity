@@ -14,10 +14,10 @@ const transformers = exports.transformers = {
     fn.addTag("minecraft", "load");
     return "";
   },
-  DeclareFunction: ({ name, tags, statements }, { T, declareFunction }) => {
-    const fn = declareFunction(name, statements);
-    for (const { ns, name } of tags) {
-      fn.addTag(T(ns), T(name));
+  DeclareFunction: ({ name, tags, statements }, { T, declareFunction, ns:NS }) => {
+    const fn = declareFunction(T(name), statements);
+    for (const {ns,name} of tags) {
+      fn.addTag(ns ? T(ns) : NS, T(name));
     }
     return "# function " + fn.resloc;
   },
@@ -81,6 +81,10 @@ const transformers = exports.transformers = {
     assert(it.isSingle,"Selector must select a single entity")
     return it.format();
   },
+  selector_optional: ({ spec }, { T, toNbt }) => {
+    if (spec) return T(spec);
+    return new Selector("s");
+  },
   selector_initial: ({ initial }) => new Selector(initial),
   selector_initial_type: ({ type }, { T }) => new Selector(T(type)),
   cond_brackets: ({ name, op, value }, { T }, { spec }) => {
@@ -104,6 +108,7 @@ const transformers = exports.transformers = {
   test_block: ({ spec }, { T }) => `block ~ ~ ~ ${T(spec)}`,
   test_block_pos: ({ pos, spec }, { T }) => `block ${T(pos)} ${T(spec)}`,
   test_predicate: ({ resloc }, { T }) => `predicate ${T(resloc)}`,
+  resname: ({parts},{T}) => parts.map(T).join("/"),
   resloc(node, { T, ns }) {
     return (node.ns ? T(node.ns) : ns) + ":" + T(node.name);
   },
@@ -141,8 +146,16 @@ const transformers = exports.transformers = {
       ])}`
     ])
   },
-  cmd_give: ({ selector, type, nbt }, { toNbt, T }) => {
-    return `give ${T(selector)} ${T(type)}${toNbt(nbt || {})}`
+  
+  cmd_give: ({ selector, count, type, nbt }, { toNbt, T }) => {
+    count = count ? toNbt(count) : "1";
+    nbt = nbt ? toNbt(nbt) : "{}";
+    return `give ${T(selector)} ${T(type)}${nbt} ${count}`
+  },
+  cmd_clear: ({ selector, count, type, nbt }, { toNbt, T }) => {
+    count = count ? toNbt(count) : "1";
+    nbt = nbt ? toNbt(nbt) : "{}";
+    return `clear ${T(selector)} ${T(type)}${nbt} ${count}`
   },
   cmd_after: ({ time, unit, statements,then }, { T, anonFunction, toNbt }) => {
     const lines = statements.map(T);
@@ -392,14 +405,15 @@ const transformers = exports.transformers = {
     setArg(name,Nbt(value));
     return "";
   },
-  FunctionCall:(
-    {ns, name, args, then, otherwise }, 
-    { T, Nbt, macroExists, expandMacro, getMacro, ns:NS }
-  ) => {
-    if (!macroExists(ns,name) && !args && !then && !otherwise) {
-      return `function ${ns||NS}:${name}`;
-    }
-    assert(macroExists(ns,name),`no such macro ${ns||NS}:${name}`)
+  FunctionCall:({resloc }, { T }) =>  `function ${T(resloc)}`,
+  MacroCall:(
+      {ns, name, args, then, otherwise }, 
+      { T, Nbt, macroExists, expandMacro, getMacro, ns:NS }
+    ) => {
+      if (!macroExists(ns,name) && !args && !then && !otherwise) {
+        return `function ${ns||NS}:${name}`;
+      }
+      assert(macroExists(ns,name),`no such macro ${ns||NS}:${name}`)
     const macro = getMacro(ns,name);
     const new_args = {};
     const { named={}, numbered=[] } = args||{};

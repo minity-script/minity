@@ -21,4 +21,4 @@
 #       /spreadplayers ~ ~ 5 30 false {@s}
 #     }
 #   }
-execute unless score --evil_chickens-running --evil_chickens--vars matches 0 run execute positioned ~ ~30 ~ run function zzz_mcl:evil_chickens/25_gsd5fgvaop
+execute unless score --evil_chickens-running --evil_chickens--vars matches 0 run execute positioned ~ ~30 ~ run function zzz_mcl:evil_chickens/25_204rwyt9f7b

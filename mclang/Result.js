@@ -126,7 +126,7 @@ ResultNamespace.Custom = class ResultNamespaceCustom extends ResultNamespace {
     super(result,rest);
     this.addObjective(`--${this.ns}--vars`, "dummy");
     this.addAnonFunction("",()=>[
-      `data modify storage zzz_mcl:${this.ns}} stack set value []`,
+      `data modify storage zzz_mcl:${this.ns} stack set value []`,
       ... Object.values(this.objectives).map(it=>it.declare)
     ],"objectives").addTag("minecraft","load");
   }

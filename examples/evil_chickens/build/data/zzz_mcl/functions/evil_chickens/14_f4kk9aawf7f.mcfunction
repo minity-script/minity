@@ -1,0 +1,1 @@
+execute as @e[tag=--evil_chickens-start_game-lunging] at @s run function zzz_mcl:evil_chickens/13_jljcpjswn8k
