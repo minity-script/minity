@@ -1,4 +1,5 @@
 
+const {rawTags} = require("./rawTags");
 const {Selector, SelectorUUID} = require("./Selector");
 const { randomString } = require("./utils");
 const assert = require("assert");
@@ -82,8 +83,8 @@ const transformers = exports.transformers = {
     return it.format();
   },
   selector_optional: ({ spec }, { T, toNbt }) => {
-    if (spec) return T(spec);
-    return new Selector("s");
+    if (spec) return T(spec).format();
+    return new Selector("s").format();
   },
   selector_initial: ({ initial }) => new Selector(initial),
   selector_initial_type: ({ type }, { T }) => new Selector(T(type)),
@@ -269,11 +270,27 @@ const transformers = exports.transformers = {
   nbt_path_list_match: ({ match }, { toNbt }) => `[${toNbt(match)}]`,
   nbt_path_match: ({ match }, { toNbt }) => `${toNbt(match)}`,
   tilde: ({ number }) => `~${number}`,
-  raw_tag: ({ tag, props, attr, parts, block, paragraph }, { T, Nbt, toNbt },state={block:true,first:true,last:true}) => {
-    const ret = Nbt({ ...props })
+  raw_tag: ({ tag, attr, parts }, { T, Nbt, toNbt },state={block:true,first:true,last:true}) => {
+    var props = {};
+    var block = false, paragraph = false;
+    var attrs = {};
     for (const { name, value } of attr) {
-      ret[Nbt(name)] = Nbt(value);
+      attrs[Nbt(name)] = Nbt(value);
     }
+    const spec = rawTags[tag];
+    if (!spec) {
+      props = {...attrs} 
+    } else {
+      block = spec.block;
+      paragraph = spec.paragraph;
+      if (typeof spec.props === "function") {
+        props = spec.props(attrs)
+      } else {
+        props = {...attrs, ...spec.props}
+      }
+    }
+    const ret = Nbt({ ...props })
+    
     ret.text ??= "";
     
     if (parts) {

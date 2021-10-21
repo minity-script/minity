@@ -17,4 +17,4 @@
 #      Command: "function colored_keys:summon_{?color}_lock"
 #    }
 #   }
-give @s minecraft:command_block{display:{Name:'[{"color":"red","text":"Place Red Lock","italic":0}]',Lore:['[{"text":"Place this command block to create a red lock.","italic":false}]']},BlockEntityTag:{auto:1b,Command:"function colored_keys:summon_red_lock"}}
+give @s minecraft:command_block{display:{Name:'[{"color":"red","text":"Place Red Lock","italic":0}]',Lore:['[{"text":"Place this command block to create a red lock.","italic":0}]']},BlockEntityTag:{auto:1b,Command:"function colored_keys:summon_red_lock"}} 1

@@ -66,14 +66,4 @@ exports.rawTags = {
       strikethrough:true 
     })
   },
-  a: {
-    props: ({href,...rest}) => ({
-      clickEvent: {
-        action: "open_url",
-        value: href
-      },
-      color:"blue",
-      strikethrough:true 
-    })
-  },
 }

@@ -23,4 +23,4 @@
 #       ]
 #     }
 #   }
-give @s minecraft:shield{display:{Name:'[{"text":"Red Key","italic":false}]',Lore:['[{"text":"This key opens red doors.","italic":false}]']},Tags:["--colored_keys-is_key","--colored_keys-is_red_key"],BlockEntityTag:{Base:14,Patterns:[{Color:15,Pattern:"mc"},{Color:15,Pattern:"bt"},{Color:14,Pattern:"bo"}]}}
+give @s minecraft:shield{display:{Name:'[{"text":"Red Key","italic":0}]',Lore:['[{"text":"This key opens red doors.","italic":0}]']},Tags:["--colored_keys-is_key","--colored_keys-is_red_key"],BlockEntityTag:{Base:14,Patterns:[{Color:15,Pattern:"mc"},{Color:15,Pattern:"bt"},{Color:14,Pattern:"bo"}]}} 1
