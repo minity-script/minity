@@ -3,17 +3,17 @@ namespace use_thrown
 // we won't actually use this tag to tag any entity, but it
 // will give us a namespaced identifier.
 tag undroppable
-tag special_cake
+tag special_slime_ball
+var $a = 3
 
-
-clear @a cake{
-  "{.special_cake}": true
+clear @a slime_ball{
+  "{.special_slime_ball}": true
 }
 
-give @a cake{
-  CustomName: json <b>Special cake</b>,
+give @a slime_ball{
+  CustomName: json <b>Special slime_ball</b>,
   "{.undroppable}": true,
-  "{.special_cake}": true
+  "{.special_slime_ball}": true
 }
 
 
@@ -34,29 +34,39 @@ macro raycast(?count=20) {
   repeat forward 0.2 {
     $count ++
   } while ($count<20) and while(air) then {
-    if($count<20) {
-      {{then}}
-    } else {
-      {{else}}
-    }
+    if($count<20) then() else else()
   }
 }
 
-function use_cake #dropped  {
+macro find_owner(?distance=30) {
   var $flag = true
-  if (@s{Item:{tag:{ "{.special_cake}":true }} }) {
-    for (@player[distance<30]) {
+  var $found = false
+  for (@player[distance<30]) {
+    unless ($found) {
       @s::Finder = @s::Owner
-      $flag = @s::Finder = @p::UUID
+      $flag ?= @s::Finder = @p::UUID
       unless ($flag) {
-        /say I dropped it
+        $found = true
+        then()
       }
+    }
+  } 
+  unless ($found) else()
+}
+
+function use_slime_ball #dropped  {
+  var $flag = true
+  if (@s{Item:{tag:{ "{.special_slime_ball}":true }} }) {
+    with find_owner(30) {
+      say I dropped it
       anchored eyes with raycast(20) {
-        up 1 if air setblock redstone_block
+        repeat up 1 until air then setblock slime_block
       } else {
-        say not found
+        say nothing found close enough
       }
-    }   
+    } else {
+      say no owner found
+    }
   }
 }
 

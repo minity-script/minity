@@ -87,6 +87,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
 //\\ assign
   assign 'assignment'
     = assign_arg
+    / assign_success
     / assign_scoreboard 
     / assign_datapath 
     / assign_bossbar
@@ -103,8 +104,19 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
   }
 
   assign_success
-    = left:assign_store _ "?=" _ right:assign_run {
+    = left:assign_store_success right:assign_run {
       return N('assign_success',{left,right}) 
+    }
+
+  assign_store_success
+    = id: scoreboard_id _ "?=" _ {
+        return N('assign_store_scoreboard',{id})
+      }
+    / path: datapath _ "?=" _ scale:(@number _"*" _ )? {
+        return N('assign_store_datapath',{path,scale})
+      }
+    / "bossbar" __ id:resloc __ prop:("value"/"max"/"visible") _ "?=" _{
+        return N('assign_store_bossbar',{id,prop})
     }
 
   assign_execute
@@ -122,6 +134,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
     / "bossbar" __ id:resloc __ prop:("value"/"max"/"visible") EQUALS {
         return N('assign_store_bossbar',{id,prop})
       }
+  
 
 
   assign_run 
@@ -172,19 +185,30 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       / &"{" !template_expand @"{"
 
     cmd 
-    = "summon" pos:(_ @Position)? 
+    = "summon" 
+      pos:(_ @Position)? 
       __ type:resloc_mc CONCAT 
       nbt:(@object)? 
       then:(__ "then" __ @Instructions )? {
         return N('cmd_summon', { pos,type,nbt, then } )
       }
-    / "give" selector:cmd_arg_selector_optional count:(__ @int)?  __ type:resloc_mc CONCAT nbt:(@object)? {
+    / "give" 
+      selector:cmd_arg_selector_optional 
+      count:(__ @int)?  
+      __ type:resloc_mc 
+      CONCAT nbt:(@object)? {
         return N('cmd_give', { selector,type,nbt, count } )
       }
-    / "clear" selector:cmd_arg_selector_optional count:(__ @int)?  __ type:resloc_mc CONCAT nbt:(@object)? {
+    / "clear" 
+      selector:cmd_arg_selector_optional 
+      count:(__ @int)?  
+      __ type:resloc_mc
+      CONCAT nbt:(@object)? {
         return N('cmd_clear', { selector,type,nbt, count } )
       }
-    / "setblock" pos:(_ @Position)? __ block:block_spec {
+    / "setblock" 
+      pos:(_ @Position)? 
+      __ block:block_spec {
         return N('cmd_setblock', { pos, block } )
       }
     / "after" __ time:float unit:[tds]? 
@@ -192,29 +216,42 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       then:(__ "then" @Instructable)? {
         return N('cmd_after', { time, unit: (unit ?? "t"), statements, then } )
       } 
-    / "bossbar" __ "add" __ id:resloc __ name:string? {
+    / "bossbar" 
+      __ "add" 
+      __ id:resloc 
+      __ name:string? {
         return N('bossbar_add', { id, name} )
       }
-    / "bossbar" __ "remove" __ id:resloc {
+    / "bossbar" 
+      __ "remove" 
+      __ id:resloc {
         return N('bossbar_remove', { id } )
     } 
-    / "tag" __ selector:selector __ tag:tag_id  {
+    / "tag" 
+      __ selector:selector 
+      __ tag:tag_id  {
         return N('tag_set',{selector,tag})
       }
-    / "untag" __ selector:selector __ tag:tag_id  {
+    / "untag" 
+      __ selector:selector 
+      __ tag:tag_id  {
         return N('tag_unset',{selector,tag})
       }
-    / "tag" __ name:string {
+    / "tag" 
+      __ name:string {
         return N('declare_tag',{name})
       }
-    / "say" __ parts:command_parts {
+    / "say" 
+      __ parts:command_parts {
       return N('cmd_say',{parts})
     }
 
   builtin
-   =  "import" __ file:string {
-      return N('import',{file})
-    } / print
+   =  "import" 
+      __ file:string {
+        return N('import',{file})
+      } 
+    / print
     
 
 
@@ -236,7 +273,6 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
     = OPEN @ANCHOR CLOSE
     / __ @ANCHOR
   
-  ANCHOR = "eyes"/"feet"
 
   mod_arg_selector 
     = OPEN @selector CLOSE
@@ -373,7 +409,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
         } 
       /  node:
          ( ("sort"         cond_op sort_name)
-         / ("gamemode"     cond_op gamemode)
+         / ("gamemode"     cond_op GAMEMODE)
          ) {
             const [name,op,value] = node;
             return N('cond_brackets_lit', {name,op,value} ) 
@@ -445,12 +481,6 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       / ( "furthest" / "farthest" ) { return "furthest" }
       / ( "random" / "any" ) { return "random" }
       / ( "arbitrary" / "oldest" ) { return "arbitrary" }
-
-    gamemode
-      = "survival"
-      / "creative"
-      / "adventure"
-      / "spectator"
 
 
   
@@ -734,10 +764,10 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       /  modify:("merge"/"append"/"prepend") __ left:datapath __ right:typed_value {
           return N('datapath_modify_value',{modify,left,right})
         }
-      / modify:"append" __ left:datapath __ scale:(_ @number _ "*" _)? right:assign_run {
+      / modify:"append" __ left:datapath __ scale:(_ @typed_number _ "*" _)? right:assign_run {
           return N('datapath_modify_execute',{modify,left,right,index:-1, scale})
         }
-      / modify:"prepend" __ left:datapath __ scale:(_ @number _ "*" _)? right:assign_run {
+      / modify:"prepend" __ left:datapath __ scale:(_ @typed_number _ "*" _)? right:assign_run {
           return N('datapath_modify_execute',{modify,left,right,index:0, scale})
         }
       / left:datapath EQUALS  right:typed_value !(_ "*") {
@@ -780,7 +810,7 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
 //\\ parts
   
   resname = head:ident tail:("/" @ident)* {
-    return N("resname",{parts:[head,...tail]})
+    return N('resname',{parts:[head,...tail]})
   }
 
   resloc
@@ -1189,12 +1219,12 @@ file = ___ head:DeclareNamespace tail:(EOL @DeclareNamespace)* ___ {
       = unescaped
       / escape sequence:(
             
-            "b" { return "\b"; }
-          / "f" { return "\f"; }
-          / "n" { return "\n"; }
-          / "r" { return "\r"; }
-          / "t" { return "\t"; }
-          / "u" digits:$(HEXDIG HEXDIG HEXDIG HEXDIG) {
+            'b' { return '\b'; }
+          / 'f' { return '\f'; }
+          / 'n' { return '\n'; }
+          / 'r' { return '\r'; }
+          / 't' { return '\t'; }
+          / 'u' digits:$(HEXDIG HEXDIG HEXDIG HEXDIG) {
               return String.fromCharCode(parseInt(digits, 16));
             }
           / .
@@ -1251,9 +1281,8 @@ raw_tag_open
     return tag;	
     }
   / */
-  !LTS LT tag:(raw_tag_name/ident:ident? &{error('expected valid tag name, but '+ident+' found',)})  attr:(___ @raw_attr)* {
-  	tag.attr = attr;
-    return tag;
+  !LTS LT tag:(WORD)  attr:(___ @raw_attr)* {
+  	return N('raw_tag',{tag,attr});
 	}
 
   raw_attr = name:ident EQUALS value:value {
@@ -1302,53 +1331,6 @@ raw_part
         return N('raw_expand_score_id', { holder, id } )
       }
 
-raw_tag_name 
-	=  tag:( "black" 
-      / "dark_blue"
-      / "dark_green"
-      / "dark_aqua"
-      / "dark_red" 
-      / "dark_purple" 
-      / "gold" 
-      / "gray" 
-      / "dark_gray"
-      / "blue" 
-      / "green" 
-      / "aqua" 
-      / "red" 
-      / "light_purple"
-      / "yellow"
-      / "white"
-      / "reset"
-      ) {
-      	return N('raw_tag',{tag,props:{color:tag}})
-      }
-    / tag:("div"/"d") {
-        return N('raw_tag',{tag,props:{},block:true})
-      } 
-    / tag:("p") {
-        return N('raw_tag',{tag,props:{},block:true,paragraph:true})
-      } 
-    /  tag:("h") {
-        return N('raw_tag',{tag,props:{bold:true},block:true,paragraph:true})
-      } 
-    / tag:("span"/"t") {
-    	  return N('raw_tag',{tag,props:{}})
-      } 
-    / tag:"b" {
-        return N('raw_tag',{tag,props:{bold:true}})
-      } 
-    / tag:"i" {
-        return N('raw_tag',{tag,props:{italic:true}})
-      } 
-    / tag:"u" {
-        return N('raw_tag',{tag,props:{underlined:true}})
-      }
-    / tag:"s" {
-        return N('raw_tag',{tag,props:{strike_through:true}})
-      }
-
-
 //\\ TOKENS
   COMMA = ___ "," ___
   EQUALS = _ "=" _
@@ -1378,31 +1360,61 @@ NAME_OR_DIE
 
 NAME 
   = !RESERVED @$([a-z_][a-z0-9_]*)
-
 RESERVED 
-  = (KEYWORD / COMMAND / MOD / SELECTOR) ![a-z-_]i
+  = ( CONDITION / GAMEMODE / SORT
+    / MOD / ANCHOR / DIRECTION
+    / KEYWORD / DECLARE / SPECIAL / COMMAND
+    / STRINGIFY / BOOLEAN / OTHER
+    ) ![a-z-_]i
 
-KEYWORD 
-  = "namespace" / "function" / "macro"
-  / "var" / "score" / "delete" / "remove" 
-  / "true" / "false" / "json"
+CONDITION
+  = "advancements" / "distance" / "gamemode" / "level" 
+  / "limit" / "name" / "scores" / "sort" / "type" 
+  / "x_rotation" / "y_rotation" 
 
-COMMAND 
-  = "print" / "give" / "setblock" / "after" / "tag" / "untag"
+GAMEMODE
+  = "adventure" / "creative" / "spectator" / "survival" 
 
-MOD 
-  = "align" / "anchored" / "as" / "at" / "for" / "in"
-  / "up" / "down" / "north" / "south" / "east" / "west" / "left" / "right" 
-  / "pos" / "positioned" / "rot" / "rotated" 
-  / "if" / "unless" / "else" / "then"
-  / "eyes" / "feet" / "deg"
+SORT
+  = "furthest" / "farthest" / "arbitrary" / "nearest" 
+  / "oldest" / "random" / "all" / "any" 
+
+MOD
+ = "align" / "anchored" / "as" / "at" / "facing" / "for" 
+  / "in" / "pos" / "positioned" / "predicate" / "rot" / "rotated"
+
+ANCHOR 
+  = "eyes"/"feet"
 
 
-SELECTOR
-  =  "sort" / "limit" / "tag" / "nbt" / "type" / "predicate" / "distance" 
-  / "level" / "team" / "name" / "gamemode" / "scores" / "advancements" 
-  / "nearest" / "closest" / "furthest" 
-  / "arbitrary" / "oldest" / "any" / "random" 
+DIRECTION
+  = "back" / "down" / "downward" / "east" / "forward" / "left" 
+  / "north" / "right" / "south" / "up" / "upward" / "west"  
+
+KEYWORD
+  = "after" / "else" / "every" / "and" / "if" / "import" / "repeat" 
+  / "test" / "then" / "until" / "unless" / "when" / "while" / "with" 
+
+SPECIAL
+  = "else" / "self" / "then" 
+
+DECLARE
+  = "function" / "macro" / "namespace" / "score" / "tag" / "var" 
+
+COMMAND
+  = "append" / "delete" / "merge" / "bossbar" / "clear" / "delete" / "give" / "prepend" / "remove" 
+  / "print" / "say" / "setblock" / "summon" / "tag" / "untag" / "add" / "remove" / "max" / "players" 
+  / "value" / "visible" / "style" / "color"
+
+BOOLEAN
+  = "false" / "true" 
+
+STRINGIFY
+  = "json" / "nbt" / "snbt" 
+
+OTHER  
+  = "deg"
+
 
 // POSITION AND COORDINATES
 
@@ -1506,7 +1518,7 @@ SELECTOR
   	return [head,...tail]
   }
   Declaration = declare 
-  Instruction = Structure / assign / command / cmd / builtin / CallSelf / FunctionCall / MacroCall 
+  Instruction = BlockArg/ Structure / assign / command / cmd / builtin / CallSelf / FunctionCall / MacroCall 
   Executable = last:(CodeBlock / (__ @Instruction)) {
       return N( 'Executable', { last } )
   }
@@ -1519,7 +1531,7 @@ SELECTOR
       return [head,...tail]
     }
   Statement = statement:(
-    Declaration / Instruction / Execution / BlockArg
+    Declaration / Instruction / Execution 
   ) {
     statement.text = text();
     return statement;
@@ -1663,10 +1675,10 @@ SELECTOR
       }
       
   BlockArg
-    = "{{" _ "then" _ "}}" {
+    = "then" _ "(" _ ")" {
         return N('BlockArgThen')
       }
-    / "{{" _ "else" _ "}}" {
+    / "else" _ "(" _ ")"  {
         return N('BlockArgElse')
       }
 

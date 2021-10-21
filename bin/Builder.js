@@ -1,6 +1,6 @@
 const { readFileSync, readdirSync, statSync, rmSync, writeFileSync, cpSync, mkdirSync } = require("fs");
 const { relative, dirname, basename, resolve, extname } = require("path");
-const { merge } = require("merge");
+const { mergeAndConcat:merge } =require('merge-anything');
 
 const mclang = require("../mclang");
 const { Result } = require("../mclang/Result");

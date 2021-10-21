@@ -7,4 +7,4 @@
 #     tag @s processed
 #     #dropped()
 #   }
-execute as @e[type=minecraft:item,nbt={Item:{tag:{"--use_thrown-undroppable":1b}}},tag=!--use_thrown-keep_stuff-processed] at @s run function zzz_mcl:use_thrown/6_39f7n9a4vle
+execute as @e[type=minecraft:item,nbt={Item:{tag:{"--use_thrown-undroppable":1b}}},tag=!--use_thrown-keep_stuff-processed] at @s run function zzz_mcl:use_thrown/1_v3c7fdciny

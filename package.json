@@ -1,12 +1,7 @@
 {
-  "name": "@mclang/mclang",
+  "name": "mclang",
   "version": "1.0.0",
-  "description": "Scripting transpiler for Minecraft",
-  "main": "mclang/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "debug": "nodemon --inspect bin/index.js -e .js,.pegjs,.mclang,.json -w mclang -w examples/basic build examples/basic build/basic"
-  },
+  "description": "CLI for mclang, a scripting language for Vanilla Minecraft datapacks",
   "bin": {
     "mclang": "node bin/index.js"
   },
@@ -15,16 +10,15 @@
   "keywords": [
     "minecraft",
     "script",
-    "transpiler"
+    "vanilla",
+    "datapack"
   ],
   "dependencies": {
-    "chokidar": "^3.5.2",
     "inquirer": "^8.2.0",
-    "merge": "^2.1.1",
-    "merge-anything": "^4.0.1",
     "minimist": "^1.2.5",
     "node-watch": "^0.7.2",
-    "peggy": "^1.2.0"
+    "merge-anything": "^4.0.1",
+    "@mclang/parser": "../mclang-parser"
   },
   "directories": {
     "doc": "docs",

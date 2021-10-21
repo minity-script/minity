@@ -1,2 +1,0 @@
-function zzz_mcl:colored_keys/update_locks_qsheoyhm168
-function zzz_mcl:colored_keys/update_locks_b4x7gv41cos

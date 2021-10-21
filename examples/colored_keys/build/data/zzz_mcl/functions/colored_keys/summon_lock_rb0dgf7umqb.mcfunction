@@ -7,4 +7,4 @@
 #   } then {
 #     @s::NoAI = true
 #   }
-execute positioned ~ ~-0.5 ~ run function zzz_mcl:colored_keys/12_x39flufzvqf
+execute positioned ~ ~-0.5 ~ run function zzz_mcl:colored_keys/36_txy1rf8j7p

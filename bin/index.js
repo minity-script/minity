@@ -21,7 +21,8 @@ const { resolve, relative, absolute, basename, dirname } = require("path");
 const assert = require("assert");
 const { spawnSync: spawn, spawnSync, execSync } = require('child_process');
 const watch = require('node-watch');
-const { walk, Builder } = require("./Builder");
+console.log(require("@mclang/parser"));
+const { utils:{walk}, Builder } = require("@mclang/parser");
 const chalk = require("chalk");
 const prompt = require('inquirer').createPromptModule();
 

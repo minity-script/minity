@@ -67,7 +67,6 @@ const Frame = exports.Frame =
     }
     declareMacro = (name, props) => {
       this.namespace.addMacro(name,{...props, parent:this})
-      console.log('adding macro',name)
     }
     getMacro = (ns,name) => {
       return this.result.getMacro(ns||this.ns,name);
@@ -77,7 +76,6 @@ const Frame = exports.Frame =
       this.args[name]=value;
     }
     getArg = (name,type="value")=> {
-      console.log(this.args)
       assert (name in this.args,"Undeclared constant ?"+name);
       return this.args[name];
     }
@@ -296,6 +294,6 @@ Frame.Macro = class MacroFrame extends Frame.Child {
     return "zzz_mcl:" + this.fnName
   }
   get prefix() {
-    return "--" + this.ns + "-" + this.fnName + "-"
+    return "--" + this.ns + "-" + this.macro.name + "-"
   }
 }
