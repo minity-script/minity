@@ -113,7 +113,7 @@ specific location.`,
       }
       if (!id || !cmd) {
         commands.usage.exec();
-        console.log(chalk`\nUse {bold help [${Object.keys(commands).filter(it => !!commands[it].params).join("|")}]} for more help.`)
+        console.log(chalk`\nUse {bold help [${Object.keys(commands).filter(it => !!commands[it].title).join("|")}]} for more help.`)
         return
       }
       console.log(chalk`{bold minity ${id} - {yellow ${cmd.title}}}\n`);
@@ -127,6 +127,7 @@ specific location.`,
   },
   usage: {
     exec() {
+      console.log(chalk.bold("minity"))
       for (const id in commands) {
         const help = commands[id].help || [commands[id]];
         for (const line of help) {

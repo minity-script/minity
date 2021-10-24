@@ -229,7 +229,7 @@ class ProjectPath {
 class Project extends ProjectPath {
   isProject = true;
   status() {
-    console.log(chalk`{yellow {bold > ${this.name}} (a Minity project at ${this.path})}`)
+    console.log(chalk`\n{yellow {bold > ${this.name}} (a Minity project at ${this.path})}`)
   }
   constructor(path) {
     super(path);

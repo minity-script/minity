@@ -13,7 +13,6 @@ async function Interactive(path = ".") {
   const { actions } = require("./Project");
   process.chdir(path);
   try {
-    console.log()
     do {
       const { action, ...args } = await MenuMain(".");
       switch (action) {
@@ -29,9 +28,8 @@ async function Interactive(path = ".") {
           process.exit(0)
           break;
         default:
-          console.log(action, args)
+          //console.log(action, args)
       }
-
     } while (true);
   } catch (error) {
     if (error) throw error;
@@ -58,31 +56,13 @@ const mainMenuChoices = [{
   hint: "Exit Minity",
 },]
 
-class MenuSelect extends Select {
-  constructor(options) {
-    super(options);
-    let max = 0;
-    for (const {name,message,role} of this.choices) {
-      if (role==='separator') continue;
-      max = Math.max(max,(message||name).length)
-    }
-    for (const choice of this.choices) {
-      const {name,message,role}=choice;
-      if (role==='separator') continue;
-      choice.message = (message||name).padEnd(max+3)
-    }
-  }
-}
-
-
 
 async function MenuOutsideProject(path) {
   outsideProject(path, true)
-  console.log(chalk`{yellow {bold >} Not within a Minity project (${resolve(path)})}`)
+  console.log(chalk`\n{yellow {bold >} Not within a Minity project (${resolve(path)})}`)
   const answers = {};
   answers.action = await menu({
     message: "Choose an action:",
-    limit:16,
     choices: [{
       name: "create",
       hint: "Create a Minity project",
@@ -111,11 +91,16 @@ async function ask(props) {
 }
 
 async function menu(props) {
-  let widget = new MenuSelect(props);
-  const value = await widget.run({
-    ...props
+  let max = 0;
+  for (const {name,message,role} of props.choices) {
+    if (role==='separator') continue;
+    max = Math.max(max,(message||name).length)
+  }
+  props.choices = props.choices.map(ch => ({...ch, message: (ch.message||ch.name)?.padEnd(max+3)}))
+  return await ask({
+    ...props,
+    type:"select"
   })
-  return value;
 }
 
 
@@ -238,7 +223,8 @@ async function MenuCreateProject(path) {
 async function MenuInsideProject(path) {
   const project = projectFromPath(path, true);
   project.status();
-  const answers = await menu([{
+  const answers = {};
+  answers.action = await menu({
     message: "Choose an action:",
     choices: [{
       name: "links",
@@ -251,7 +237,7 @@ async function MenuInsideProject(path) {
       hint: "Build project and rebuild on every change",
     }, ...mainMenuChoices
     ]
-  }])
+  })
   answers.path = project.path;
   try {
     switch (answers.action) {
