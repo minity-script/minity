@@ -159,4 +159,37 @@ give @s written_book{
   ]
 } 
 ````
-
+#### Easy scheduling
+````
+  $time_left = 300;
+  after 3s {
+    $time_left -= 3:
+    say time is passing
+  } then after 4s {
+    $time_left -= 4:
+    say some more time has passed
+  } then every 20s {
+    $time_left -= 20:
+    say time keeps passing
+  } until ($time_left <= 0 ) then {
+    say all the time has passed
+  }
+````
+#### Promiseful macros
+````
+macro find_stone() {
+  var $max = 20
+  repeat forward 0.2 {
+    $max--
+  } while $max and until stone then {
+    if (stone) resolve() else reject()
+  }
+}
+function stone_destroyer() {
+  when find_stone then {
+    setblock air
+  } catch {
+    /no stone found
+  }
+}
+````
