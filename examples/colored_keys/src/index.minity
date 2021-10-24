@@ -121,10 +121,7 @@ function summon_red_lock {
 macro give_key(?color, ?Color, ?baseColor) {
   give @s shield{
     display: {
-      Name: json [{
-        "text":"{?Color} Key",
-        "italic":false
-      }],
+      Name: json <r color=?color>{?Color} Key</r>,
       Lore: [ 
         json [{
           "text":"This key opens {?color} doors.",
@@ -157,6 +154,6 @@ function give_red_key {
 as @a[nbt={Inventory:[{tag:{is_book:1b}}]}] {
   /clear @s minecraft:written_book{is_book:1b}
   give_book()
-}
+} 
 
-import "./give_book.minity"
+import "./give_book" 

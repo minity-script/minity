@@ -1,5 +1,5 @@
-# ![logo](docs/minity-logo-small.png) &nbsp;&nbsp;<big>minity</big>
-<big><b>scripting for Vanilla Minecraft</b></big>
+# ![logo](docs/minity-logo-small.png) &nbsp;&nbsp;<big>Minity</big>
+<big><b>Sane scripting for Vanilla Minecraft JE</b></big>
 
 Minity is a scripting language which compiles to Vanilla Minecraft datapacks. It will allow you to develop complex datapacks in just a few files, and make your work easier by providing intuitive syntax for using some of the most powerful, but also hardest to use, Minecraft commands.
 
@@ -9,66 +9,34 @@ For some examples of what minity can do, see [features](#features) below. Also c
 
 ## Getting Started
 #### Prerequisites
-Minity requires Minecraft 1.18 snapshots or later, and Node JS v16 or later.
-#### Install minity
+Minity requires Minecraft Java Edition 1.18 snapshots or later, and Node JS v16 or later.
+#### Create a datapack with Minity
 ````
-npm install -g minity
+npx minity
 ````
-#### Create a minity project
-````
-mkdir my_pack
-cd my_pack
-minity create
-````
-This will create a basic minity datapack for you, which will announce that it's loaded and do nothing else. The source code is in `./src/index.minity`.
+Minity's interactive menus will guide you through the process of creating a Minity project, linking it to Minecraft saves and building your datapack. 
 
-#### Build your datapack
-````
-minity build
-````
-This will compile your datapack in the `./build` directory.
-
-#### Install your datapack in a Minecraft world
-````
-minity link
-````
-You will be presented with a list of your saves. Choose a world in which you want to test your datapack. You can run `minity link` multiple times to add the datapack to multiple saves.
+If you prefer a command line interface, type `npx minity help` for available commands. You can of course also install Minity on your computer with `npm install -g minity`, and use just `minity` instead of `npx minity` henceforth.
 
 #### Enable and test your datapack in Minecraft.
 Open your chosen world in Minecraft. 
-````
-/datapack enable file/my_pack
-````
-Your datapack will load and announce that it's loaded.
+
+Type `/datapack list` to see if your datapack is already enabled. If not, type `/datapack enable file/<my_pack>`;
+
+Type `/reload`. Your datapack will load and run.
 
 #### Developing your datapack
-##### Consult documentation
-Read the full docs [here](docs/intro.md).
-##### Try the examples
-````
-minity example 
-````
-Will create an example project. You will be given a list of examples to choose from.
-
-##### Watch and recompile on change
-````
-minity watch
-````
-All files in your `src` and `files` directories will be watch, and your datapack rebuilt on every change. Run `/reload` in Minecraft to load the rebuilt pack.
-
-##### Syntax highlighting in IDES
-There is currenty an extension for vscode, which provides syntax highlighting and error checking.
-
-Its source code can be useful for creating extensions for other IDEs. If you create an extension, let us know and we will add it here.
+* **Consult documentation:** Read the full docs [here](docs/SYNTAX.md).
+* **Try and study the examples:** You can create them with the interative menu, or using `npx minity create`
+* **Watch your sources and recompile on change:** Choose the `watch` command in the menu, or use `npx minity watch`. All files in your `src` and `files` directories will be watched, and your datapack rebuilt on every change. Run `/reload` in Minecraft to load the rebuilt pack.
+* **Syntax highlighting in IDES**: There is currenty an extension for vscode, which provides syntax highlighting and error checking. Its source code can be useful for creating extensions for other IDEs. If you create an extension, let us know and we will add it here.
 
 ## Contributing
 Minity is feature-rich, but it is a new software under development, so there might be rough edges.
 
-You can help by reporting bugs, or if you are a programmer, by checking out the development page and contibuting patch requests.
+You can help by reporting bugs, or if you are a programmer, by checking out the source and contibuting patch requests.
 
-For questions and answers, go to the minity subreddit, or join our discord.
-
-To help us devote more time to developing minity, please consider supporting us on patreon.
+To help us devote more time to developing minity, please consider supporting us on Patreon.
 
 ## Features
 

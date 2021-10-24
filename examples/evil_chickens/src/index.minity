@@ -25,7 +25,7 @@ stop()
 
 function start() {
   unless $running intro()
-}
+} 
 
 function intro() {
   tag @player[distance<10] playing
@@ -54,7 +54,6 @@ function intro() {
 
 function start_game() {
   for @player.playing begin()
-
 
   $chickens = 0
   bossbar chickens players = @a.playing
@@ -99,7 +98,8 @@ function start_game() {
           untag @s lunging
         }
       }
-    }
+    } 
+    
 
     as @e[type=?passenger].evil {
       @s::Lifetime = 0
@@ -215,7 +215,7 @@ function summon_chicken() {
   }
 }
 
-when player_killed_entity{
+on player_killed_entity{
   entity: {
     type: "minecraft:chicken",
     nbt: snbt {Tags:["{.evil}"]}
@@ -229,10 +229,10 @@ when player_killed_entity{
   chicken_killed()
 }
 
-when entity_killed_player{
+on entity_killed_player{
   entity: {
     nbt: snbt {Tags:["{.evil}"]}
-  },
+  }, 
   player: {
     nbt: snbt {Tags:["{.playing}"]}
   }

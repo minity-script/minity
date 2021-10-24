@@ -1,4 +1,4 @@
-- [minity syntax](#minity-syntax)
+- [Minity syntax](#minity-syntax)
 - [Basic Syntax](#basic-syntax)
   - [Using native Minecraft commands](#using-native-minecraft-commands)
   - [Comments](#comments)
@@ -7,8 +7,7 @@
   - [Setting the namespace](#setting-the-namespace)
   - [Defining functions](#defining-functions)
   - [Tagging functions](#tagging-functions)
-- [Constants and macros](#constants-and-macros)
-- [Control structures](#control-structures)
+- [Execution context](#execution-context)
   - [A replacement for `execute ... run`](#a-replacement-for-execute--run)
   - [Grouping commands](#grouping-commands)
   - [Execution context modifiers](#execution-context-modifiers)
@@ -22,17 +21,32 @@
     - [Relative direction modifiers: <tt>(**north**|**south**|**east**|**west**|**up**|**down**) *float*</tt>](#relative-direction-modifiers-ttnorthsoutheastwestupdown-floattt)
     - [Local direction modifiers: <tt>(**forward**|**back**|**left**|**right**|**upward**|**downward**) *float*</tt>](#local-direction-modifiers-ttforwardbackleftrightupwarddownward-floattt)
     - [Rotation modifiers: <tt>(**left**|**right**|**up**|**down**) *float*<b>deg</b></tt>](#rotation-modifiers-ttleftrightupdown-floatbdegbtt)
+- [Conditionals](#conditionals)
   - [<tt>(**if|unless)** *condition* /  ... [**else** ...]</tt>](#ttifunless-condition----else-tt)
-    - [Else](#else)
-    - [Combining conditionals](#combining-conditionals)
+  - [Else](#else)
+  - [Combining conditionals](#combining-conditionals)
+  - [Supported test conditions](#supported-test-conditions)
     - [Compare integers](#compare-integers)
       - [Test a single block](#test-a-single-block)
     - [Test for existence of entities](#test-for-existence-of-entities)
     - [Test for existence of NBT data](#test-for-existence-of-nbt-data)
     - [Test predicate](#test-predicate)
+- [Loops and scheduling](#loops-and-scheduling)
   - [<tt>**repeat** ... (**while**|**until**) *condition* ... [**then** ...] </tt>](#ttrepeat--whileuntil-condition--then--tt)
   - [<tt>**every** *interval* ... [(**until**|**while**) *condition*]</tt>](#ttevery-interval--untilwhile-conditiontt)
   - [<tt>**after** *interval* ...</tt>](#ttafter-interval-tt)
+- [Constants and macros](#constants-and-macros)
+  - [Constants](#constants)
+  - [Macros](#macros)
+- [Macros as Promises](#macros-as-promises)
+  - [Defining a promiseful macro](#defining-a-promiseful-macro)
+    - [<tt>**reject()**</tt> and <tt>**resolve()**</tt>](#ttrejecttt-and-ttresolvett)
+  - [Using a promiseful macro](#using-a-promiseful-macro)
+    - [<tt>**when**</tt> and <tt>**except**</tt>](#ttwhentt-and-ttexcepttt)
+    - [<tt>**then**</tt> and <tt>**catch**</tt>](#ttthentt-and-ttcatchtt)
+    - [Chaining promises](#chaining-promises)
+    - [Optional `()` brackets](#optional--brackets)
+  - [Execution context and identifier scope in promises](#execution-context-and-identifier-scope-in-promises)
 - [Variables and entity scores](#variables-and-entity-scores)
   - [Integer variables](#integer-variables)
   - [Entity scores](#entity-scores)
@@ -60,47 +74,49 @@
     - [<tt><b>[-></b>*score_name* *op* *integer*<b>]</b></tt>](#ttb-bscore_name-op-integerbbtt)
   - [Sorting and limit](#sorting-and-limit)
 - [Coordinates](#coordinates)
+- [Minity Commands](#minity-commands)
+  - [<tt>append *NBTpath* *value*</tt>](#ttappend-nbtpath-valuett)
+  - [<tt>bossbar add *id* *name*</tt>](#ttbossbar-add-id-namett)
+  - [<tt>bossbar remove *id* </tt>](#ttbossbar-remove-id-tt)
+  - [<tt>clear *target*? *count*? *item_id*{*NBT_compound*?} </tt>](#ttclear-target-count-item_idnbt_compound-tt)
+  - [<tt>give [*target*] [*count*] *item_id*[*NBT_compound*] </tt>](#ttgive-target-count-item_idnbt_compound-tt)
+  - [<tt>merge *NBTpath* *value*</tt>](#ttmerge-nbtpath-valuett)
+  - [<tt>prepend *NBTpath* *value*</tt>](#ttprepend-nbtpath-valuett)
+  - [<tt>print [*target*] *raw_text*</tt>](#ttprint-target-raw_texttt)
+  - [<tt>say *text*</tt>](#ttsay-texttt)
+  - [<tt>setblock [*position*] *block_id*[*NBT_compound*] [**then** ...]</tt>](#ttsetblock-position-block_idnbt_compound-then-tt)
+  - [<tt>summon [*position*] *entity_type*[*NBT_compound*] [**then** ...]</tt>](#ttsummon-position-entity_typenbt_compound-then-tt)
+  - [<tt>tag *selector* *tag*</tt>](#tttag-selector-tagtt)
+  - [<tt>untag *selector* *tag*</tt>](#ttuntag-selector-tagtt)
+- [Advancement events (experimental)](#advancement-events-experimental)
 - [Values and types](#values-and-types)
   - [Numbers](#numbers)
     - [Integer](#integer)
     - [Float](#float)
     - [Typed Numbers](#typed-numbers)
   - [String](#string)
-    - [String expansion](#string-expansion)
+    - [Replacement patterns](#replacement-patterns)
   - [List](#list)
-  - [Typed Array](#typed-array)
   - [Compound](#compound)
   - [JSON String](#json-string)
   - [SNBT String](#snbt-string)
   - [Raw Text Markup](#raw-text-markup)
-    - [<tt>&lt;span> &lt;div> &lt;p></tt>](#ttspan-div-ptt)
     - [Attributes](#attributes)
-    - [<tt>&lt;b> &lt;i> &lt;u> &lt;s></tt>](#ttb-i-u-stt)
-    - [<tt>&lt;h></tt>](#tthtt)
+    - [Raw text objects vs. raw text JSON strings](#raw-text-objects-vs-raw-text-json-strings)
 - [Argument interpolation](#argument-interpolation)
 - [Operators](#operators)
   - [Assignment](#assignment-2)
   - [Arithmetics](#arithmetics-1)
   - [Comparison](#comparison)
   - [Other punctuation](#other-punctuation)
-- [Keywords](#keywords)
-  - [Selector keywords](#selector-keywords)
-  - [Execution context keywords](#execution-context-keywords)
-  - [Mclang keywords](#minity-keywords)
-  - [Commands](#commands)
-- [Mclang Commands](#minity-commands)
-  - [<tt>append *NBTpath* *value*</tt>](#ttappend-nbtpath-valuett)
-  - [<tt>bossbar add *id* *name*</tt>](#ttbossbar-add-id-namett)
-  - [<tt>bossbar remove *id* </tt>](#ttbossbar-remove-id-tt)
-  - [<tt>merge *NBTpath* *value*</tt>](#ttmerge-nbtpath-valuett)
 
 </div>
 
 <div style="overflow:auto;padding-left:30px">
 
-## minity syntax
+## Minity syntax
 
-Mclang code is written in files with the `.minity` file extension. Mclang will parse your code and compile it into `.mcfunction` files in your datapack. Some minity statements will also produce or alter `.json` files in your datapack.
+Minity code is written in files with the `.minity` file extension. Minity will parse your code and compile it into `.mcfunction` files in your datapack. Some minity statements will also produce or alter `.json` files in your datapack.
 
 You can use IDE extensions for syntax highlighting and error reporting.
 
@@ -113,33 +129,37 @@ Each .minity file can contain minity statements, as well as comments and native 
 Any statements in the root of the file (i.e. outside any functions) will be executed when the datapack is (re)loaded. The following `index.minity` will display "Hello world" on (re)load and do nothing else:
 
 ````
-/say Hello world
+namespace my_pack
+
+say Hello world
 ````
+
+Note that you must start every `.minity` file with a namespace declaration. See [Namespaces and Functions(#namespaces-and-functions) for details.
 
 ### Using native Minecraft commands
  Use `/command ....` to pass native commands through to minecraft.
 
 ````
-/say Hello world
+/setblock ~ ~ ~ minecraft:stone
 ````
 
-Mclang has a small, but growing, set of builtin replacements for native commands, which allow you to easily use minity goodies like advanced selector syntax, variables, etc. See below for details.
+Minity has a small, but growing, set of builtin replacements for native commands, which allow you to easily use minity goodies like advanced selector syntax, variables, etc. See [Minity commands](#minity-commands) for details.
 
-In other situations, when you have to use native minecraft commands, minity can offer some help with replacement patterns in curly brackets:
+In other situations, when you have to or want to use native minecraft commands, minity can offer some help with replacement patterns in curly brackets:
 
 ````
 /execute as {@armor_stand.is_marker} run say I'm a {?color} marker
 => execute as @e[type=armor_stand,tag=--my_ns-is_marker] run say I'm a red marker
 ````
-See below for details.
+See [argument interpolation](#argument-interpolation) for details.
 
 ### Comments
 Use `//` to introduce comments. Anything between `//` and the end of the line is a comment and will be ignored by minity.
 ````
 // this is a comment
-if ($a>3) setblock air // this is a comment too
+if $a > 3 setblock air // this is a comment too
 ````
-The exception are native commands prefixed with `/` and a few minity commands that encapsulate "greedy" native commands like `say` and `tellraw`, which will eat up everything until the end of the line:
+The exception are native commands prefixed with `/` and a few minity commands that encapsulate "greedy" native commands like `/say` and `/tellraw`, which will eat up everything until the end of the line:
 ````
 /setblock ~ ~ ~ minecraft:stone //not a comment, will throw syntax error in minecraft
 
@@ -190,7 +210,7 @@ function hello() {
 ````
 This will create a function named "hello" in `hello.mcfunction` in your current namespace. Functions must go into namespaces, so they must appear after a namespace statement.
 <blockquote>
-Mclang is currently quite particular about the placement of braces. It allows newlines inside them, but not before them, nor after them if the statement continues after the braces. You should generally follow the use of whitespace as shown in this documentation.
+Minity is currently quite particular about the placement of braces. It allows newlines inside them, but not before them, nor after them if the statement continues after the braces. You should generally follow the use of whitespace as shown in this documentation.
 
 This might be relaxed in the future, but it must first be thoroughly tested for ambiguity.
 </blockquote>
@@ -228,7 +248,7 @@ some_other_namespace:do_stuff()
 
 
 ### Tagging functions
-You can tag functions when you create them. Mclang will automatically generate the correct JSON files for function tags.
+You can tag functions when you create them. Minity will automatically generate the correct JSON files for function tags.
 
 ````
 function hello_overworld() #greet {
@@ -248,63 +268,8 @@ function again_and_again #minecraft:tick {
 }
 ````
 
-## Constants and macros
-You can define compile time constants, which you can then use anywhere in your code where a value is expected.
-````
-?my_constant       = 12
-?my_other_constant = "foo"
 
-$a = ?my_constant
-````
-You can also define macro frunctions and pass arguments to them. The passed values will be usable inside the macro.
-
-````
-macro give_items(?id, ?count=10, ?damage=0b) {
-  give @s ?count ?id{Damage:?damage}
-}
-
-as @a give_items( torch , 5 )           // give each player 5 torches
-
-function give_eggs {
-  at @chicken as @p give_items( egg )   // for each chicken, give an egg to 
-                                        // the nearest player
-} 
-function give_cracked_eggs {
-  at @chicken as @p {
-    give_items( egg, ?damage=99b )      // for each chicken, give a damaged egg to 
-  }                                     // the nearest player
-} 
-````
-Each macro call is expanded to an anonymous function at compile time.
-
-You can call macros from within macros:
-````
-macro give_items(?id, ?count=10) {
-  give @s ?count ?id
-}
-
-macro give_eggs (?count=1) {
-  at @chicken as @p give_items( egg )   // for each chicken, give an egg to 
-                                        // the nearest player
-} 
-
-give_eggs(10)
-````
-You cannot direcly call macros recursively, since they are expanded at compile time. But the function returned by the macro can call itself recursively with `self()`:
-
-````
-macro raycast_destroy(?block) {
-  unless(block) {
-    forward 0.1 self()
-  } else {
-    setblock air
-  }
-}
-raycast_destroy(stone)
-````
-Note that this will run forever, i.e. until Minecraft cuts off execution at 65,535 commands, if no stone is found, so it's not a good enough solution for raycasting by itself.
-
-## Control structures
+## Execution context
 ### A replacement for `execute ... run`
 There is no `execute` and `run` in minity. You simply write the execution modifiers (`as`, `at`, `positioned`, etc.) and commands without them. 
 ````
@@ -438,6 +403,8 @@ at @p rotated ~-20 ~30 do_something()
 ```
 Whitespace is not allowed between the number and `deg`.
 
+## Conditionals
+
 ### <tt>(**if|unless)** *condition* /  ... [**else** ...]</tt>
 ```
 if $a > 3 {
@@ -447,8 +414,8 @@ unless $a > 3 {
   say Not larger than 3
 }
 ```
-#### Else 
-Mclang provides a true else, by pushing results of tests to a stack in data storage and running the else statement(s) only if the test originally failed. The following example will work completely as expected.
+### Else 
+Minity provides a true else, by pushing results of tests to a stack in data storage and running the else statement(s) only if the test originally failed. The following example will work completely as expected.
 ```
 $a = 4
 if $a > 3 {
@@ -461,7 +428,7 @@ if $a > 3 {
   say Exactly 3!
 }
 ```
-#### Combining conditionals
+### Combining conditionals
 ```
 $a = 4
 
@@ -488,10 +455,8 @@ if $a > 3 {
     say Outside range
   }
 }
-
 ```
-
-
+### Supported test conditions
 #### Compare integers
 You can compare variables, scores and integer values.
 
@@ -537,6 +502,8 @@ if @s::Invulnerable                 // true if the path has any value, even if i
 if predicate my_predicate             // test my_predicate
 if predicate other_ns:my_predicate    // you can use predicates from other namespaces
 ````
+
+## Loops and scheduling
 ### <tt>**repeat** ... (**while**|**until**) *condition* ... [**then** ...] </tt>
 Repeat the statements until the test is true or false.
 
@@ -626,6 +593,156 @@ after 3600s {
   say You've been playing for an hour
 }
 ````
+
+
+## Constants and macros
+### Constants
+You can define compile time constants, which you can then use anywhere in your code where a value is expected.
+````
+?my_constant       = 12
+?my_other_constant = "foo"
+
+$a = ?my_constant
+````
+
+### Macros 
+You can also define compile-time macro frunctions and pass arguments to them. The passed values will be usable inside the macro.
+
+````
+macro give_items(?id, ?count=1, ?damage=0b) {
+  give @s ?count ?id{Damage:?damage}
+}
+
+as @a give_items( torch, 5 )            // give each player 5 torches
+
+function give_eggs {
+  at @chicken as @p give_items( egg )   // for each chicken, give an egg to 
+                                        // the nearest player
+} 
+function give_cracked_eggs {
+  at @chicken as @p {
+    give_items( egg, ?damage=99b )      // for each chicken, give a damaged egg to 
+  }                                     // the nearest player
+} 
+````
+Each macro call is expanded to an anonymous function at compile time.
+
+You can call macros from within macros:
+````
+macro give_items(?id, ?count=10) {
+  give @s ?count ?id
+}
+
+macro give_eggs (?count=1) {
+  at @chicken as @p give_items( egg )   // for each chicken, give an egg to 
+                                        // the nearest player
+} 
+
+give_eggs(10)
+````
+You cannot direcly call macros recursively, since they are expanded at compile time. But the function returned by the macro can call itself recursively with `self()`:
+
+````
+macro raycast_destroy(?block) {
+  unless(block) {
+    forward 0.1 self()
+  } else {
+    setblock air
+  }
+}
+raycast_destroy(stone)
+````
+Note that this will run forever, i.e. until Minecraft cuts off execution at 65,535 commands, if no stone is found, so it's not a good enough solution for raycasting by itself. See below for a better solution.
+
+## Macros as Promises
+### Defining a promiseful macro
+#### <tt>**reject()**</tt> and <tt>**resolve()**</tt>
+Any macro can become "promiseful" by including `resolve()` and/or `reject` pseudo-function calls. These will include `then` and `catch` clauses when the macro is compiled into a function.
+````
+macro find_block (?block, ?distance = 5 ) {
+  var $count = ?distance
+  $count *= 10
+  repeat forward 0.1 {
+    $count--
+  } while air and while $count > 0 then {
+    if(?block) {
+      resolve()           //include the then clause
+    } else {
+      reject()            //include the catch clause
+    }
+  }
+}
+````
+### Using a promiseful macro
+#### <tt>**when**</tt> and <tt>**except**</tt>
+Use the `when` construct to run some code in the execution context and at the time as provided by the macro.
+````
+function stone_destroyer() {
+  when find_block (stone) then {
+    setblock air
+  }
+}
+````
+To invert the meaning of `reject` and `resolve` in the compiled macro, use `except`:
+````
+function stone_seeker() {
+  except find_block (stone) then {
+    say No stone found!
+  }
+}
+````
+#### <tt>**then**</tt> and <tt>**catch**</tt>
+`when` and `except` clasuse are followed by a `then` clasue and an optional `catch` clause.
+````
+when find_block(stone) then {
+  setblock air
+} 
+except find_block(stone) then {
+  say No stone found!
+} catch {
+  setblock air
+}
+````
+#### Chaining promises
+Like `if/else` and `while/until`, you can chain `when` and `except` promises with the `and` keyword.
+
+Chained promises will call each other in turn. If any of them rejects the promise, the `catch` clause will be called and the chain cut short, otherwise the `then` clause will be called.
+````
+when find_block(stone) and when morning_only then {
+  say There's some morning rock!
+} catch {
+  say Now's not the time or place for that bad joke
+}
+
+// is the same as:
+
+when find_block(stone) then {
+  when morning_only then {
+    say There's some morning rock
+  } catch {
+    say Now's not the time or place for that bad joke  
+  }
+} catch {
+  say Now's not the time or place for that bad joke
+}
+````
+
+#### Optional `()` brackets
+If your macro doesn't require any parameters, you can omit the `()` brackets in `when`/`except` constructs:
+````
+macro morning_only () {
+  var $time;
+  $time = /time query daytime
+
+  if $time == 1000..5999 then() 
+}
+
+when morning_only then say Good morning!
+````
+### Execution context and identifier scope in promises
+The `then` and `catch` clauses are compiled in their *lexical scope*, i.e. in the scope of the function and namespace where they are written in the code, and that is where they inherit the declared variables, score names and tags from.
+
+OTOH, they are run in whatever execution context (current entity, position, rotation, dimension) the macro called `reject()` or `resolve()`
 
 ## Variables and entity scores
 Variables and entity scores can be used to store integers and do arithmetics on them. 
@@ -862,7 +979,6 @@ append @s::MyList "Last String"
 prepend @s::MyList "First String"
     // the list is now ["First String","A String","Last String"]
 ````
-
 ## Advanced target selectors
 All valid minecraft selectors should work in minity. The only exception are bare player ids, which are instead accepted in the form of `@[player_id]`
 
@@ -1006,7 +1122,7 @@ at oldest @item { ... }       // synonym for arbitrary
 ## Coordinates
 You will sometims need to specify coordinates for your commands. 
 
-Mclang will accept standard minecraft coordinates (e.g. `~3 ~ ~2` or `^ ^ ^0.1`), but You can also use named directions in `()` brackets wherever a coordinate is expected, as long as all the directions are in the same coordinate system:
+Minity will accept standard minecraft coordinates (e.g. `~3 ~ ~2` or `^ ^ ^0.1`), but You can also use named directions in `()` brackets wherever a coordinate is expected, as long as all the directions are in the same coordinate system:
 ````
   setblock ^ ^ ^1 stone
   setblock (forward 1) stone
@@ -1028,8 +1144,148 @@ The same works for rotations, though you are even less likely to need to specify
   forward 1 setblock stone
     ==> execute positioned ^ ^ ^1 run setblock ~ ~ ~ stone
 ````
+
+## Minity Commands
+
+Minity has a small but growing set of commands that wrap the functionality of native Minecraft commands. Some are just simple wrappers, others provide nicer syntax and/or additional functionalities. 
+
+Any new commands will be documented here when they are added. 
+
+If the comamnd you need is not provided by Minity yet, you can [use native minecraft commands](#using-native-minecraft-commands), possibly with [argument interpolation](#argument-interpolation).
+
+It is the goal of Minity to cover most, but not all Minecraft commands. Some are not usable in functions. Others may be low-priority because they have convoluted syntax, and implementing wrappers for them will be a challenge, and may not provide much help to the programmer apart from removing the slash at the beginning of the line.
+
+Note that the functionality of `execute`, `scoreboard` and `data` commands is suported with other Minity constructs and they are not intended on purpose.
+
+<blockquote>
+<b>IMPORTANT NOTICE:</b> Minity doesn't allow functions and macros to have the same names as Minity keywords. To future-proof your programs, avoid naming your functions and macros the same as any native minecraft command or any of its major subcommands, beacuse these couled eventually be used as keywords by Minity.
+</blockquote>
+
+### <tt>append *NBTpath* *value*</tt>
+Append a value to a list at a NBTpath. The value can be anything that can be assigned to a NBT path. See [Working with NBT data](#working-with-nbt-data).
+
+### <tt>bossbar add *id* *name*</tt>
+Add a bossbar. Works exactly like in Minecraft. The namespace of the id defaults to the current namespace. See also [Bossbars](#bossbars).
+
+### <tt>bossbar remove *id* </tt>
+Remove a bossbar. Works exactly like in Minecraft. The namespace of the id defaults to the current namespace. See also [Bossbars](#bossbars).
+
+### <tt>clear *target*? *count*? *item_id*{*NBT_compound*?} </tt>
+Remove items from an entity's or entities' inventory. Works just like in .mcfunction, but with a slightly more readable order of arguments. 
+
+Target defaults to `@s`, count defaults to 1.
+````
+clear 
+
+clear 3 diamond{          // no space allowed between item id and NBT, 
+  tag:{ special:true }    // just like in minecraft, but you can break your 
+}                         // long values over several lines
+````
+
+### <tt>give [*target*] [*count*] *item_id*[*NBT_compound*] </tt>
+Give items to an entity or entities. Works just like in .mcfunction, but with a slightly more readable order of arguments. 
+
+Target defaults to `@s`, count defaults to 1.
+````
+give 3 diamond{          // no space allowed between item id and NBT, 
+  tag:{ special:true }    // just like in minecraft, but you can break your 
+}                         // long values over several lines
+````
+
+### <tt>merge *NBTpath* *value*</tt>
+Merge a value with the value of NBTpath. The value can be a compound, a list of another NBTpath. See [Working with NBT data](#working-with-nbt-data).
+
+### <tt>prepend *NBTpath* *value*</tt>
+Prepend a value to a list at a NBTpath. The value can be anything that can be assigned to a NBT path. See [Working with NBT data](#working-with-nbt-data).
+
+### <tt>print [*target*] *raw_text*</tt>
+
+A wrapper for tellraw. The text will be parsed as if it is *already within* a `<span>` tag, which means that you can use raw tag markup in the text, but don't have to wrap it in a tag:
+````
+print This is a <b>very</b> important message. There is {$time_left} time left.
+````
+
+This is a *greedy command*, so it will print all the characters until the end of the line. Target defaults to the current entity. 
+
+### <tt>say *text*</tt>
+
+A trivial wrapper for the native `/say` command. 
+````
+say Hello!
+````
+This is a *greedy command*, so it will print all the characters until the end of the line. 
+<blockquote>
+This should maybe allow raw text as well, and behave the same as `print @a`
+</blockquote>
+
+### <tt>setblock [*position*] *block_id*[*NBT_compound*] [**then** ...]</tt>
+Summon an entity, then potentially do something with it. 
+
+Target defaults to the current entity, position defaults to the current position. You can provide a `then` block which will be run as tee summoned entity.
+````
+summon slime{               // no space allowed between item id and NBT
+  Invulnerable:true
+} then {              
+  say I was summoned        
+  say But now I will die
+  /kill @s                  // the current entity here is the summoned slime
+}                
+````
+
+### <tt>summon [*position*] *entity_type*[*NBT_compound*] [**then** ...]</tt>
+Summon an entity, then potentially do something with it. 
+
+Target defaults to the current entity, position defaults to the current position. You can provide a `then` block which will be run as tee summoned entity.
+````
+summon slime{               // no space allowed between item id and NBT
+  Invulnerable:true
+} then {              
+  say I was summoned        
+  say But now I will die
+  /kill @s                  // the current entity here is the summoned slime
+}                
+````
+### <tt>tag *selector* *tag*</tt>
+
+Add a namespaced tag to the selected entities. 
+````
+tag nearby
+
+tag @item[distance<=5] nearby
+
+  ==> tag add @
+````
+
+### <tt>untag *selector* *tag*</tt>
+
+Remove a namespaced tag from the selected entities. 
+````
+untag @player.processed 
+````
+
+## Advancement events (experimental)
+
+<blockquote>
+<b>WARNING - EXPERIMENTAL FEATURE:</b> - This is not necessarily well thought out and will likely be removed or completely reworked. Use only for testing for now.
+
+The same functionality could be achieved with a general construct for defining JSON files from Minity source and some macro magic. Alternatively, Minity could provide a better event system which would include score objective events.
+</blockquote>
+
+To run your code when a specific thing happens in the game:
+````
+when player_killed_entity{   // no whitespace allowed before the NBT tag opening brace
+  entity: {
+    id: "minecraft:slime"
+  }
+} then {
+  say I killed a slime       // @s is the player that killed the entity,
+                             // so this is said by that player
+} 
+````
+This will create an advancement with a single criterion, using the supplied trigger and conditions. When the event occurs, i.e. the advancement is granted, the `then` statement(s) will be run and the advancement revoked, allowing the event to be detected again.
+
 ## Values and types
-Mclang supports all the values supported by NBT tags. Like in .mcfunction, they are written in JSON-like syntax, with some relaxations, e.g. keys in compounds don't have to be quoted
+Minity supports all the values supported by NBT tags. Like in .mcfunction, they are written in JSON-like syntax, with some relaxations, e.g. keys in compounds don't have to be quoted
 
 ### Numbers
 
@@ -1074,28 +1330,9 @@ In some contexts, notable when dealing with NBT data, typed numbers are required
 "\n \" \u2312 "           // accepts standard escape sequences
 ````
 
-#### String expansion
+#### Replacement patterns
 
 Some bracketed sequences have a special meaning within doublequoted strings. These are all expanded by minity during compilation. They can be used anywhere where strings are accepted in the code.
-
-````
-"The color is {?color}"     // expand constants and macro arguments
-
-                            // the following can be useful for using variables, tags and scores
-                            // declared in minity with native minecraft commands
-
-"{.processed}"              // expand a tag declared in minity to the namespaced version
-                            => "--my_ns-processed"
-"{->my_score}"              // expand a score name declared in minity to the namespaced objective
-                            => "--my_ns-my_score"                           
-"{$my_var}"                 // expand variable name declared in minity to the target and objective
-                            => "--my_ns-my_var --my_ns--vars"
-
-"{.is_{?color}_key}"        // brackets can be nested
-                            => "--my_ns-is_red_key"
-
-"This is not a \{.tag}"     // escape brackets with backslash to avoid expansion
-````
 
 ### List
 List is the NBT equivalent of a JSON array. Its items are listed inside square brackets separated by commas. Can contain items of any NBT type.
@@ -1110,10 +1347,8 @@ List is the NBT equivalent of a JSON array. Its items are listed inside square b
   { name: "george", born: 1943 },
   { name: "ringo", born: 1940 }
 ]
-
 ````
-### Typed Array
-TODO
+
 ### Compound
 Compound is the equivalent of a JSON object. It contains key-value pairs, listed within curly braces. Keys must be strings, values can be of any NBT type.
 
@@ -1162,7 +1397,7 @@ snbt [1,2,"not_a_number"]   // not allowed
 Raw Text is a powerful feature of Minecraft, but also notoriously hard to write. The ability for array and objects to span across multiple lines can help to an extent. But minity can make it even easier for you, by using raw text markup, which is similar to HTML.
 
 ````
-< div>
+<div>
   <p color=red bold=true>
     My <i>Very</i> Red Book
   </p>
@@ -1180,7 +1415,7 @@ Raw Text is a powerful feature of Minecraft, but also notoriously hard to write.
     }
     /> to say something.
   </p>
-< /div>
+</div>
 ````
 
 <blockquote>
@@ -1190,42 +1425,43 @@ Raw Text is a powerful feature of Minecraft, but also notoriously hard to write.
 <tt>Click <u style="color:blue">here</u> to say something.</tt><br/>
 </blockquote>
 
-#### <tt>&lt;span> &lt;div> &lt;p></tt>
-These are the three general tags that will create a raw text object. The difference between them is how they handle whitespace.
-* `<div>` will remove all whitespace directly on its inside, and ensure that there is exactly one newline before and after it, except at beginning or end of raw text.
-* `<p>` will remove all whitespace directly on its inside, and ensure that there is exactly one newline before it and two after it, except at beginning or end of raw text.
-* `<span>` will remove all whitespace directly on its inside.
-* `<t>` is a shorthand for `<span>`.
-* `<d>` is a shorthand for `<div>`.
-
-In all three cases, the spaces and newlines within the tag, but not directly adjacent to it will be preserved, but each line will be trimmed, i.e. all spaces at begnning and end of line removed. Text within the `text` attribute will be included as is.
-
-<blockquote>
-This is likely buggy. Please report any unexpected behavior as an issue.
-</blockquote>
+You can use any tag names, as long as opening and closing tags match, but some tags hava aspecial meaning. Tags can be self-closing, which usually means tha they will display the value of the `text` attribute, if any.
 
 #### Attributes
 Attributes within tags directly set the properties of the raw text object. They accept any JSON value. Refer to raw text documentation for properties and values you can use.
 ````
 <span 
-  text="click me" underline=true 
+  text="click me" 
+  underline=true 
   clickEvent = {
     action: command,
     command: "/say you clicked me"
   }
 />
 ````
+* `<div>` or `<d>` will remove all whitespace directly on its inside, and ensure that there is exactly one newline before and after it, except at beginning or end of raw text.
+* `<p>` will remove all whitespace directly on its inside, and ensure that there is exactly one newline before it and two after it, except at beginning or end of raw text.
+* `<h>` is like `<p>`, but with bold already applied.
+* `<span>` or `<t>`will remove all whitespace directly on its inside. This also applies to all other tags.
 
-#### <tt>&lt;b> &lt;i> &lt;u> &lt;s></tt>
-These tags behave like `span` tags, but with basic formatting applied.
+In all cases, the spaces and newlines within the tag, but not directly adjacent to the tag will be preserved, but each line will be trimmed, i.e. all spaces at begnning and end of line removed. Text within the `text` attribute will be included as is.
 
-#### <tt>&lt;h></tt>
-Heading. Like a `p` tag, but with bold already set to true.
+* `<reset>` removes all formatting
+* `<i>` italic
+* `<b>` bold
+* `<u>` underlined
+* `<s>` strikethrough
+* `<o>` obfuscated
+* `<red>, <blue>, ...` Text color. See minecraft documentation for alloed color names.
 
+#### Raw text objects vs. raw text JSON strings
+Raw text markup will produce JSON objects which will be output as valid JSON in compiled code. In some cases, Minecraft expects raw text to be specified as a JSON string. To turn raw markup into a json string, use the `json` keyword:
 ````
-@s::CustomName = <span color="red">
-  The <b>most</b> dangerous item.
-</span>
+summon chicken{
+  CustomName: json <red>Evil Chicken</red>
+}
+
+  ==> summon minecraft:chicken{CustomName:'{"text":"","color":"red","others":["Evil Chicken"]}'}
 ````
 
 ## Argument interpolation
@@ -1289,193 +1525,3 @@ Other non-alphanumeric characters that can appear in the code. Some can mean dif
 |`*`| set scale and type when storing numbers to NBT data |
 |`:`| namespace |
 |`#`| tags for functions/entities/blocks, as set in JSON files |
-
-
-## Keywords
-
-### Selector keywords
-
-| `keyword`             |  |
-|---------------------|-------------|
-| `arbitrary`           | selector.sorting
-| `any`                 | slector.sorting
-| `advancements`        | selector.condition
-| `adventure`           | selector.gamemode
-| `closest`             | sorting in selectors
-| `creative`            | gamemode in selectors
-| `distance`            | condition in selectors
-| `farthest`            | sorting in selectors
-| `furthest`            | sorting in selectors
-| `gamemode`            | condition in selectors
-| `limit`               | 
-| `level`               | 
-| `nbt`                 | 
-| `nearest`             | 
-| `oldest`              | 
-| `predicate`           | 
-| `random`              | 
-| `scores`              | 
-| `sort`                | 
-| `spectator`           | 
-| `survival`            | 
-| `team`                | 
-| `tag`                 | 
-| `type`                | 
-| `x`                   | 
-| `x_rotation`          | 
-| `y`                   | 
-| `y_rotation`          | 
-| `z`                   | 
-
-### Execution context keywords
-| `keyword`             |  |
-|---------------------|-------------|
-| `align`               | context.position
-| `anchored`            | context.location
-| `as`                  | context.entity
-| `at`                  | context.position
-| `back`                | context.direction.local
-| `deg`                 | angle float suffix
-| `down`                | execution position modifier 
-| `downward`            | execution position modifier
-| `east`                | execution position modifier
-| `eyes`                | anchor argument
-| `feet`                | anchor argument
-| `forward`             | execution position modifier
-| `in`                  | 
-| `left`                | 
-| `north`               | 
-| `pos`                 | 
-| `positioned`          | 
-| `predicate`           | 
-| `right`               | 
-| `rot`                 | 
-| `rotated`             | 
-| `south`               | 
-| `up`                  | 
-| `upward`              | 
-| `west`                | 
-| `x`                   | 
-| `xy`                  | 
-| `xyz`                 | 
-| `xz`                  | 
-| `y`                   | 
-| `yz`                  | 
-| `z`                   | 
-
-### Mclang keywords
-
-| `keyword`             |  |
-|---------------------|-------------|
-| [`after`](#ttafter-interval-tt)               | (#ttafter-interval-tt)
-| `and`                 | minity.flow
-| `else`                | control flow keyword
-| `every`               | scheduling keyword
-| `for`                 | execution context modifier
-| `function`            | declaration
-| `if`                  | 
-| `import`              | 
-| `json`                | 
-| `macro`               | 
-| `namespace`           | 
-| `repeat`              | 
-| `score`               | 
-| `self`                | 
-| `tag`                 | 
-| `test`                | 
-| `then`                | 
-| `unless`              | 
-| `until`               | 
-| `var`                 | 
-| `while`               | 
-
-### Commands
-
-| `keyword`             |  |
-|---------------------|-------------|
-| `append`              | nbt.operation
-| `merge`               | 
-| `bossbar`             | wrapped.bossbar
-| `add`                 | wrapped.bossbar.subcommand 
-| `remove`              | wrapped.bossbar.subcommand 
-| `color`               | bossbar property
-| `max`                 | bossbar property
-| `name`                | bossbar property
-| `players`             | bossbar property
-| `style`               | 
-| `value`               | bossbar property
-| `visible`             | bossbar property
-| `delete`              | synonym of remove
-| `give`                | 
-| `prepend`             | 
-| `print`               | 
-| `remove`              | 
-| `say`                 | 
-| `setblock`            | 
-| `summon`              | 
-| `tag`                 | 
-| `untag`               | 
-
-| `aqua`                | color
-| `black`               | color
-| `blue`                | color
-| `b`                   | raw markup tag
-| `d`                   | raw markup tag
-| `dark_aqua`           | 
-| `dark_blue`           | 
-| `dark_gray`           | 
-| `dark_green`          | 
-| `dark_purple`         | 
-| `dark_red`            | 
-| `h`                   | 
-| `i`                   | 
-| `div`                 | 
-| `gold`                | 
-| `gray`                | 
-| `green`               | 
-| `light_purple`        | 
-| `red`                 | 
-| `reset`               | 
-| `yellow`              | 
-| `white`               | 
-| `span`                | 
-
-
-## Mclang Commands
-
-Mclang has a small but growing set of commands that wrap the functionality of native Minecraft commands. 
-### <tt>append *NBTpath* *value*</tt>
-Append a value to a list at a NBTpath. The value can be anything that can be assigned to a NBT path. See [Working with NBT data](#working-with-nbt-data).
-
-### <tt>bossbar add *id* *name*</tt>
-Add a bossbar. Works exactly like in Minecraft. The namespace of the id defaults to the current namespace. S
-
-### <tt>bossbar remove *id* </tt>
-Removes a bossbar. Works exactly like in Minecraft. The namespace of the id defaults to the current namespace.
-
-### <tt>merge *NBTpath* *value*</tt>
-Merge a value with the value of NBTpath. The value can be a compound, a list of another NBTpath. See [Working with NBT data](#working-with-nbt-data).
-
-| `append`              | nbt.operation
-| `merge`               | 
-| `bossbar`             | wrapped.bossbar
-| `add`                 | wrapped.bossbar.subcommand 
-| `remove`              | wrapped.bossbar.subcommand 
-| `color`               | bossbar property
-| `max`                 | bossbar property
-| `name`                | bossbar property
-| `players`             | bossbar property
-| `style`               | 
-| `value`               | bossbar property
-| `visible`             | bossbar property
-| `delete`              | synonym of remove
-| `give`                | 
-| `prepend`             | 
-| `print`               | 
-| `remove`              | 
-| `say`                 | 
-| `setblock`            | 
-| `summon`              | 
-| `tag`                 | 
-| `untag`               | 
-
