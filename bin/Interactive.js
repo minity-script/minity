@@ -316,7 +316,7 @@ async function MenuManageLinks(path) {
         else if (!link.linked && selected.includes(link.name)) add.push(link.name);
         else changes--
       }
-      return { add, remove, overwrite, changes }
+      return {add, remove, overwrite, changes }
     }
 
 
@@ -349,7 +349,7 @@ async function MenuManageLinks(path) {
         hint: "Do not make any changes",
       }]
     })
-    if (confirm == "ok") return { path, add, remove, overwrite };
+    if (confirm == "ok") return { action:"links",path, add, remove, overwrite };
     if (confirm == "cancel") throw new Error("aborted");
   } while (1)
 }
