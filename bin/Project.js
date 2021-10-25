@@ -179,7 +179,7 @@ function getExample(name) {
 }
 function exampleExists(name,error) {
   const example=getExample(name);
-  return error ? assert(example.isProject,"No such example "+name) : !!example
+  return error ? assert(example,"No such example "+name) : !!example
 }
 function listExamples() {
   const path = resolve(__dirname, "..", "examples");
@@ -187,20 +187,20 @@ function listExamples() {
   const examples = [];
   for (const entry of entries) {
     const project = getExample(entry.name)
-    if (!project.isProject) continue;
+    if (!project) continue;
     examples.push(project)
   }
   return examples
 }
 
 function createProject({ createPath, starter, example, info }) {
+  canCreateProjectAtPath(createPath,true);
   let template;
   if (starter) {
     template = projectFromPath(resolve(__dirname,"..","starter"));
   } else {
     exampleExists(example,true);
-    canCreateProjectAtPath(createPath,true);
-   template = getExample(example);
+    template = getExample(example);
   }
   mkdir(createPath, { recursive: true });
   const files = walk(template.path);
