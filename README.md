@@ -6,6 +6,7 @@ Minity is a scripting language which compiles to Vanilla Minecraft datapacks. It
 For some examples of what minity can do, see [features](#features) below. Also check out the examples and [full syntax docs](docs/SYNTAX.md). Or just read on to get started.
 
 - <b>Want to help?</b> Check out how you can [contribute](#contributing), and/or [support us on Patreon](https://www.patreon.com/minity).
+- <b>Have questions?</b> Join out [discord server](https://discord.gg/DnY7nDzdzm).
 
 ![A sample of Minity code](docs/code-sample.png)
 
