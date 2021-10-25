@@ -62,7 +62,6 @@ const commands = exports.commands = {
         actions.list_links({path:resolve(dir)});
       } else if(!add && !remove) {
         const {action,...options} = await menus.links(dir);
-        console.log({action,options})
         actions[action](options)
       } else {
         add=[].concat(add).filter(Boolean);
