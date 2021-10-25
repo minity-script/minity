@@ -1,6 +1,6 @@
 const chalk = require('chalk');
 const { prompt, Select, MultiSelect } = require('enquirer');
-const { resolve, basename, relative, absolute } = require("path");
+const { resolve, basename, relative } = require("path");
 const { projectFromPath, listExamples, canCreateProjectAtPath, findProjectPath, outsideProject, preventCreateProjectAtPath, validateCreatePath } = require("./Project");
 exports.menus = {
   create: MenuCreateProject,
