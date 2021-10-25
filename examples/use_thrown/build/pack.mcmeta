@@ -1,6 +1,6 @@
 {
-    "pack": {
-        "pack_format": 8,
-        "description": "tutorial, built with minity"
-    }
+  "pack": {
+    "pack_format": 8,
+    "description": "Use Thown Item, example for minity"
+  }
 }
