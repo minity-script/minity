@@ -11,18 +11,18 @@ Minity is a scripting language which compiles to Vanilla Minecraft datapacks. It
 
 For some examples of what minity can do, see [features](#features) below. Also check out the examples and [full syntax docs](docs/SYNTAX.md). Or just read on to get started.
 
-- <b>Want to help?</b> Check out how you can [contribute](#contributing), and/or support us on Patreon.
+- <b>Want to help?</b> Check out how you can [contribute](#contributing), and/or [support us on Patreon](https://www.patreon.com/minity).
 
 ## Getting Started
 #### Prerequisites
 Minity requires Minecraft Java Edition 1.18 snapshots or later, and Node JS v16 or later.
 #### Create a datapack with Minity
 ````
-npx minity
+npx minity@latest
 ````
 Minity's interactive menus will guide you through the process of creating a Minity project, linking it to Minecraft saves and building your datapack. 
 
-If you prefer a command line interface, type `npx minity help` for available commands. You can of course also install Minity on your computer with `npm install -g minity`, and use just `minity` instead of `npx minity` henceforth.
+If you prefer a command line interface, type `npx minity help` for available commands. You can of course also install Minity on your computer with `npm install -g minity@latest`, and use just `minity` instead of `npx minity` henceforth.
 
 #### Enable and test your datapack in Minecraft.
 Open your chosen world in Minecraft. 
