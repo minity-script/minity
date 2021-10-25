@@ -158,9 +158,13 @@ give @s written_book{
         Read this page, or go to the <a page=2>next</a>.
       <p>
       <p>
-        <button onClick={ 
-          say You clicked!
-        }>
+        <span 
+          color="red" 
+          clickEvent = {
+            action:  run_command,
+            command: "/say You clicked!"
+         }
+        />
         CLICK ME!
         </button>
       </p>
