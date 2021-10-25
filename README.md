@@ -1,17 +1,19 @@
 # ![logo](docs/minity-logo-small.png) &nbsp;&nbsp;<big>Minity</big>
 <big><b>Sane scripting for Vanilla Minecraft JE</b></big>
 
+Minity is a scripting language which compiles to Vanilla Minecraft datapacks. It will allow you to develop complex datapacks in just a few files, and make your work easier by providing intuitive syntax for using some of the most powerful, but also hardest to use, Minecraft commands.
+
+![A sample of Minity code](docs/code-sample.png)
+
+For some examples of what minity can do, see [features](#features) below. Also check out the examples and [full syntax docs](docs/SYNTAX.md). Or just read on to get started.
+
+- <b>Want to help?</b> Check out how you can [contribute](#contributing), and/or [support us on Patreon](https://www.patreon.com/minity).
+
 <blockquote>
 <b>NOTE ON WINDOWS:</b> At this point, the functionality on Windows is patchy at best. You can create and build projects from the CLI, but not link them. You may have to copy your built datapacks to Minecraft saves for now. The interactive UI mostly does not work.
 
 For best results at this point, try it on Linux.
 </blockquote>
-
-Minity is a scripting language which compiles to Vanilla Minecraft datapacks. It will allow you to develop complex datapacks in just a few files, and make your work easier by providing intuitive syntax for using some of the most powerful, but also hardest to use, Minecraft commands.
-
-For some examples of what minity can do, see [features](#features) below. Also check out the examples and [full syntax docs](docs/SYNTAX.md). Or just read on to get started.
-
-- <b>Want to help?</b> Check out how you can [contribute](#contributing), and/or [support us on Patreon](https://www.patreon.com/minity).
 
 ## Getting Started
 #### Prerequisites
