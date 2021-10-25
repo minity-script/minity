@@ -1,4 +1,5 @@
 const watch = require('node-watch');
+const os=require("os")
 const { utils: { walk }, Builder } = require("@minity/parser");
 const {
   writeFileSync: writeFile,
@@ -219,9 +220,10 @@ function createProject({ createPath, starter, example, info }) {
 
 class ProjectPath {
   get defeaultMinecraftPath() {
-    if (process.env.APPDATA) return resolve(process.env.HOME, "Library", "Application Support", "minecraft");
-    if (process.platform == 'darwin') return resolve(process.env.HOME, "Library", "Application Support", "minecraft");
-    return resolve(process.env.HOME, '.minecraft');
+    if (process.env.APPDATA) return resolve(os.homedir(), "AppData", "Roaming", ".minecraft");
+    if (process.platform == 'darwin') return resolve(os.homedir(), "Library", "Application Support", "minecraft");
+    if (process.platform == 'android') return resolve("/", "sdcard", "games", "com.mojang");
+    return resolve(os.homedir(), '.minecraft');
   }
   constructor(path) {
     this.path = resolve(path);
