@@ -220,10 +220,10 @@ function createProject({ createPath, starter, example, info }) {
 
 class ProjectPath {
   get defeaultMinecraftPath() {
-    if (process.env.APPDATA) return resolve(os.homedir(), "AppData", "Roaming", ".minecraft");
-    if (process.platform == 'darwin') return resolve(os.homedir(), "Library", "Application Support", "minecraft");
+    if (process.env.APPDATA) return resolve(process.env.HOME, "AppData", "Roaming", ".minecraft");
+    if (process.platform == 'darwin') return resolve(process.env.HOME, "Library", "Application Support", "minecraft");
     if (process.platform == 'android') return resolve("/", "sdcard", "games", "com.mojang");
-    return resolve(os.homedir(), '.minecraft');
+    return resolve(process.env.HOME, '.minecraft');
   }
   constructor(path) {
     this.path = resolve(path);
