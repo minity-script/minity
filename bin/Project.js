@@ -148,7 +148,6 @@ module.exports = {
     }
     
   },
-  
 }
 
 
@@ -193,14 +192,17 @@ function listExamples() {
   return examples
 }
 
-function createProject({ createPath, template, info }) {
-  exampleExists(template,true);
-  canCreateProjectAtPath(createPath,true);
-  
-  const example = getExample(template);
-  
+function createProject({ createPath, starter, example, info }) {
+  let template;
+  if (starter) {
+    template = projectFromPath(resolve(__dirname,"..","starter"));
+  } else {
+    exampleExists(example,true);
+    canCreateProjectAtPath(createPath,true);
+   template = getExample(example);
+  }
   mkdir(createPath, { recursive: true });
-  const files = walk(example.path);
+  const files = walk(template.path);
   for (const file of files) {
     const target = resolve(createPath, file.rel);
     mkdir(dirname(target), { recursive: true })

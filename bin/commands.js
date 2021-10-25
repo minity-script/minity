@@ -11,29 +11,30 @@ const commands = exports.commands = {
       describe:
       `Invokes an interactive UI for creating a Minity project.`
     },{
-      params: chalk`[{green TARGET_PATH}] {bold --template=}{green EXAMPLE_NAME}`,
+      params: chalk`[{green TARGET_PATH}] {bold --starter}`,
+      describe: `Creates a starter Minity project.`
+    },{
+      params: chalk`[{green TARGET_PATH}] {bold --example=}{green EXAMPLE_NAME}`,
       describe: `Creates a new Minity project from an example.`
     },{
       params: chalk`[{green TARGET_PATH}] {bold --list}`,
       describe:
       `List available templates`
     }],
-    async exec([dir="."], {template,list}) {
+    async exec([dir="."], {example,list,starter}) {
       if (list) {
         const examples = listExamples();
         for (const {name,description} of examples) {
           console.log(name.padEnd(16),description)
         }
-        return;
-      }
-      if (!template) {
+      } else if (starter) {
+        actions.create({createPath:dir,starter:true})
+      } else if (example) {
+        if (!isPathEmpty(dir)) dir=resolve(dir,example);
+        actions.create({createPath:dir,example})
+      } else {
         const {action,...options} = await menus.create(dir);
-        console.log(action,options)
         actions[action](options)
-        return;
-      } else {        
-        if (isPathEmpty(dir)) dir=resolve(dir,template);
-        actions.create({createPath:dir,template,info:{}})
       }
     },
   },

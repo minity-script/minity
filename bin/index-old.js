@@ -582,7 +582,7 @@ async function MenuCreateProject(dir) {
     default:"starter",
     choices: Choices(
       { "Create a starter project": "starter" },
-      examples
+      ...examples
     )
   }, {
     message: "Where do you want to create a Minity project?",

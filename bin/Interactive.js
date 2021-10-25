@@ -125,6 +125,8 @@ async function MenuCreateProject(path) {
       hint: "Choose a template for your project",
       initial: template || "starter",
       choices: [
+        {name:"starter",hint:"A starter Minity Ooject"},
+        {name:"example",disabled:true,message:"─────",hint:"... or one of the examples"},
         ...examples.map(({ name, description }) => ({ name, hint: description }))
       ]
     })
@@ -207,8 +209,11 @@ async function MenuCreateProject(path) {
     if (confirm == "cancel") throw new Error("aborted");
   } while (true)
   return {
-    action:"create",
-    template, createPath, info: {
+    action: "create",
+    starter: template=="starter",
+    example: template!='starter' && template,
+    createPath, 
+    info: {
       name: info.name,
       description: info.description,
       author: {
@@ -255,7 +260,6 @@ async function MenuInsideProject(path) {
 
 async function MenuManageLinks(path) {
   const project = projectFromPath(path, true);
-
   do {
     const links = project.listLinks()
     const widget = new MultiSelect({
@@ -264,7 +268,7 @@ async function MenuManageLinks(path) {
       message: "Links in Minecraft saves",
       initial: links.filter(it => it.linked).map(it => it.name),
       limit: 16,
-      hint: "-->" + project.buildDirectory,
+      hint: "saves/.../datapack/"+project.name+" -->" + project.buildDirectory,
       footer() {
         const selected = this.state.choices.filter(choice => choice.enabled).map(choice => choice.name)
         const { add, remove, overwrite, changes } = diff(selected)

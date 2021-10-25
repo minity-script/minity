@@ -1,6 +1,6 @@
 {
-  "name": "###PACK###",
-  "description": "###PACK### datapack",
+  "name": "minity_starter",
+  "description": "Starter project for Minity",
   "main": "src/index.minity",
   "directories": {
     "copy": [

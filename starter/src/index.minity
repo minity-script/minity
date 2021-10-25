@@ -1,0 +1,8 @@
+namespace my_pack
+
+function hello() {
+  say Hello World
+}
+
+say my_pack loaded successfully
+hello()

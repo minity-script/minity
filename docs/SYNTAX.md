@@ -1273,7 +1273,7 @@ The same functionality could be achieved with a general construct for defining J
 
 To run your code when a specific thing happens in the game:
 ````
-when player_killed_entity{   // no whitespace allowed before the NBT tag opening brace
+on player_killed_entity{   // no whitespace allowed before the NBT tag opening brace
   entity: {
     id: "minecraft:slime"
   }
