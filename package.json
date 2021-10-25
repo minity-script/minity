@@ -6,7 +6,7 @@
     "minity": "bin/index.js"
   },
   "author": "Zoran Obradović",
-  "license": "ISC",
+  "license": "GPLV3",
   "keywords": [
     "minecraft",
     "script",
