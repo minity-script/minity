@@ -18,11 +18,11 @@ For some examples of what minity can do, see [features](#features) below. Also c
 Minity requires Minecraft Java Edition 1.18 snapshots or later, and Node JS v16 or later.
 #### Create a datapack with Minity
 ````
-npx minity
+npx minity@latest
 ````
 Minity's interactive menus will guide you through the process of creating a Minity project, linking it to Minecraft saves and building your datapack. 
 
-If you prefer a command line interface, type `npx minity help` for available commands. You can of course also install Minity on your computer with `npm install -g minity`, and use just `minity` instead of `npx minity` henceforth.
+If you prefer a command line interface, type `npx minity help` for available commands. You can of course also install Minity on your computer with `npm install -g minity@latest`, and use just `minity` instead of `npx minity` henceforth.
 
 #### Enable and test your datapack in Minecraft.
 Open your chosen world in Minecraft. 
