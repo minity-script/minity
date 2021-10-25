@@ -4,7 +4,7 @@ const { commands } = require("./commands");
 
 (async function doCmd() {
   const argv = require('minimist')(process.argv.slice(2), {
-    boolean: ['debug', "simulate", "force", "list", "status", "help", "starter"],
+    boolean: ['debug', "simulate", "force", "list", "status", "help", "starter","version"],
     string: ['example', "world", "add", "remove"],
     alias: {
       example: "e",
@@ -13,7 +13,8 @@ const { commands } = require("./commands");
       debug: "d",
       starter: "s",
       force: "f",
-      usage: "?"
+      usage: "?",
+      vesion:"v"
     }
   })
   const {
@@ -29,11 +30,13 @@ const { commands } = require("./commands");
     help,
     usage,
     add,
-    remove
+    remove,
+    version
   } = argv;
-  //console.log(argv)
-  //    const version = require("../package.json").version;
-  //    inform(chalk.bold.yellow("minity v" + version))
+  if (version) {
+    console.log("minity v" + require("../package.json").version)
+    return;
+  }
   let command = commands[cmd];
   if (usage) {
     await commands.usage.exec();
