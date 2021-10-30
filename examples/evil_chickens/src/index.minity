@@ -86,7 +86,6 @@ function start_game() {
 
   tag lunging
   every 4s {
-    say still running
     as (random 1 @chicken.evil{OnGround:1b}) {
       @s::Motion[1] = 1d
       tag @s lunging
