@@ -7,14 +7,9 @@ Minity is a scripting language which compiles to Vanilla Minecraft datapacks. It
 
 ![A sample of Minity code](code-sample.png)
 
-## Features
+For some examples of what minity can do, see [Features](/features). To get started, see [Quick start](/getting-started).
 
-* Builds Vanilla Minecraft datapacks from Minity script files
-* Easy to write and easy to read script syntax
-* Intuitive syntax for scoreboard and NBT data operations
-* Scoped variables, entity scores and entity tags
-
-For some examples of what minity can do, see [features](#features) below. Also check out the examples and [full syntax docs](syntax/basics.md). Or just read on to get started.
+Also check out the examples and [full syntax docs](syntax/basics.md). Or just read on to get started.
 
 ## Contribute
 

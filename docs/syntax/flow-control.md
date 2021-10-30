@@ -1,14 +1,14 @@
 
 
-### Conditional execution
 
-<code>conditions *[statement](#statement)*</code><br>
-<code>conditions *[statement](#statement)* **else** *[statement](#statement)*</code>
 
-<code>conditions = condition (**and** condition)?</code><br>
-<code>condition = **if** *[test](#test)* | **unless** *[test](#test)*</code>
+### **if** / **unless** <small>[construct](defs#chainable)</small> <small>[chainable](defs#chainable)</small>
 
-#### **if** / **unless** <small>[construct](defs#chainable)</small> <small>[chainable](defs#chainable)</small>
+<def>*conditions* [*statement*](#statement)
+*conditions* [*statement*](#statement) **else** [*statement*](#statement)
+<br>conditions = *condition* (**and** *condition*)?
+condition = **if** [*test*](#test) | **unless** [*test*](#test)</def>
+
 `if` executes a statement or a block of statements if the condition is true.
 ````minity
 if $a > 3 {
@@ -23,7 +23,7 @@ unless $a > 3 {
 }
 ````
 
-##### **else** <small>[clause](defs#clause)</small>
+#### **else** <small>[clause](defs#clause)</small>
 Execute statements if the condition has failed. 
 ````minity
 if $a > 3 {
@@ -53,7 +53,7 @@ if $a > 3 {
 }
 ````
 
-##### **and** <small>[connector](defs#connector)</small>
+#### **and** <small>[connector](defs#connector)</small>
 Minecraft doesn't provide logical operators (AND, OR, etc.), but it does allow chaining of if/unless. You can use the `and` keyword to chain if/unless statemetns and thus ensure that `else` blocks apply to the correct conditions:
 ````minity
 
@@ -80,16 +80,15 @@ if $a > 3 {
 }
 ````
 
-### Looping
+### **repeat** <small>[construct](defs#construct)</small>
 
-<code>**repeat** *[statement](#statement)* loop_conditions </code><br>
-<code>**repeat** *[statement](#statement)* loop_conditions **then** *[statement](#statement)*</code>
+<def>**repeat** [*statement*](#statement) *loop_conditions* 
+**repeat** [*statement*](#statement) *loop_conditions* **then** [*statement*](#statement)
+<br>loop_conditions = *loop_condition* (**and** *loop_condition*)*
+loop_condition = **while** [*test*](#test) | **until** [*test*](#test)</def>
 
-<code>loop_conditions = loop_condition (**and** loop_condition)*</code><br>
-<code>loop_condition = **while** *[test](#test)* | **until** *[test](#test)*</code>
-
-#### **repeat** <small>[construct](defs#construct)</small>
 Repeat the statements until the test is true or false.
+
 
 ````minity
 var $count = 1
@@ -104,7 +103,7 @@ repeat forward 0.1 {
   // will move forward on each loop as long as the current block is air
 } while air
 ````
-##### **while** / **until** <small>[chainable](defs#chainable)</small>
+#### **while** / **until** <small>[chainable](defs#chainable)</small>
 `while` will continue the loop if the test is true and break it otherwise:
 ````minity
 var $count = 1
@@ -124,7 +123,7 @@ repeat {
 ````
 
 
-##### **and** <small>[connector](defs#connector)</small>
+#### **and** <small>[connector](defs#connector)</small>
 You can combine several break conditions:
 ````minity
 $count = 0;
@@ -134,7 +133,7 @@ repeat forward 0.1 {
 } until stone and while $count < 100 
 ````
 
-##### **then** <small>[clause](defs#clause)</small>
+#### **then** <small>[clause](defs#clause)</small>
 
 If you provide a `then` clause, it will be run in the context of the last loop:
 
@@ -161,10 +160,10 @@ as nearest @chicken.evil {    // run following commands as the nearest chicken
 ````
 
 #### **after** <small>[construct](defs#construct)</small>
-<code>**after** *[time](#time)* *[statement](#statement)*</code><br>
-<code>**after** *[time](#time)* *[statement](#statement)* **then** *[statement](#statement)*</code><br>
+<def>**after** [*time*](args#time) [*statement*](#statement)
+**after** [*time*](args#time) [*statement*](#statement) **then** [*statement*](#statement)</def>
 
-Run a statement (or a block of statemetns) after an interval has passed.
+Run a statement (or a block of statements) after an interval has passed.
 ````minity
 after 3600s {
   say You've been playing for an hour
@@ -194,12 +193,11 @@ after 10s {
 
 #### **every** <small>[construct](defs#construct)</small>
 
-<code>**every** *[time](#time)* *[statement](#statement)*</code><br>
-<code>**every** *[time](#time)* *[statement](#statement)* loop_conditions </code><br>
-<code>**every** *[time](#time)* *[statement](#statement)* loop_conditions **then** *[statement](#statement)*</code>
-
-<code>loop_conditions = loop_condition (**and** loop_condition)*</code><br>
-<code>loop_condition = **while** *[test](#test)* | **until** *[test](#test)*</code>
+<def>**every** [*time*](#time)* [*statement*](#statement)
+**every** [*time*](#time) [*statement*](#statement) *loop_conditions* 
+**every** [*time*](#time) [*statement*](#statement) *loop_conditions* **then** [*statement*](#statement)
+<br>loop_conditions = *loop_condition* (**and** *loop_condition*)*
+loop_condition = **while** [*test*](#test) | **until** [*test*](#test)</def>
 
 Run your statements at a regular interval.
 

@@ -10,12 +10,16 @@ bossbar remove timer
 ````
 
 ### **bossbar** <small>[property accessor](defs#property-accessor)</small>
-<code>**bossbar** *[bossbar_id](args#resloc)* lhand_property **=** ...</code><br>
-<code>... **=** **bossbar** *[bossbar_id](args#resloc)* rhand_property</code><br>
-<code>lhand_property = {**max**|**value**|**visible**|**players**|**style**|**name**}</code><br>
-<code>rhand_property = {**max**|**value**|**visible**|**players**}</code>
+<def>*bossbar_setting* **=** *value*
+*bossbar_target* **=** [*int_source*](scoreboard#assignment)
+*bossbar_target* **=** ([*scale*](values#typed-number) **\***)? [*nbt_source*](scoreboard#assignment)
+<br>*scoreboard_target* **=** *bossbar_source*
+[*nbt_target*](scoreboard#assignment) **=** ([*scale*](values#typed-number) **\***) *bossbar_source*? 
+<br>*bossbar_setting* = **bossbar** [*bossbar_id*](args#resloc) {**players**|**name**|**style**|**color**}
+*bossbar_target* = **bossbar** [*bossbar_id*](args#resloc) {**value**|**max**|**visible**}
+*bossbar_source* = **bossbar** [*bossbar_id*](args#resloc) {**value**|**max**|**visible**|**players**}</def>
 
-Bossbar properties can be addressed with <code>**bossbar** bossbar_id {**max**|**value**|**players**|**visible**}</code>. They can be used in assignment statements. 
+Bossbar properties can be addressed with <code>**bossbar** *bossbar_id* *property_name*</code>. They can be used in assignment statements. 
 ````minity
 ?max_time = 300
 
@@ -27,7 +31,7 @@ bossbar timer players = @a
 bossbar timer visible = true
 ````
 
-Numeric bossbar properties (value,max and visible) can be used both as left-hand and right-hand values in assignment statements:
+Numeric bossbar properties (value, max and visible) can be used both as left-hand and right-hand values in assignment statements:
 
 ````minity
 var $current_value = bossbar timer value

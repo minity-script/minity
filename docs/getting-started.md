@@ -17,7 +17,7 @@ Type `/datapack list` to see if your datapack is already enabled. If not, type `
 Type `/reload`. Your datapack will load and run.
 
 ### Developing your datapack
-* **Consult documentation:** Read the full docs [here](syntax/index.md).
+* **Consult documentation:** Read the full docs [here](syntax/basics).
 * **Try and study the examples:** You can create them with the interative menu, or using `npx minity create`
 * **Watch your sources and recompile on change:** Choose the `watch` command in the menu, or use `npx minity watch`. All files in your `src` and `files` directories will be watched, and your datapack rebuilt on every change. Run `/reload` in Minecraft to load the rebuilt pack.
 * **Syntax highlighting in IDES**: There is currenty an extension for vscode, which provides syntax highlighting and error checking. You can install it in the extensions tab in vscode by searching for "minity". Its [source code](https://github.com/minity-script/minity-vscode) can be useful for creating extensions for other IDEs. If you create an extension, let us know and we will add it here.

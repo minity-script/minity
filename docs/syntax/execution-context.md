@@ -6,12 +6,12 @@ All Minecraft commands run in an *execution context*. This includes the current 
 
 Execution context modifiers are constructs that modify the context for the following statement or a block of statements. You can use all native Minecraft context modifiers (`as`, `at`, ...) Some additional shorthand modifiers are provided by maclang.
 
-See also [Conditional Execution)[#control-flow#conditional-execution] for an upgraded version of Minecraft's native `if`/`unless`.
+See also [Conditional Execution](flow-control#if) for an upgraded version of Minecraft's native `if`/`unless`.
 
 ## Native context modifiers
 
 ### **as** <small>[construct](defs#construct)</small>
-<code>**as** *[selector](selector)* *[statement](defs#statement)*</code><br>
+<def>**as** [*selector*](selector) [*statement*](defs#statement)</def>
 
 Selects the matching items, and runs the following statement(s) for each of them, setting the current entity (`@s`) to each matching entity in turn. 
 ````minity
@@ -21,7 +21,7 @@ as @e[distance=...3] {
 ````
 
 ### **at** <small>[construct](defs#construct)</small>
-<code>**at** *[selector](selector)* *[statement](defs#statement)*</code>
+<def>**at** [*selector*](selector) [*statement*](defs#statement)</def>
 
 Selects the matching items, and runs the following statement(s) at each of their positions and rotations in turn, without changing the current entity. 
 ````minity
@@ -30,13 +30,13 @@ at @player {
 }
 ````
 ### **anchored** <small>[construct](defs#construct)</small>
-<code>**anchored** **eyes** *[statement](defs#statement)*</code><br>
-<code>**anchored** **feet** *[statement](defs#statement)*</code><br>
+<def>**anchored** **eyes** [*statement*](defs#statement)
+**anchored** **feet** [*statement*](defs#statement)</def>
 
 Changes the current execution position and rotation to match that of the current item's eyes or feet.
 
 ### **positioned** <small>[construct](defs#construct)</small>
-<code>**positioned** *[position](args#position)* *[statement](defs#statement)*</code>
+<def>**positioned** [*position*](args#position) [*statement*](defs#statement)</def>
 
 Changes the current execution position, thus changing the meaning of relative coordinates in the following statement(s):
 ````minity
@@ -50,7 +50,7 @@ positioned ~ ~3 ~ {
 You will probably use this only for absolute coordinates, because minity provides a more convenient way to change position with coordinate modifiers.
 
 ### **positioned as** <small>[construct](defs#construct)</small>
-<code>positioned as *[selector](selector)* *[statement](defs#statement)*</code>
+<def>**positioned as** [*selector*](selector) [*statement*](defs#statement)</def>
 
 Changes the current execution position, thus changing the meaning of relative coordinates in the following statement(s):
 ````minity
@@ -59,7 +59,7 @@ positioned as @player ...
 
 ### **align** <small>[construct](defs#construct)</small>
 
-<code>**align** *axes*</code><br>
+<def>**align** *axes*</def>
 
 Rounds down the current coordinates in the chosen axes. Note that you must specify the axes in the correct order, unlike in `.mcfunction`
 
@@ -71,7 +71,7 @@ align xzy ...   // error, you must sort the axes corretly
 ````
 
 ### **rotated** <small>[construct](defs#construct)</small>
-<code>**rotated** *[rotation](args#position)* *[statement](defs#statement)*</code>
+<def>**rotated** *[*rotation*](args#rotation)* [*statement*](defs#statement)</def>
 
 
 Changes the current execution position, thus changing the meaning of local coordinates in the following statement(s):
@@ -86,7 +86,7 @@ rotated ~ ~30 {
 You will probably use this only for absolute rotation, because minity provides a more convenient way to change rotation with coordinate modifiers.
 
 ### **rotated as** <small>[construct](defs#construct)</small>
-<code>**rotated as** *[selector](selector)* *[statement](defs#statement)*</code>
+<def>**rotated as** [*selector*](selector) [*statement*](defs#statement)</def>
 
 Changes the current execution rotation, thus changing the meaning of local coordinates in the following statement(s):
 ````minity
@@ -96,7 +96,7 @@ rotated as @player ...
 
 ## Universal modifier
 ### **for** <small>[construct](defs#construct)</small>
-<code>**for** *[selector](selector)* *[statement](defs#statement)*</code>
+<def>**for** [*selector*](selector) [*statement*](defs#statement)</def>
 
 Shorthand for setting the execution entity, position, rotation and dimension at the same time. 
 ````minity
@@ -121,8 +121,8 @@ down 1 north 3 up 2 ....
 
 
 ### **up** / **down** <small>[construct](defs#construct)</small>  
-<code>**up** *[float](values#float)* *[statement](defs#statement)*</code><br>
-<code>**down** *[float](values#float)* *[statement](defs#statement)*</code>
+<def>**up** [*float*](values#float) [*statement*](defs#statement)
+**down** [*float*](values#float) [*statement*](defs#statement)</def>
 
 Shorthands for moving the current position along the world Y axis.
 
@@ -136,14 +136,14 @@ at @player {
 
 
 ### **north** / **south** <small>[construct](defs#construct)</small>
-<code>**north** *[float](values#float)* *[statement](defs#statement)*</code><br>
-<code>**south** *[float](values#float)* *[statement](defs#statement)*</code>
+<def>**north** [*float*](values#float) [*statement*](defs#statement)
+**south** [*float*](values#float) [*statement*](defs#statement)</def>
 
 Shorthands for moving the current position along the world X axis.
 
 ### **west** / **east** <small>[construct](defs#construct)</small>
-<code>**west** *[float](values#float)* *[statement](defs#statement)*</code><br>
-<code>**east** *[float](values#float)* *[statement](defs#statement)*</code>
+<def>**west** [*float*](values#float) [*statement*](defs#statement)
+**east** [*float*](values#float) [*statement*](defs#statement)</def>
 
 Shorthands for moving the current position along the world Z axis.
 
@@ -161,34 +161,34 @@ left 2 forward 3 right 1 ....
 
 ````
 ### **upward** / **downward** <small>[construct](defs#construct)</small> 
-<code>**upward** *[float](values#float)* *[statement](defs#statement)*</code><br>
-<code>**downward** *[float](values#float)* *[statement](defs#statement)*</code>
+<def>**upward** [*float*](values#float) [*statement*](defs#statement)
+**downward** [*float*](values#float) [*statement*](defs#statement)</def>
 
 Shorthands for moving the current position along the Y axis of the current entity's local coordinate system. 
 
 
 ### **forward** / **back** <small>[construct](defs#construct)</small>
-<code>**forward** *[float](values#float)* *[statement](defs#statement)*</code><br>
-<code>**back** *[float](values#float)* *[statement](defs#statement)*</code>
+<def>**forward** [*float*](values#float) [*statement*](defs#statement)
+**back** [*float*](values#float) [*statement*](defs#statement)</def>
 
 Shorthands for moving the current position along the Z axis of the current entity's local coordinate system.
 
 ### **left** / **right** <small>[construct](defs#construct)</small>
-<code>**left** *[float](values#float)* *[statement](defs#statement)*</code><br>
-<code>**right** *[float](values#float)* *[statement](defs#statement)*</code>
+<def>**left** [*float*](values#float) [*statement*](defs#statement)
+**right** [*float*](values#float) [*statement*](defs#statement)</def>
 
 Shorthands for moving the current position along the X axis of the current entity's local coordinate system.
 
 ## Relative rotation modifiers
 ### **up** / **down**  <small>[construct](defs#construct)</small>
-<code>**up** *[angle](#angle)* *[statement](defs#statement)*</code><br>
-<code>**down** *[angle](#angle)* *[statement](defs#statement)*</code>
+<def>**up** [*angle*](args#angle) [*statement*](defs#statement)
+**down** [*angle*](args#angle) [*statement*](defs#statement)</def>
 
 Shorthands for changing the current Y rotation.
 
 
 ### **left** / **right** <small>[construct](defs#construct)</small>
-<code>**left** *[angle](#angle)* *[statement](defs#statement)*</code><br>
-<code>**right** *[angle](#angle)* *[statement](defs#statement)*</code>
+<def>**left** [*angle*](args#angle) [*statement*](defs#statement)
+**right** [*angle*](args#angle) [*statement*](defs#statement)</def>
 
 Shorthands for changing the current X rotation.

@@ -2,7 +2,6 @@
 All valid minecraft selectors should work in minity. The only exception are bare player ids, which are instead accepted in the form of `@[player_id]`
 
 In addition, syntactic sugar is provided for some selector conditions. Similar to css, multiple conditions can be applied in series, as long as there is no whitespace betwen them. See below for the conditions that you can apply this way.
-## Selector conditions
 ````minity
 @item.special[distance <= 3]{Invulnerable:1b}
 
@@ -10,20 +9,25 @@ In addition, syntactic sugar is provided for some selector conditions. Similar t
 
 @e[type=item,tag=special,distance=..3,nbt={Invulnerable:1b}]
 ````
-### <b>@p</b> <b>@r</b> <b>@a</b> <b>@s</b> <b>@e</b>
-These work exactly the same as in .mcfunction, and will match:
-* `@p` the nearest player
-* `@r` random player
-* `@a` all players, alive or not
-* `@s` the entity executing the statement
-* `@e` all entities
+## Selector head
 
 ### <b>@[</b>*player_id*<b>]</b>
-A replacement for bare player names or UUIDs used as target selectors in .mcfunction.
+A replacement for bare player names or UUIDs used as target selectors in .mcfunction. Cannot be followed by conditions.
 
 ````minity
 as @[yockz] {...}      => execute as yockz run ...
 ````
+
+### <b>@p</b> <b>@r</b> <b>@a</b> <b>@s</b> <b>@e</b>
+These work exactly the same as in .mcfunction, and will match:
+* `@p` the nearest player
+* `@r` random player
+* `@a` all players, live or not
+* `@s` the entity executing the statement
+* `@e` all entities
+
+Can be followed by conditions.
+
 ### <b>@</b>*type*
 Sets the `type` condition of the selector. The type can include a namespace, if not, it defaults to `minecraft`.
 
@@ -34,7 +38,9 @@ Sets the `type` condition of the selector. The type can include a namespace, if 
 @armor_stand  // match all armor stands
               => @e[type=armor_stand]
 ````
-This will set the *target selector variable* to `@e`, and will match all live entities of the given type. This means that `@player` will match only live players, and you need to use `@a` if you want to target dead players as well. 
+This will set the *target selector variable* to `@e`, and will match all live entities of the given type. This means that `@player` will match only live players, and you need to use `@a` if you want to target all players. 
+
+Can be followed by conditions.
 
 ### <b>@#</b>*entity_type_tag*
 Sets the `type` condition of the selector. If namespace is not provided, it defaults to `minecraft`.
@@ -44,7 +50,11 @@ Sets the `type` condition of the selector. If namespace is not provided, it defa
 @#my_pack:enemies   // match all enemies tagged in a datapack
                     => @e[type=#my_pack:enemies]
 ````
-This will set the *target selector variable* to `@e`. See above.
+This will set the *target selector variable* to `@e`. See above. 
+
+Can be followed by conditions.
+
+## Selector conditions
 
 ### <b>[</b>*condition* *op* *value*<b>]</b>
 Match entities for which the test in the brackets is true. The condition is one of the native target selector conditions. The accepted values and allowed comparison operators depend on the condition.
@@ -63,10 +73,10 @@ Allowed for some conditions, see Minecraft documentation:
 ````
 Allowed for conditions that accept ranges:
 ````minity
-@e[level >= 10 ]     => @e[level=10..]
-@e[level >  10 ]     => @e[level=11..]
-@e[level <= 10 ]     => @e[level=..10]
-@e[level <  10 ]     => @e[level=..9 ]
+@e[distance >= 10 ]     => @e[distance=10..]
+@e[distance <= 10 ]     => @e[distance=..10]
+@e[level > 10 ]         => @e[level=11..]
+@e[level < 10 ]         => @e[level=..9]
 ````
 
 ### <b>.</b>*tag*
@@ -112,6 +122,7 @@ Can be repeated to match several scores:
 ````minity
 @a[->foo == 10][->bar < 100]  => @a[scores={--my_ns-foo=10,--my_ns-bar=..99}]
 ````
+
 ## Sorting and limit
 In addition to using the native `sort` and `limit` parameters, you can prefix the selector with the sort order and optional limit.
 ````minity

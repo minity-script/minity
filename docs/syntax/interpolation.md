@@ -1,5 +1,5 @@
 
-| token | in strings and commands| in raw text markup|
+| token | in strings and native commands| in raw text markup|
 |-|-|-|
 |<nobr>`{?color}`</nobr>| value of the constant<br>e.g. `red` | same |
 |<nobr>`{.processed}`</nobr>|internal name of the tag<br>e.g.`--my_ns-processed"`| same |

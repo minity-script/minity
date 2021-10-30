@@ -9,14 +9,17 @@ Variables, entity scores and entity tags need to be declared. The declared ident
 
 ## Variables
 
-### **var** <small>[declaration](defs#declaration)</small>
 ### <code>**$**</code> <small>[punctuation](def#punctuation)</small>
+<def>**$**[*var_name*](args#ident)</def>
 
-<code>**var** <strong>$</strong>*[var_name](args#ident)*</code>
+Variable names are prefixed with `$`. The name can contain letters, numbers and underscores.
+
+### **var** <small>[declaration](defs#declaration)</small>
+<def>**var $**[*var_name*](args#ident) ( **=** [*integer*](values#integer) )?</def>
 
 Declare a scoped variable.
 
-To declare a variable, use the `var` keyword. Variable names are prefixed with `$`
+To declare a variable, use the `var` keyword.
 ````minity
 var $my_var = 0
 var $my_other_var
@@ -43,12 +46,19 @@ Entity scores are variables that can be stored on each entity. They are scoped l
 
 ### **score** <small>[declaration](defs#declaration)</small>
 
-<code>**score** *[score_name](args#ident)* *[score_objective](args#objective)*?</code>
+<def>**score** *[score_name](args#ident)* *[score_objective](args#objective)*?</def>
 
-Declare a scoped entity score. Score objective defaults to `dummy`.
+Declare a scoped entity score. 
+
+By default scores use the `dummy` criterion, so they behave like regular integer variables. You can however specify a different criterion and take advantage of the full power of Minecraft's scoreboard system.
+
 
 ### <code>**->**</code> <small>[punctuation](defs#punctuation)</small>
+
 Score values are accessed by connecting the entity selector and the score name with `->`
+
+<def>[*selector*](selector)**->**[*score_name*](args#ident)</def>
+
 
 ````minity
 var $foo
@@ -57,25 +67,21 @@ score hits
 @p->hits = 10
 $foo     = @p->hits
 ````
-By default scores use the `dummy` criterion, so they behave like regular integer variables. You can however specify a different criterion and take advantage of the full power of Minecraft's scoreboard system.
-````minity
-````
+
 To select entities by score, use the `@e[->score_name <op> value]` selector condition. See selector syntax below.
 
 ## Assignment
 
 ### <code>**=**</code> <small>[operator](defs#operator)</small>
 
-<code>int_target **=** int_source</code><br>
-<code>int_target **=** (scale **\***)? nbt_source</code><br>
-<code>nbt_target **=** nbt_source</code><br>
-<code>nbt_target **=** (scale **\***)? int_source</code>
-
-<code>int_target = {variable|entity_score|bossbar_property}</code><br>
-<code>int_source = {variable|entity_score|bossbar_property|[integer](values#integer)|[statement](defs#statement)}</code><br>
-<code>nbt_target = {block_nbt|entity_nbt|storage_nbt}</code><br>
-<code>nbt_source = {block_nbt|enity_nbt|storage_nbt|literal}</code><br>
-<code>scale = [typed_number](values#typed_numbers)</code><br>
+<def>*scoreboard_target* **=** *int_source*
+*scoreboard_target* **=** (*scale* **\***)? *nbt_source*
+<br>scoreboard_target = {*scoreboard_target*|*bossbar_property*}
+scoreboard_target = {*variable*|*entity_score*}
+<br>int_source = {*scoreboard_source*|*bossbar_property*|[*statement*](defs#statement)}
+scoreboard_source = {*variable*|*entity_score*|[*integer*](values#integer)}
+<br>nbt_source = {*block_nbt*|*enity_nbt*|*storage_nbt*|[*literal*](values)}
+scale = [*typed_number*](values#typed_numbers)
 
 
 Anything that is or returns an integer can be assigned to a variable or an entity score.
@@ -95,19 +101,30 @@ You can also use any native command or minity statement:
 $foo    = function_name() 
 @s->bar = /command ...
 ````
-You can store results of conditionals:
-````minity
-$foo    = test if ($a > $b) and unless ($b < 3)
-@s->bar = /command ...
-````
 ### <code>**?=**</code> <small>[operator](defs#operator)</small>
+
+<def>*int_target* **?=** [*statement*](defs#statement)</def>
+
+You can store the success values of statements.
 
 Or the success of conditionals or statements:
 ````minity
-$foo    ?= test if ($a > $b) and unless ($b < 3)
 @s->bar ?= /command ...
 ````
+
+### **test** <small>[pseudo-function](defs#pseudo-function)</small>
+<def>**test** [*conditions*](flow-control#if)</def>
+
+You can store result and success values of conditionals:
+````minity
+$foo    = test if ($a > $b) and unless ($b < 3)
+$foo    ?= test if ($a > $b) and unless ($b < 3)
+````
+These are the values returned by `/execute {if|unless}` without `run`. See [native documentation](https://minecraft.fandom.com/wiki/Commands/execute#Condition_subcommands) for details.
+
 ### <code>**<=>**</code> <small>[operator](defs#operator)</small>
+
+<def>*int_target* **&lt;=>** *int_target*</def>
 
 You can swap the values of two variables and/or entity scores:
 ````minity
@@ -126,33 +143,48 @@ $foo <op> ...
 ... <op> @s->my_score
 ````
 ### <code>**++**</code> <small>[operator](defs#operator)</small>
-<code>{variable|entity_score} **++**</code>
+<def>*scoreboard_target* **++**</def>
 
+**Increase** a variable or entity score by 1.
 
 ### <code>**--**</code> <small>[operator](defs#operator)</small>
-<code>{variable|entity_score} **--**</code>
+<def>*scoreboard_target* **--**</def>
+
+**Decrease** a variable or entity score by 1.
 
 ### <code>**+=**</code> <small>[operator](defs#operator)</small>
-<code>{variable|entity_score} **+=** {variable|entity_score|integer}</code>
+<def>*scoreboard_target* **+=** *scoreboard_source*</def>
+
+**Add** the value of the source to a variable or an entity score. The source can be a variable, an entity score or an integer.
 
 ### <code>**-=**</code> <small>[operator](defs#operator)</small>
-<code>{variable|entity_score} **-=** {variable|entity_score|integer}</code>
+<def>*scoreboard_target* **-=** *scoreboard_source*</def>
+
+**Subtract** the value of the source from a variable or an entity score. The source can be a variable, an entity score or an integer.
 
 ### <code>**\*=**</code> <small>[operator](defs#operator)</small>
-<code>{variable|entity_score} **\*=** {variable|entity_score|integer}</code>
+
+<def>*scoreboard_target* **\*=** *scoreboard_source*</def>
+
+**Multiply** a variable or an entity score by the value of the source. The source can be a variable, an entity score or an integer.
 
 ### <code>**/=**</code> <small>[operator](defs#operator)</small>
-<code>{variable|entity_score} **/=** {variable|entity_score|integer}</code>
+<def>*scoreboard_target* **/=** *scoreboard_source*</def>
+
+**Divide** a variable or an entity score by the value of the source. The source can be a variable, an entity score or an integer. Note that this is integer division.
 
 ### <code>**%=**</code> <small>[operator](defs#operator)</small>
-<code>{variable|entity_score} **%=** {variable|entity_score|integer}</code>
+<def>*scoreboard_target* **%=** *scoreboard_source*</def>
+
+Divide a variable or an entity score by the value of the source and **store the remainder**. The source can be a variable, an entity score or an integer. 
 
 ### <code>**>=**</code> <small>[operator](defs#operator)</small>
-<code>{variable|entity_score} **>=** {variable|entity_score|integer}</code>
+<def>*scoreboard_target* **>=** *scoreboard_source*</def>
+
+Update the variable or an entity score to the value of the source **if it is larger** than the target. The source can be a variable, an entity score or an integer. 
 
 ### <code>**&lt;=**</code> <small>[operator](defs#operator)</small>
-<code>{variable|entity_score} **&lt;=** {variable|entity_score|integer}</code>
+<def>*scoreboard_target* **&lt;=** *scoreboard_source*</def>
 
-
-### **test** <small>[command](defs#command)</small>
+Update the variable or an entity score to the value of the source **if it is smaller** than the target. The source can be a variable, an entity score or an integer. 
 

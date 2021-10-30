@@ -11,21 +11,21 @@ Note that the functionality of `execute`, `scoreboard` and `data` commands is su
 !> Minity doesn't allow functions and macros to have the same names as Minity keywords. To future-proof your programs, avoid naming your functions and macros the same as any native minecraft command or any of its major subcommands, beacuse these couled eventually be used as keywords by Minity.
 
 
-### **append**
-<code>**append** *NBTpath* *value*</code>
-Append a value to a list at a NBTpath. The value can be anything that can be assigned to a NBT path. See [Working with NBT data](#working-with-nbt-data).
+### **append** <small>[command](defs#command)</small>
 
-### **bossbar**
-<code>**bossbar add** *id* *name*</code>
+See [Working with NBT data](nbt#append).
 
-Add a bossbar. Works exactly like in Minecraft. The namespace of the id defaults to the current namespace. See also [Bossbars](#bossbars).
+### **bossbar** <small>[command](defs#command)</small>
+<def>**bossbar add** *id* *name*</def>
 
-<code>**bossbar remove** *id* </code>
+Add a bossbar. Works exactly like in Minecraft. The namespace of the id defaults to the current namespace. See also [Bossbars](bossbar).
 
-Remove a bossbar. Works exactly like in Minecraft. The namespace of the id defaults to the current namespace. See also [Bossbars](#bossbars).
+<def>**bossbar remove** *id* </def>
 
-### **clear**
-<code>**clear** *target*? *count*? *item_id*{*NBT_compound*}? </code>
+Remove a bossbar. Works exactly like in Minecraft. The namespace of the id defaults to the current namespace. See also [Bossbars](bossbar).
+
+### **clear** <small>[command](defs#command)</small>
+<def>**clear** [*target*](selector)? [*count*](args#count)? [*item_spec*](args#item-specification) </code>
 
 Remove items from an entity's or entities' inventory. Works just like in .mcfunction, but with a slightly more readable order of arguments. 
 
@@ -35,8 +35,8 @@ clear 3 diamond{          // no space allowed between item id and NBT,
   tag:{ special:true }    // just like in minecraft, but you can break your 
 }                         // long values over several lines
 ````
-###  **give**
-<code>**give** [*target*] [*count*] *item_id*[*NBT_compound*] </code>
+###  **give** <small>[command](defs#command)</small>
+<def>**give** [*target*](selector)? [*count*](args#count)? [*item_spec*](args#item-specification) </code>
 
 Give items to an entity or entities. Works just like in .mcfunction, but with a slightly more readable order of arguments. 
 
@@ -46,19 +46,17 @@ give 3 diamond{          // no space allowed between item id and NBT,
   tag:{ special:true }    // just like in minecraft, but you can break your 
 }                         // long values over several lines
 ````
-### **merge**
-<code>**merge** *NBTpath* *value*</code>
+### **merge** <small>[command](defs#command)</small>
 
-Merge a value with the value of NBTpath. The value can be a compound, a list of another NBTpath. See [Working with NBT data](#working-with-nbt-data).
+See [Working with NBT data](nbt#merge).
 
-### **prepend**
-<code>**prepend** *NBTpath* *value*</code>
+### **prepend** <small>[command](defs#command)</small>
 
-Prepend a value to a list at a NBTpath. The value can be anything that can be assigned to a NBT path. See [Working with NBT data](#working-with-nbt-data).
+See [Working with NBT data](nbt#prepend).
 
-### **print**
+### **print** <small>[command](defs#command) [greedy](defs#greedy)</small>
 
-<code>**print** *target*? *raw_text*</code>
+<def>**print** [*target*](selector)? [*raw_text*](values#raw-text-markup)</def>
 
 A wrapper for tellraw. The text will be parsed as if it is *already within* a `<span>` tag, which means that you can use raw tag markup in the text, but don't have to wrap it in a tag:
 ````minity
@@ -66,24 +64,25 @@ print This is a <b>very</b> important message. There is {$time_left} time left.
 ````
 This is a *greedy command*, so it will print all the characters until the end of the line. Target defaults to the current entity. 
 
-### **say**
-<code>**say** *text*</code>
+### **remove** <small>[command](defs#command)</small>
+See [Working with NBT data](nbt#prepend).
+
+### **say** <small>[command](defs#command) [greedy](defs#greedy)</small>
+<def>**say** *text*</def>
 
 A trivial wrapper for the native `/say` command. 
 ````minity
 say Hello!
 ````
 This is a *greedy command*, so it will print all the characters until the end of the line. 
-<blockquote>
-This should maybe allow raw text as well, and behave the same as `print @a`
-</blockquote>
 
-### **setblock**
-<code>**setblock** *position*? *block_id*[*block states*]{*NBT_compound*}</code><br>
+?> This should maybe allow raw text as well, and behave the same as `print @a`
 
-Set a block.
+### **setblock** <small>[command](defs#command)</small>
+<def>**setblock** [*position*](args#position)? [*block_spec*](args#block-specification)</def>
 
-Position defaults to the current position.
+Set a block. Position defaults to the current position. Whitespace is not allowed between the block id, block states and block nbt.
+
 ````minity
 setblock air                        // is the block at the current position air
 setblock ~ ~2 ~ air                 // you can use coordinates
@@ -91,10 +90,10 @@ setblock up 2 air                   // or directions
 setblock torch[facing=north]        // block states 
 setblock chest{Items:[...]}         // block NBT values
 ````
-### **summon**
+### **summon** <small>[command](defs#command) [construct](defs#construct)</small>
 
-<code>**summon** *position*? *entity_type*[*NBT_compound*]</code><br>
-<code>**summon** *position*? *entity_type*[*NBT_compound*] **then** *statement*</code><br>
+<def>**summon** [*position*](args#position)? [*entity_spec*](args#entity-specification)
+**summon** [*position*](args#position)? [*entity_spec*](args#entity-specification) **then** [*statement*](defs#statement)</def>
 
 Summon an entity, then potentially do something with it. 
 
@@ -108,19 +107,17 @@ summon slime{               // no space allowed between item id and NBT
   /kill @s                  // the current entity here is the summoned slime
 }                
 ````
-### **tag**
-<code>**tag** *selector* *tag*</code>
+### **tag** <small>[command](defs#command)</small>
+<def>**tag** [*selector*](selector) [*tag_name*](args#tag)</def>
 
 Add a namespaced tag to the selected entities. 
 ````minity
 tag @item[distance<=5] nearby
-
-  ==> tag add @
 ````
-### **untag**
-<code>**untag** *selector* *tag*</code>
+### **untag** <small>[command](defs#command)</small>
+<def>**untag** [*selector*](selector) [*tag_name*](args#tag)</def>
 
 Remove a namespaced tag from the selected entities. 
 ````minity
-untag @player.processed 
+untag @player.processed processed
 ````

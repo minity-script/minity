@@ -1,8 +1,6 @@
 
 # Working with NBT data
 
-### NBT Path
-
 ### <code>**::**</code> <small>[punctuation](defs#punctuation)</small>
 
 You can access NBT data with the `::` operator, followed by a NBT path.
@@ -14,13 +12,48 @@ You can access NBT data with the `::` operator, followed by a NBT path.
 @@nbt.path                      // shorthand for @@current_ns:minity_vars storage
 ````
 
-### Block NBT
+NBT path is Minecraft's notation for accessing data stored in NBT tags. See [native documentation](https://minecraft.fandom.com/wiki/NBT_path_format) for details.
 
-### Entity NBT
+#### Entity NBT
+<def>[*selector*](selector)<strong>::</strong>[*nbt_path*](args#nbt-path)</def>
 
-### Storage NBT
+To access Entity NBT data, combine a selector with a NBT path using the `::` operator.
+````minity
+@s::NoAI                        
+nearest @item::Item.id
+````
+#### Storage NBT
+<def>**@@**[*resource_location*](args#resloc)**::**[*nbt_path*](args#nbt-path)</def>
+
+To access Storage NBT data, combine a storage resource location with a NBT path using the `::` operator. Storage resource locations are prefixed with `@@˙
+````minity
+@@my_storage                // defaults to the current namespace
+@@other_ns:my_storage       // explicitly set a different namespace
+
+@@my_storage::nbt.path
+@@other_ns:my_storage::nbt.path
+````
+
+#### Block NBT
+<def>[*position*](args#position)<strong>::</strong>[*nbt_path*](args#nbt-path)</def>
+
+
+````minity
+(~ ~ ~)::Items                     
+(up 3 north 2)::Items
+````
 
 ### Assignment
+
+#### <code>**=**</code> <small>[operator](defs#operator)</small>
+
+<def>*nbt_target* **=** *nbt_source*
+*nbt_target* **=** (*scale* **\***)? *int_source*
+<br>nbt_target = {*block_nbt_path*|*entity_nbt_path*|*storage_nbt_path*}
+nbt_source = {*block_nbt_path*|*enity_nbt_path*|*storage_nbt_path*|*[*literal*](values)*}
+int_source = {*variable*|*entity_score*|*bossbar_property*|[*integer*](values#integer)|[*statement*](defs#statement)}
+scale = [*typed_number*](values#typed_numbers)</def>
+
 You can assign anything to a data path, subject to limitations imposed by Minecraft itself.
 ````minity
 @s::Pos[0]                          = ...
@@ -53,20 +86,30 @@ When assigning values between NBT paths and variables or entity scores, you some
 $scaled_size     = 8 * @@stored_size
 ````
 
-### **append** / **prepend** <small>[command](defs#command)</small>
-<code>**append** *NBT_path* *data*</code>
+### **append** <small>[command](defs#command)</small> :id=append
+<def>**append** *nbt_target* *nbt_source*</def>
 
 Prepend and append data to NBT lists. 
 ````minity
-@s::MyList = ["A String"]
+@s::MyList = ["First String"]
 append @s::MyList "Last String"
-prepend @s::MyList "First String"
-    // the list is now ["First String","A String","Last String"]
 ````
 Accepts value sources accepted by NBT Path assignment.
 
-### **insert** <small>[command](defs#command)</small>
-<code>**insert** *index* [NBT_path](args#nbt-path) *data*</code>
+### **prepend** <small>[command](defs#command)</small>  :id=prepend
+<def>**prepend** *nbt_target* *nbt_source*</def>
+
+Prepend data to NBT lists. 
+````minity
+@s::MyList = ["Last String"]
+prepend @s::MyList "First String"
+````
+Accepts value sources accepted by NBT Path assignment.
+
+
+### **insert** <small>[command](defs#command)</small> :id=insert
+<def>**insert** [*index*](values#integer) *nbt_target* *nbt_source*</def>
+
 Insert data into lists.
 ````minity
 @s::MyList = ["First String"]
@@ -75,17 +118,17 @@ insert 1 @s::MyList "A String"
     // the list is now ["First String","A String","Last String"]
 ````
 
-### **merge** <small>[command](defs#command)</small>
-<code>(**merge**) *NBT_path* *data*</code>
+### **merge** <small>[command](defs#command)</small> :id=merge
+<def>**merge** *nbt_target* *nbt_source*</def>
+
 Merge the supplied value or the content of source path to the target path.
 ````minity
 merge @s::MyList ["Another String"]
 merge @p::AchievedQuestSteps @s::GrantQuestSteps
 ````
+### **remove** <small>[command](defs#command)</small> :id=remove
+<def>**remove** *nbt_target*</def>
 
-### **remove** <small>[command](defs#command)</small>
-
-<code>**remove** *NBT_path* *value*</code>
 Remove data at the target path.
 ````minity
 @s::MyList = ["A String"]

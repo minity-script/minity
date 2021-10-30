@@ -41,6 +41,36 @@
     float:right;
   }
 
+  def {
+    font-family:monospace;
+    font-weight:400;
+    font-size:12px;
+    display:block;
+    white-space:pre-line;
+    background:#ffe;
+    border-radius:6px;
+    box-shadow:0 0 2px 0 #0006 inset;
+    padding:1em 1.5em;
+    color:#944;
+  }
+
+  article def em  {
+    color:#666!important;
+    font-weight:400;
+  }
+  article def strong  {
+    color:#003!important;
+    font-weight:bold;
+  }
+  article def a {
+    font-weight:400;
+    color:#666!important;
+    text-decoration-style: dotted;
+    text-decoration-color: #944;
+  }
+  .markdown-section pre, .markdown-section pre code {
+    background-color: #f1f1f1;
+  }
   </style>
   <script>
     window.$docsify = {
@@ -161,6 +191,10 @@
           inside: expansion
         },
         'variable': /(\$|->)\w+/,
+        'storage': {
+          pattern: /(@@)\w+(:\w+)?/,
+          alias: "variable"
+        },
         'constant': {
           pattern: /(\?)\w+/,
           alias: "property",

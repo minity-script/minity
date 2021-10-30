@@ -1,12 +1,12 @@
 ## Assignment operators
-| `operator` | description |
+| operator | description |
 |-|-|
-|`=`| assign value |
+|`=`| assign value or result|
 |`?=`| assign success |
 |`<=>`| swap values |
 
 ## Arithmetics assignment operators
-| `operator` | description |
+| operator | description |
 |-|-|
 |`++`| plus 1 |
 |`--`| minus 1 |
@@ -19,7 +19,7 @@
 |`>=`| choose smaller |
 
 ## Comparison operators
-| `operator` | description |
+| operator | description |
 |-|-|
 |`==`| equals |
 |`-=`| does not equal |
@@ -31,7 +31,7 @@
 ## Other punctuation
 Other non-alphanumeric characters that can appear in the code. Some can mean different things in different contexts.
 
-| `symbol` | description |
+| symbol | description |
 |-|-|
 |`?`|  constant/macro arg prefix |
 |`$`|  variable prefix |

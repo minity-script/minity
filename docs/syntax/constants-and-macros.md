@@ -53,7 +53,7 @@ macro give_items(?id, ?count=1, ?damage=0b) {
 A macro can accept arguments, and these may have default values.
 
 ### Using a macro
-You can call macros in your code just as you would call a function. Arguments that have default values can be skipped, 
+You can call macros in your code just as you would call a function. Arguments that have default values can be skipped, arguments can be named.
 
 ````minity
 as @a give_items( torch, 5 )            // give each player 5 torches
@@ -136,13 +136,14 @@ The `reject()` pseudo-function call within a macro definition will include the f
 
 ### Using a block macro
 
-<code>promises **then** *[statement](#statement)*</code><br>
-<code>promises **then** *[statement](#statement)* **catch** *[statement](#statement)*</code>
-* <code>promises = promise (**and** promise)*</code>
-* <code>promise = **when** *[promise](#promise)* | **except** *[promise](#promise)*</code>
+#### **when** / **except** <small>[construct](defs#construct)</small> <small>[chainable](defs#chainable)</small>
+
+<def>*block_calls* **then** [*statement*](#statement)
+*block_calls* **then** [*statement*](#statement)* **catch** [*statement*](#statement)
+<br>block_calls = *block_call* (**and** *block_call*)*
+block_call = **when** *macro_call* | **except** *macro_call*</def>
 
 
-#### **when** / **except** <small>[chainable](defs#chainable)</small>
 Use the `when` construct to run some code in the execution context and at the time as provided by the macro.
 ````minity
 function stone_destroyer() {
@@ -159,7 +160,7 @@ function stone_seeker() {
   }
 }
 ````
-#### **then** <small>[clause](defs#clause)</small>
+##### **then** <small>[clause](defs#clause)</small>
 `when` and `except` clauses are followed by a `then` clause. This is included by the macro with the `resolve()` pseudo function call.
 ````minity
 when find_block(stone) then {
@@ -170,7 +171,7 @@ except find_block(stone) then {
 }
 ````
 
-#### **catch** <small>[clause](defs#clause)</small>
+##### **catch** <small>[clause](defs#clause)</small>
 Optionally, the `then` clasue can be followed by a `catch` clause. This is included by the macro with the `resolve()` pseudo function call.
 ````minity
 when find_block(stone) then {
@@ -182,7 +183,7 @@ except find_block(stone) then {
   setblock air
 }
 ````
-#### **and** <small>[connector](defs#connector)</small>
+##### **and** <small>[connector](defs#connector)</small>
 
 Like `if/else` and `while/until`, you can chain `when` and `except` promises with the `and` keyword.
 
