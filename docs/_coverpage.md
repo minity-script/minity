@@ -9,3 +9,7 @@
 - Create complex datapacks in just a few lines of code
 - Compiles into Vanilla JE data packs
 - Intuitive, easy to read syntax
+
+[GitHub](https://github.com/minity-script/minity/)
+[About minity](/README)
+[Getting Started](/getting-started)
