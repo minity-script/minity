@@ -1,6 +1,6 @@
 {
   "name": "minity",
-  "version": "1.0.0-alpha.15",
+  "version": "1.0.0-alpha.16",
   "description": "CLI for Minity, a scripting language for Vanilla Minecraft datapacks",
   "bin": {
     "minity": "bin/index.js"
