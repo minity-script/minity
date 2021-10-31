@@ -106,7 +106,7 @@ module.exports = {
     watch: ({path}) => {
       return new Promise(async (resolve,reject)=>{
         const project = projectFromPath(path);
-        assert(project.isProject, "not a project path " + path);
+        assert(project?.isProject, "not a project path " + path);
         const watchers = [];
 
         function start() {

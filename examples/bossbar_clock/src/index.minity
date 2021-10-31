@@ -1,25 +1,80 @@
 namespace bossbar_clock
 
-bossbar add hours "Hours"
-bossbar add minutes "Minutes"
-bossbar hours visible = true
-bossbar minutes visible = true
-
 tag playing
+setup()
+every 20t update_clock()
+
+
+function update_players() {
+  bossbar hours players = @player.playing
+  bossbar minutes players = @player.playing
+}
 
 function show_clock() {
   tag @s playing
-  bossbar hours players = @player.playing
-  bossbar minutes players = @player.playing
+  update_players()
 }
 
 function hide_clock() {
   untag @s playing
-  bossbar hours players = @player.playing
-  bossbar minutes players = @player.playing
+  update_players()
 }
 
-every 1s {
-  var $time
-  $time = /time get
+function update_clock {
+  var $hours
+  var $minutes
+
+  $minutes = /time query daytime
+  $minutes %= 1200
+  $minutes /= 100
+  bossbar minutes value = $minutes
+ 
+  $hours = /time query daytime
+  $hours /= 1200
+  $hours += 5
+  $hours %= 20
+  bossbar hours value = $hours
+  
+  $minutes*=5
+  if ($minutes < 10) {
+    bossbar minutes name = <t>{$hours}:0{$minutes}</t>
+  } else {
+    bossbar minutes name = <t>{$hours}:{$minutes}</t>
+  }
+}
+
+function setup() {
+  bossbar remove hours
+  bossbar remove minutes 
+
+  bossbar add hours ""
+  bossbar add minutes "clock"
+  bossbar hours visible = true
+  bossbar hours max = 20
+  bossbar hours style = notched_20
+  bossbar minutes visible = true
+  bossbar minutes max = 12
+  bossbar minutes style = notched_12
+
+  update_players()
+}
+namespace horsy
+tag horsy
+function summon_horse {
+  summon horse{
+    SaddleItem:{id:"minecraft:saddle",Count:1b},
+    NoAI: true,
+    Passengers:[{
+      id: "minecraft:boat"
+    }]
+  } then {
+    tag @s horsy
+  }
+}
+
+function align_boats #minecraft:tick {
+  //var $rot
+  for @horse.horsy {
+    @s::Rotation[0] = @p::Rotation[0]
+  }
 }
