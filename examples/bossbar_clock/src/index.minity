@@ -1,0 +1,27 @@
+namespace bossbar_clock
+
+bossbar add hours "Hours"
+bossbar add minutes "Minutes"
+bossbar hours visible = true
+bossbar minutes visible = true
+
+tag playing
+
+function show_clock() {
+  tag @s playing
+  bossbar hours players = @player.playing
+  bossbar minutes players = @player.playing
+}
+
+function hide_clock() {
+  untag @s playing
+  bossbar hours players = @player.playing
+  bossbar minutes players = @player.playing
+}
+
+after 1s {
+  /do things
+} then every 2t {
+  var $time
+  $time = /time get
+}
