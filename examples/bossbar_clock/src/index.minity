@@ -58,23 +58,3 @@ function setup() {
 
   update_players()
 }
-namespace horsy
-tag horsy
-function summon_horse {
-  summon horse{
-    SaddleItem:{id:"minecraft:saddle",Count:1b},
-    NoAI: true,
-    Passengers:[{
-      id: "minecraft:boat"
-    }]
-  } then {
-    tag @s horsy
-  }
-}
-
-function align_boats #minecraft:tick {
-  //var $rot
-  for @horse.horsy {
-    @s::Rotation[0] = @p::Rotation[0]
-  }
-}
