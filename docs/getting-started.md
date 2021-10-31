@@ -9,7 +9,7 @@ Minity's interactive menus will guide you through the process of creating a Mini
 
 If you prefer a command line interface, type `npx minity help` for available commands. You can of course also install Minity on your computer with `npm install -g minity@latest`, and use just `minity` instead of `npx minity` henceforth.
 
-!> **Note on Windows:** The interactive menus don't play nicely with most Windows terminals, so you might have to use the command line interface instead. Also, Minity uses symbolic links for linking datapacks to Minecraft saves, which on Windows are restricted to administrators by default. See [this post on Windows developers blog](https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10/) for more details.
+!> **Note on Windows:** The interactive menus don't play nicely with most Windows terminals, so you might have to use the command line interface instead. Also, Minity uses symbolic links for linking datapacks to Minecraft saves. Symbolic links are restricted to administrators by default on Windows, unless developer mode is enabled. See [this post on Windows developers blog](https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10/) for more information and intsructions.
 
 ### Enable and test your datapack in Minecraft.
 Open your chosen world in Minecraft. 
