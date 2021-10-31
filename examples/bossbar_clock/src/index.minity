@@ -19,9 +19,7 @@ function hide_clock() {
   bossbar minutes players = @player.playing
 }
 
-after 1s {
-  /do things
-} then every 2t {
+every 1s {
   var $time
   $time = /time get
 }
