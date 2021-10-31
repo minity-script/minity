@@ -1,6 +1,6 @@
 <!-- _coverpage.md -->
 
-![logo](/minity-logo-medium.png)
+[![logo](/minity-logo-medium.png ':size=128')](/README)
 
 # minity <small>1.0alpha</small>
 
@@ -11,5 +11,5 @@
 - Intuitive, easy to read syntax
 
 [GitHub](https://github.com/minity-script/minity/)
-[About minity](/README)
-[Getting Started](/getting-started)
+[Discord](https://discord.gg/DnY7nDzdzm)
+[Get Started](/README)

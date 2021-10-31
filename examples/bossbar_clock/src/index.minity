@@ -1,9 +1,9 @@
 namespace bossbar_clock
 
 tag playing
+
 setup()
 every 20t update_clock()
-
 
 function update_players() {
   bossbar hours players = @player.playing
@@ -49,10 +49,8 @@ function setup() {
 
   bossbar add hours ""
   bossbar add minutes "clock"
-  bossbar hours visible = true
   bossbar hours max = 20
   bossbar hours style = notched_20
-  bossbar minutes visible = true
   bossbar minutes max = 12
   bossbar minutes style = notched_12
 
