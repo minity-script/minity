@@ -1,8 +1,8 @@
-namespace my_pack
+namespace ###PACK###
 
 function hello() {
   say Hello World
 }
 
-say my_pack loaded successfully
+say ###PACK### loaded successfully
 hello()

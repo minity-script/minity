@@ -3,11 +3,14 @@
 Minity requires Minecraft Java Edition 1.18 snapshots or later, and Node JS v16 or later.
 ### Create a datapack with Minity
 ````
-npx minity@latest
+$ npm install -g minity@latest
+$ minity
 ````
 Minity's interactive menus will guide you through the process of creating a Minity project, linking it to Minecraft saves and building your datapack. 
 
-If you prefer a command line interface, type `npx minity help` for available commands. You can of course also install Minity on your computer with `npm install -g minity@latest`, and use just `minity` instead of `npx minity` henceforth.
+If you prefer a command line interface, type `minity help` for available commands. 
+
+!> **UPDATE REGULARLY**<br>Minity is in active development, and bugs are ironed out daily. Run `nmp install -g minity@latest` to update to the latest version. Please report any bugs that you find on Github issues or on Discord.
 
 !> **Note on Windows:**<br>The interactive menus don't play nicely with most Windows terminals, so you might have to use the command line interface instead. `minity help` is a good places to start.<br>Also, Minity uses symbolic links for linking datapacks to Minecraft saves. Symbolic links are restricted to administrators by default on Windows, unless developer mode is enabled. See [this post on Windows developers blog](https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10/) for more information. <br>If you don't want to enable developer mode or un minity with administrator privileges, you can build your datapacks directly in your Minecraft save directory. See the `--target` option in `minity help build` and `minity help watch`.
 

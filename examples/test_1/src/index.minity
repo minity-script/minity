@@ -1,0 +1,102 @@
+namespace test_1
+
+var $failed = 0
+var $foo = 0
+score bar 
+
+
+run()
+
+macro expect_foo(?value) {
+  unless ($foo==?value) {
+    print @a {$foo} is not {?value}
+    $failed++
+  } 
+  if ($foo==?value) {
+    print @a {$foo} is {?value}
+  }
+}
+
+var $test
+
+macro expect_baz(?value) {
+  @@test = ?value
+  $test ?= @@test = @@baz
+  if ($test) {
+    print @a {@@baz} is not {=?value}
+    $failed++
+  }
+  unless ($test) {
+    print @a {@@baz} is {=?value}
+  }
+}
+
+
+function run() {
+
+  print @a Running tests
+
+  $foo += 300
+  expect_foo(300)
+  $foo -= 150
+  expect_foo(150)
+  $foo -= 1
+  expect_foo(149)
+  $foo += 2
+  expect_foo(151)
+  $foo %= 40
+  expect_foo(31)
+  $foo /= 7
+  expect_foo(4)
+  $foo *= 3
+  expect_foo(12)
+  $foo <= 6
+  expect_foo(6)
+  $foo >= 5
+  expect_foo(6)
+  $foo >= 7
+  expect_foo(7)
+
+  @@baz=4
+  expect_baz(4)
+
+  @@baz=$foo
+  expect_baz(7)
+
+  @@baz=3*$foo
+  expect_baz(21)
+
+  @@baz=3b*$foo
+  expect_baz(21b)
+
+  @@baz=[1d]
+  expect_baz([1d])
+
+  append @@baz 2d
+  expect_baz([1d,2d])
+
+  prepend @@baz 3d
+  expect_baz([3d, 1d,2d])
+
+  insert 1 @@baz 4d
+  expect_baz([3d,4d,1d,2d])
+
+  @@baz = {foo:"bar",foo2:"bar2"}
+  expect_baz({foo:"bar",foo2:"bar2"})
+
+  merge @@baz {foo3:"bar3",foo2:"bar4"}
+
+  expect_baz({foo:"bar",foo3:"bar3",foo2:"bar4"})
+
+  $foo = test if $foo < 3
+  expect_foo(0)
+
+  @@baz = test if $foo < 3
+  expect_baz(1)
+
+  @@baz ?= test if $foo < 3
+  expect_baz(1b)
+
+  print @a {$failed} tests failed
+}
+

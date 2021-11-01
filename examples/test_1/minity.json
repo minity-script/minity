@@ -1,6 +1,6 @@
 {
-  "name": "tutorial_2",
-  "description": "tutorial_2 datapack",
+  "name": "test_1",
+  "description": "Test for Minity",
   "main": "src/index.minity",
   "directories": {
     "copy": [
@@ -10,5 +10,6 @@
       "files",
       "src"
     ]
-  }
+  },
+  "author": {}
 }

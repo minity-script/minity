@@ -1,7 +1,9 @@
 namespace use_thrown
 
-// we won't actually use this tag to tag any entity, but it
-// will give us a namespaced identifier.
+// we won't actually use these tags to tag any entity, we
+// will just use them to get namespaced identifiers for our
+// item flags.
+
 tag undroppable
 tag special_slime_ball
 var $a = 3
@@ -38,11 +40,10 @@ macro find_block(?count=20) {
   }
 }
 
-
 macro find_owner(?distance=30) {
   var $flag = true
   var $found = false
-  for (@player[distance<=10]) {
+  at (@player[distance<=10]) {
     unless ($found) {
       @s::Finder = @s::Owner
       $flag ?= @s::Finder = @p::UUID
@@ -70,5 +71,3 @@ function use_slime_ball #dropped  {
     }
   }
 }
-
-

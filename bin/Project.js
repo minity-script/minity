@@ -193,7 +193,8 @@ function listExamples() {
   return examples
 }
 
-function createProject({ createPath, starter, example, info }) {
+function createProject({ createPath, starter, example, info = {} }) {
+  createPath = resolve(createPath);
   canCreateProjectAtPath(createPath,true);
   let template;
   if (starter) {
@@ -209,10 +210,19 @@ function createProject({ createPath, starter, example, info }) {
     mkdir(dirname(target), { recursive: true })
     copyFile(file.path, target)
   }
+  const projectName = info.name||basename(createPath);
   const settingsPath = resolve(createPath, "minity.json");
-  const settings = Object.assign({}, require(settingsPath), info);
+  const settings = Object.assign({}, require(settingsPath), {...info,name:projectName});
   writeFile(settingsPath, JSON.stringify(settings, null, 2), { encoding: "utf8" })
+
+  if (starter) {
+    const indexPath = resolve(createPath,"src","index.minity")
+    let text = readFile(indexPath,{encoding:"utf8"});
+    text = text.replace(/###PACK###/g,projectName);
+    writeFile(indexPath,text,{encoding:"utf8"})
+  }
   const project = projectFromPath(createPath)
+
   console.log('Created project '+chalk.bold(project.name)+" at "+project.path)
   return project;
   
