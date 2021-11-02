@@ -1,1 +1,0 @@
-execute as @e[type=minecraft:item,nbt={Item:{tag:{"--use_thrown-undroppable":1b}}},tag=!--use_thrown-keep_stuff-processed] at @s run function zzz_minity:use_thrown/1_k65ozoz6a7j

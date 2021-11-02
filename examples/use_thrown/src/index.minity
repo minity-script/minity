@@ -1,73 +1,75 @@
 namespace use_thrown
+import "./throwables"
 
-// we won't actually use these tags to tag any entity, we
-// will just use them to get namespaced identifiers for our
-// item flags.
+tag sand_builder
+tag sand_eater
+tag sand_zapper
+tag sand_looper
 
-tag undroppable
-tag special_slime_ball
-var $a = 3
+for @a throwables:give_throwable(music_disc_cat,"{.sand_builder}","Sand Builder")
+for @a throwables:give_throwable(music_disc_13,"{.sand_eater}","Sand Eater")
+for @a throwables:give_throwable(music_disc_blocks,"{.sand_zapper}","Sand Zapper")
+for @a throwables:give_throwable(music_disc_pigstep,"{.sand_looper}","Sand Looper")
 
-clear @a slime_ball{
-  "{.special_slime_ball}": true
-}
-
-give @a slime_ball{
-  CustomName: json <b>Special slime_ball</b>,
-  "{.undroppable}": true,
-  "{.special_slime_ball}": true
-}
-
-
-function keep_stuff #minecraft:tick {
-  tag processed
-  for @item{Item:{tag:{"{.undroppable}":true}}}!processed {
-    /effect give @s minecraft:invisibility 1 1 true
-    @s::Silent = true
-    @s::Owner = @s::Thrower
-    @s::PickupDelay = 0
-    tag @s processed
-    #dropped()
-  }
-}
-
-macro find_block(?count=20) {
-  var $count = 0
-  repeat forward 0.2 {
-    $count ++
-  } while ($count<20) and while(air) then {
-    if($count<20) resolve() else reject()
-  }
-}
-
-macro find_owner(?distance=30) {
-  var $flag = true
-  var $found = false
-  at (@player[distance<=10]) {
-    unless ($found) {
-      @s::Finder = @s::Owner
-      $flag ?= @s::Finder = @p::UUID
-      unless ($flag) {
-        $found = true
-        resolve()
+function sand_builder #throwables:dropped  {
+  if (@s.sand_builder) {
+    when throwables:find_block then {
+      repeat up 1 until air then {
+        setblock sand
       }
     }
-  } 
-  unless ($found) reject()
+  }
 }
 
-function use_slime_ball #dropped  {
-  var $flag = true
-  if (@s{Item:{tag:{ "{.special_slime_ball}":true }} }) {
-    when find_owner then {
-      say I dropped it
-      anchored eyes when find_block then {
-        repeat up 1 until air then setblock slime_block
-      } catch {
-        say nothing found close enough
-      } 
-    } catch {
-      say no owner found
+function sand_zapper #throwables:dropped  {
+  if (@s.sand_zapper) {
+    when throwables:find_block then {
+      if sand {
+        repeat up 1 {
+          setblock (down 1) air
+        } while sand
+      }
+    }
+  }
+}
+
+
+function sand_eater #throwables:dropped  {
+  if (@s.sand_eater) {
+    when throwables:find_block then {
+      if sand summon marker then {
+        tag @s sand_eater
+      }
+    }
+  }
+}
+
+function sand_looper #throwables:dropped  {
+  if (@s.sand_looper) {
+    when throwables:find_block then {
+      if sand summon marker then {
+        tag @s sand_looper
+      }
+    }
+  }
+}
+
+every 20t {
+  for @marker.sand_eater {
+    if (sand) {
+      setblock air 
+    } else {
+      /kill @s
+    }
+  }
+  for @marker.sand_looper {
+    if (sand) {
+      repeat up 1 until air then {
+        setblock sand
+      }
+      setblock air
+    } else {
+      /kill @s
     }
   }
 }

@@ -33,13 +33,13 @@ macro do_update_locks(?is_lock,?is_key,?delta=1) {
       }]
     }) {
       down ?delta setblock redstone_block
-    }  else {
+    } else {
        down ?delta setblock glass
     } 
   }
 }
 
-
+if ($enabled) update_locks() else update_locks()
 
 macro update_locks(?color,?delta=1) {
   do_update_locks("is_{?color}_lock","{.is_{?color}_key}",?delta)

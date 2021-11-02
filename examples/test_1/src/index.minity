@@ -97,6 +97,10 @@ function run() {
   @@baz ?= test if $foo < 3
   expect_baz(1b)
 
+  $foo ?= test if $foo < 3
+  
+  expect_foo(0)
+
   print @a {$failed} tests failed
 }
 

@@ -1,2 +1,0 @@
-scoreboard players set --use_thrown-use_slime_ball-flag --use_thrown--vars 1
-execute if entity @s[nbt={Item:{tag:{"--use_thrown-special_slime_ball":1b}}}] run function zzz_minity:use_thrown/find_owner_3pod6o5bbdy
