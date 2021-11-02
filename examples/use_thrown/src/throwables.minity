@@ -1,0 +1,96 @@
+namespace throwables
+
+
+macro give_throwable(?type, ?tag,?name,?color=yellow) {
+
+  clear ?type{
+    throwable:true
+  }
+  give ?type{
+    display: {
+      Name: json <reset bold=true color=?color>{?name}</reset>,
+      Lore: [json <green>Throw to activate</green>]
+    },
+    throwable: true,
+    throwable_tag: ?tag
+  }
+}
+
+macro locate_block(?max=20) {
+  var $count = 0
+  repeat forward 0.2 {
+    $count ++
+  } while ($count<?max) and while(air) then {
+    unless(air) align xyz resolve() else reject()
+  }
+}
+
+tag has_thrown
+untag @a has_thrown
+/advancement revoke @a only throwables:thrower
+
+macro find_owner(?distance=30) {
+  var $changed = true
+  var $found = false
+  @@finder = @s::Owner
+  at (@player[distance<=10]) {
+    unless ($found) {
+      @@test = @@finder
+      $changed ?= @@test = @p::UUID
+      unless ($changed) {
+        $found = true
+        unless(@p.has_thrown) {
+          print @p Bravo, you have used a throwable
+          /advancement grant @p only throwables:thrower
+          tag @p has_thrown
+        }
+        as @p resolve()
+      }
+    }
+  } 
+  
+  unless ($found) {
+    /kill @s
+    reject()
+  }
+}
+
+
+macro find_block(?max=25) {
+  when find_owner then {
+    anchored eyes when locate_block(?max) then {
+      resolve() 
+    } catch {
+      reject() 
+    }
+  } 
+}
+
+
+function keep_stuff #minecraft:tick {
+  tag processed
+  for @item!processed {
+    if @s{Item:{tag:{throwable:true}}} {
+      @s::Owner = @s::Thrower
+      @s::PickupDelay = 0
+      append @s::Tags @s::Item.tag.throwable_tag
+      #dropped()
+    }
+    tag @s processed
+  }
+}
+
+define advancements/thrower {
+  display: {
+    title: <yellow>An accomplished thrower</yellow>,
+    description: <green>You have thrown a throwable</green>,
+    icon: {
+      item: "minecraft:music_disc_pigstep"
+    }
+  },
+  criteria: {
+    thrown: {
+      trigger: "minecraft:impossible"
+    }
+  }
+}
