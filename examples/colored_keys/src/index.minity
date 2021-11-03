@@ -1,4 +1,3 @@
-// Declare the namespace. This is where all the following functions will go.
 namespace colored_keys
 
 var $enabled
@@ -24,24 +23,26 @@ tag is_blue_key
 tag is_red_key
 tag is_book
 
+?distance=2
+?delta=2
 
-macro do_update_locks(?is_lock,?is_key,?delta=1) {
+macro do_update_locks(?is_lock,?is_key) {
   for @s.?is_lock {
-    up ?delta if (@a[distance = ..2]{
+    forward ?delta if (@player[distance <= ?distance]{
       Inventory:[{
-        tag:{Tags:["{.is_key}"]}
+        tag:{Tags:[?is_key]}
       }]
     }) {
-      down ?delta setblock redstone_block
+      back ?delta setblock redstone_block
     } else {
-       down ?delta setblock glass
+       back ?delta setblock glass
     } 
   }
 }
 
 if ($enabled) update_locks() else update_locks()
 
-macro update_locks(?color,?delta=1) {
+macro update_locks(?color) {
   do_update_locks("is_{?color}_lock","{.is_{?color}_key}",?delta)
 }
 
@@ -73,7 +74,7 @@ macro give_lock(?color,?Color,?textColor=white) {
   give @s command_block{
    display: {
      Name:  json [ {
-       color: "{?textColor}",
+       color: ?textColor,
        text: "Place {?Color} Lock",
        italic: 0b
      }],
@@ -99,13 +100,41 @@ function give_red_lock {
   give_lock(red,Red,red)  
 }
 macro summon_lock(?color,?Color) {
-  down 0.5 summon slime{
+  var $rotx = 0
+  var $roty = 0
+  
+  align xyz up 0.25 south 0.5 east 0.5 summon slime{
     CustomName: json "{?Color} Lock",
     Invulnerable: true,
     Silent: true,
     Size: 0.5d,
+    DeathLootTable: "minecraft:empty",
     Tags:["{.is_{?color}_lock}","{.is_lock}"]
   } then {
+    if (command_block[facing=up]) {
+      say up
+      up 0.22 rotated 0 -90 /tp @s ~ ~ ~ ~ ~
+    }
+    if (command_block[facing=down]) {
+      say down
+      down 0.22 rotated 0 90 /tp @s ~ ~ ~ ~ ~
+    }
+    if (command_block[facing=south]) {
+      say south
+      south 0.21 rotated 0 0 /tp @s ~ ~ ~ ~ ~
+    }
+    if (command_block[facing=west]) {
+      say west
+      west 0.21 rotated 90 0 /tp @s ~ ~ ~ ~ ~
+    }      
+    if (command_block[facing=north]) {
+      say north
+      north 0.21 rotated 180 0 /tp @s ~ ~ ~ ~ ~
+    }
+    if (command_block[facing=east]) {
+      say east
+      east 0.21 rotated 270 0 /tp @s ~ ~ ~ ~ ~
+    }
     @s::NoAI = true
   }
 }

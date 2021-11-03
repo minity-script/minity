@@ -70,6 +70,26 @@ function give_book {
             }
           /></b>
         </p>
+        <p>
+          Locks will turn into redstone when approached by a player with the right key.
+        </p>
+      </div>,
+      json <div> 
+        <p>
+          This is an example for Minity, a scripting language for Vanilla Minecraft.
+        </p>
+        <p>
+          <u 
+            color = blue 
+
+            text ="minity-script.github.io"
+            clickEvent= {
+              action: open_url,
+              value: "https://minity-script.github.io/minity/#/"
+            }
+          />
+        </p>
+        
       </div>
     ],
     "title":"Colored Keys Handbook",
