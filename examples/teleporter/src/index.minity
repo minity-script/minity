@@ -1,0 +1,34 @@
+namespace teleporter
+import "./throwables"
+
+tag teleporter
+
+for @a throwables:give_throwable(slime_ball,"{.teleporter}","Throwable Teleporter")
+
+function teleporter #throwables:dropped  {
+  tag teleport_now
+  if (@s.teleporter) {
+    if (@s::Item.tag.OldPosition) {
+      @@teleporterPrevious = @s::Item.tag.OldPosition
+      tag @s teleport_now
+      when throwables:find_owner then {
+        @@teleporterCurrent = @s::Pos
+        tag @s teleport_now
+        at @s summon marker then {
+          @s::Pos = @@teleporterPrevious
+          print @a teleporting to {@@teleporterPrevious}
+          /tp {@e.teleport_now} @s
+          /kill @s
+        }
+      }
+      untag @e.teleport_now teleport_now
+      @s::Item.tag.OldPosition = @@teleporterCurrent
+    } else {
+      when throwables:find_owner then {
+        print @s Your initial position marked. use teleporter again to return to it.
+        @@teleporterPrevious = @s::Pos
+      }
+      @s::Item.tag.OldPosition = @@teleporterPrevious
+    }
+  }
+}

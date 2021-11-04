@@ -70,19 +70,12 @@ function update_all_locks {
   }
 }
 
-macro give_lock(?color,?Color,?textColor=white) {
+macro give_lock( ?color, ?Color, ?textColor=white ) {
   give @s command_block{
    display: {
-     Name:  json [ {
-       color: ?textColor,
-       text: "Place {?Color} Lock",
-       italic: 0b
-     }],
+     Name:  json <span color=?textColor italic=false>Place {?Color} Lock</span>,
      Lore: [
-       json [{
-         text: "Place this command block to create a {?color} lock.",
-         italic: false
-       }] 
+       json <span color=?textColor italic=false>Place this command block to create a {?color} lock.</span>
      ]
    },
    BlockEntityTag:{
