@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Minity</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Description">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <link rel="icon" href="/minity-icon-round.png">
+</head>
+
+<body>
+  <div id="app"></div>
+  <style>
+.app-sub-sidebar li:before {
+  content: "";
+  padding-right: 4px;
+  float: left
+}
+  article .anchor ~ small{
+    font-size:50%;
+    color:inherit;
+    display:inline-block;
+    vertical-align: middle;
+  }
+  article .anchor ~ small a  {
+    color:inherit;
+    text-decoration: none;
+    background:#eee;
+    padding:0 0.5em;
+    border-radius:3px;
+    border:solid 1px #ddd;
+    font-weight:500;
+  }
+  article .anchor {
+    margin-right:0.25em;
+  }
+
+  .float-right {
+    float:right;
+  }
+
+  def {
+    font-family:monospace;
+    font-weight:400;
+    font-size:12px;
+    display:block;
+    white-space:pre-line;
+    background:#ffe;
+    border-radius:6px;
+    box-shadow:0 0 2px 0 #0006 inset;
+    padding:1em 1.5em;
+    color:#944;
+  }
+
+  article def em  {
+    color:#666!important;
+    font-weight:400;
+  }
+  article def strong  {
+    color:#003!important;
+    font-weight:bold;
+  }
+  article def a {
+    font-weight:400;
+    color:#666!important;
+    text-decoration-style: dotted;
+    text-decoration-color: #944;
+  }
+  .markdown-section pre, .markdown-section pre code {
+    background-color: #f1f1f1;
+  }
+  </style>
+  <script>
+    window.$docsify = {
+      name: 'Minity',
+      repo: 'https://github.com/minity-script/minity',
+      maxLevel: 2,
+      subMaxLevel: 5,
+      executeScript: true,
+      loadSidebar: true,
+      loadNavbar: true,
+      auto2top:true,
+      themeColor: '#e96900',
+      relativePath: true,
+      //logo:'minity-logo-small.png',
+      coverpage: true,
+      search: "auto",
+    }
+
+  </script>
+  <!-- Docsify v4 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script>
+
+
+    var space = /(?:\s|\/\/.*(?!.)|\/\*(?:[^*]|\*(?!\/))\*\/)/.source;
+    var braces = /(?:\{(?:\{(?:\{[^{}]*\}|[^{}])*\}|[^{}])*\})/.source;
+    var spread = /(?:\{<S>*\.{3}(?:[^{}]|<BRACES>)*\})/.source;
+
+    /**
+     * @param {string} source
+     * @param {string} [flags]
+     */
+    function re(source, flags) {
+      source = source
+        .replace(/<S>/g, function () { return space; })
+        .replace(/<BRACES>/g, function () { return braces; })
+        .replace(/<SPREAD>/g, function () { return spread; });
+      return RegExp(source, flags);
+    }
+
+    spread = re(spread).source;
+
+
+    (function (Prism) {
+
+      var string = /(?:"(?:\\(?:\r\n|[\s\S])|[^"\\\r\n])*"|'(?:\\(?:\r\n|[\s\S])|[^'\\\r\n])*')/;
+
+      var expansion = {
+        constant: {
+          pattern: /\{\?\w+\}/,
+          alias: "property",
+        },
+        selector: {
+          pattern: /\{@[^}]+\}/,
+        }
+      }
+      const Minity = Prism.languages.minity = {}
+      Object.assign(Minity, {
+        'operators': {
+          pattern: /([/]=)/
+        },
+        'tag': {
+          pattern: re(
+            /<\/?(?:[\w.:-]+(?:<S>+(?:[\w.:$-]+(?:=(?:"(?:\\[\s\S]|[^\\"])*"|'(?:\\[\s\S]|[^\\'])*'|[^\s{'"/>=]+|<BRACES>))?|<SPREAD>))*<S>*\/?)?>/.source
+          ),
+          greedy: true,
+          inside: {
+            'script': {
+              // Allow for two levels of nesting
+              pattern: /=\s*(?:\{(?:\{(?:\{[^{}]*\}|[^{}])*\}|[^{}])*\})/,
+              inside: {
+                'script-punctuation': {
+                  pattern: /^=(?=\{)/,
+                  alias: 'punctuation'
+                },
+                rest: Minity
+              },
+              'alias': 'language-minity'
+            },
+            'special-attr': [],
+            'attr-value': {
+              pattern: /=(?!\{)(?:"(?:\\[\s\S]|[^\\"])*"|'(?:\\[\s\S]|[^\\'])*'|[^\s'">]+)/i,
+              inside: {
+                'punctuation': [
+                  {
+                    pattern: /^=/,
+                    alias: 'attr-equals'
+                  },
+                  /"|'/
+                ]
+              }
+            },
+            'punctuation': /\/?>/,
+            'tag': {
+              pattern: /^<\/?[^\s>\/]*/i,
+              inside: {
+                'punctuation': /^<\/?/,
+                'namespace': /^[^\s>\/:]+:/
+              }
+            },
+            'attr-name': {
+              pattern: /[^\s>\/]+/,
+              inside: {
+                'namespace': /^[^\s>\/:]+:/
+              }
+            }
+          }
+        },
+        'comment': {
+          pattern: /\/\/[^\n]*/,
+          greedy: true,
+        },
+        'directive': {
+          pattern: /\/\s*\w[^\n]*/,
+          greedy: true,
+          alias: "bold",
+          inside: expansion
+        },
+        'variable': /(\$|->)\w+/,
+        'storage': {
+          pattern: /(@@)\w+(:\w+)?/,
+          alias: "variable"
+        },
+        'constant': {
+          pattern: /(\?)\w+/,
+          alias: "property",
+        },
+        'string': {
+          pattern: string,
+          greedy: true,
+          inside: expansion
+        },
+        selector: {
+          pattern: /((nearest|furthest|any|random|arbitrary)(\s+\d+)\s+)?@[\w.]+/
+        },
+        /*'atrule': {
+          pattern: /@[\w-](?:[^;{\s]|\s+(?![\s{]))*(?:;|(?=\s*\{))/,
+          inside: {
+            'rule': /^@[\w-]+/,
+            'selector-function-argument': {
+              pattern: /(\bselector\s*\(\s*(?![\s)]))(?:[^()\s]|\s+(?![\s)])|\((?:[^()]|\([^()]*\))*\))+(?=\s*\))/,
+              lookbehind: true,
+              alias: 'selector'
+            },
+            'keyword': {
+              pattern: /(^|[^\w-])(?:and|not|only|or)(?![\w-])/,
+              lookbehind: true
+            }
+            // See rest below
+          }
+        },*/
+        'greedy_line': {
+          pattern: /\b(say|print)\s+[^\n]*/,
+          lookbehind:true,
+          greedy: true,
+          alias: "text",
+          inside: expansion
+        },
+        statement: {
+          pattern: /(?:\b(?:after|else|every|and|if|import|repeat|test|then|until|unless|when|while|except|catch|align|anchored|as|at|facing|for|in|pos|positioned|predicate|rot|rotated|in|up|down|north|south|east|west|left|right|forward|back|upward|downward|function|macro|namespace|score|tag|var)\b)/,
+          //alias:"bold"
+        },
+        subcommand: {
+          pattern: /(\w+\s+[\w:]+\s+)(players|visible|max|value)\b/,
+          alias: "directive",
+          lookbehind: true,
+        },
+        command: {
+          pattern: /(?:\b(?:append|delete|merge|bossbar|clear|delete|give|prepend|remove|print|say|setblock|summon|tag|untag|add|remove)\b)/,
+          alias: 'directive',
+        },/*
+  'selector': {
+    pattern: RegExp('(^|[{}\\s])[^{}\\s](?:[^{};"\'\\s]|\\s+(?![\\s{])|' + string.source + ')*(?=\\s*\\{)'),
+    lookbehind: true
+  },*/
+
+        'function': {
+          pattern: /(^|[^a-z0-9_])[a-z0-9_:/]+(?=\()/i,
+          lookbehind: true
+        },
+        'punctuation': /[(){};:,]/
+      });
+
+      //Prism.languages.minity['atrule'].inside.rest = Prism.languages.minity;
+
+    }(Prism));
+  </script>
+</body>
+
+</html>

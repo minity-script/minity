@@ -1,6 +1,6 @@
 {
   "name": "use_thrown",
-  "description": "Use Thown Item, example for minity",
+  "description": "Use a throwable to teleport between two locations",
   "main": "src/index.minity",
   "directories": {
     "copy": [

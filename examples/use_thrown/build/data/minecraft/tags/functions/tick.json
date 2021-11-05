@@ -1,5 +1,5 @@
 {
   "values": [
-    "use_thrown:keep_stuff"
+    "throwables:keep_stuff"
   ]
 }

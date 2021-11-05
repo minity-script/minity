@@ -1,6 +1,5 @@
 const chalk = require("chalk");
-const assert = require("assert")
-const {actions,canCreateProjectAtPath, isPathEmpty, findProjectPath, listExamples} = require("./Project");
+const {actions, isPathEmpty, listExamples} = require("./Project");
 const {menus} = require("./Interactive");
 const {resolve} = require("path");
 const commands = exports.commands = {

@@ -1,4 +1,5 @@
 const watch = require('node-watch');
+const os=require("os")
 const { utils: { walk }, Builder } = require("@minity/parser");
 const {
   writeFileSync: writeFile,
@@ -105,7 +106,7 @@ module.exports = {
     watch: ({path}) => {
       return new Promise(async (resolve,reject)=>{
         const project = projectFromPath(path);
-        assert(project.isProject, "not a project path " + path);
+        assert(project?.isProject, "not a project path " + path);
         const watchers = [];
 
         function start() {
@@ -178,7 +179,7 @@ function getExample(name) {
 }
 function exampleExists(name,error) {
   const example=getExample(name);
-  return error ? assert(example.isProject,"No such example "+name) : !!example
+  return error ? assert(example,"No such example "+name) : !!example
 }
 function listExamples() {
   const path = resolve(__dirname, "..", "examples");
@@ -186,20 +187,21 @@ function listExamples() {
   const examples = [];
   for (const entry of entries) {
     const project = getExample(entry.name)
-    if (!project.isProject) continue;
+    if (!project) continue;
     examples.push(project)
   }
   return examples
 }
 
-function createProject({ createPath, starter, example, info }) {
+function createProject({ createPath, starter, example, info = {} }) {
+  createPath = resolve(createPath);
+  canCreateProjectAtPath(createPath,true);
   let template;
   if (starter) {
     template = projectFromPath(resolve(__dirname,"..","starter"));
   } else {
     exampleExists(example,true);
-    canCreateProjectAtPath(createPath,true);
-   template = getExample(example);
+    template = getExample(example);
   }
   mkdir(createPath, { recursive: true });
   const files = walk(template.path);
@@ -208,10 +210,19 @@ function createProject({ createPath, starter, example, info }) {
     mkdir(dirname(target), { recursive: true })
     copyFile(file.path, target)
   }
+  const projectName = info.name||basename(createPath);
   const settingsPath = resolve(createPath, "minity.json");
-  const settings = Object.assign({}, require(settingsPath), info);
+  const settings = Object.assign({}, require(settingsPath), {...info,name:projectName});
   writeFile(settingsPath, JSON.stringify(settings, null, 2), { encoding: "utf8" })
+
+  if (starter) {
+    const indexPath = resolve(createPath,"src","index.minity")
+    let text = readFile(indexPath,{encoding:"utf8"});
+    text = text.replace(/###PACK###/g,projectName);
+    writeFile(indexPath,text,{encoding:"utf8"})
+  }
   const project = projectFromPath(createPath)
+
   console.log('Created project '+chalk.bold(project.name)+" at "+project.path)
   return project;
   
@@ -219,9 +230,10 @@ function createProject({ createPath, starter, example, info }) {
 
 class ProjectPath {
   get defeaultMinecraftPath() {
-    if (process.env.APPDATA) return resolve(process.env.HOME, "Library", "Application Support", "minecraft");
+    if (process.platform=="win32") return resolve(os.homedir(), "AppData", "Roaming", ".minecraft");
     if (process.platform == 'darwin') return resolve(process.env.HOME, "Library", "Application Support", "minecraft");
-    return resolve(process.env.HOME, '.minecraft');
+    if (process.platform == 'android') return resolve("/", "sdcard", "games", "com.mojang");
+    return resolve(os.homedir(), '.minecraft');
   }
   constructor(path) {
     this.path = resolve(path);
