@@ -99,6 +99,7 @@ macro summon_lock(?color,?Color) {
   align xyz up 0.25 south 0.5 east 0.5 summon slime{
     CustomName: json "{?Color} Lock",
     Invulnerable: true,
+    PersistenceRequired: true,
     Silent: true,
     Size: 0.5d,
     DeathLootTable: "minecraft:empty",

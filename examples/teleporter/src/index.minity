@@ -6,29 +6,69 @@ tag teleporter
 for @a throwables:give_throwable(slime_ball,"{.teleporter}","Throwable Teleporter")
 
 function teleporter #throwables:dropped  {
+  var $at_pos
   tag teleport_now
   if (@s.teleporter) {
     if (@s::Item.tag.OldPosition) {
-      @@teleporterPrevious = @s::Item.tag.OldPosition
+      @@OldPosition = @s::Item.tag.OldPosition
+      @@OldRotation = @s::Item.tag.OldRotation
+      $at_pos = @s::Item.tag.CurrentState
+      if ($at_pos == 1) {
+        @s::Item.tag.CurrentState = 2b
+      } else {
+        @s::Item.tag.CurrentState = 1b
+      }
       tag @s teleport_now
       when throwables:find_owner then {
-        @@teleporterCurrent = @s::Pos
+        @@CurrentPosition = @s::Pos
+        @@CurrentRotation = @s::Rotation
         tag @s teleport_now
         at @s summon marker then {
-          @s::Pos = @@teleporterPrevious
-          print @a teleporting to {@@teleporterPrevious}
+          @s::Pos = @@OldPosition
+          @s::Rotation = @@OldRotation
           /tp {@e.teleport_now} @s
           /kill @s
         }
+        /title @s title ""
+        /title @s subtitle {=<t>Teleport position {$at_pos}</t>}
       }
       untag @e.teleport_now teleport_now
-      @s::Item.tag.OldPosition = @@teleporterCurrent
+      @s::Item.tag.OldPosition = @@CurrentPosition
+      @s::Item.tag.OldRotation = @@CurrentRotation
     } else {
       when throwables:find_owner then {
-        print @s Your initial position marked. use teleporter again to return to it.
-        @@teleporterPrevious = @s::Pos
+        /title @s title ""
+        /title @s subtitle "Teleport position 1 marked"
+        @@OldPosition = @s::Pos
+        @@OldRotation = @s::Rotation
       }
-      @s::Item.tag.OldPosition = @@teleporterPrevious
+      @s::Item.tag.CurrentState = 1b
+      @s::Item.tag.OldPosition = @@OldPosition
+      @s::Item.tag.OldRotation = @@OldRotation
     }
   }
+}
+
+tag captured
+
+every 5t {
+  at @a for @chicken.captured[distance<6] {
+    facing @p eyes /tp @s ~ ~ ~ ~ ~
+  }
+}
+
+every 10t {
+  at @a for @chicken.captured[distance<10] {
+    //kill {@item[distance<20]{Item:{id:"minecraft:egg"}}}
+    for @item[distance<20]{Item:{id:"minecraft:egg"}} {
+      @s::Fire=100b
+    }
+  }
+}
+
+for @chicken.captured {
+  tag survivor
+  tag @s survivor
+  /kill {@chicken!survivor[distance<0.1]}
+  untag @s survivor
 }
