@@ -14,7 +14,7 @@
     "datapack"
   ],
   "dependencies": {
-    "@minity/parser": "file:../mclang-parser",
+    "@minity/parser": "^1.0.0-alpha.17",
     "chalk": "^4.1.2",
     "enquirer": "^2.3.6",
     "minimist": "^1.2.5",
@@ -27,5 +27,11 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/minity-script/minity.git"
-  }
+  },
+  "scripts": {
+    "next-version": "npm version `node bin/alpha-version.js`",
+    "build": "npm install @minity-parser@latest",
+    "prepublish": "npm run build; git commit -a -m prepublish; npm run next-version"
+  },
+  "private": false
 }
