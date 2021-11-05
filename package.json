@@ -30,7 +30,7 @@
   },
   "scripts": {
     "next-version": "npm version `node bin/alpha-version.js`",
-    "build": "npm install @minity-parser@latest",
+    "build": "npm install @minity/parser@latest",
     "prepublish": "npm run build; git commit -a -m prepublish; npm run next-version"
   },
   "private": false
