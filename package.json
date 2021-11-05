@@ -14,7 +14,11 @@
     "datapack"
   ],
   "dependencies": {
+<<<<<<< HEAD
     "@minity/parser": "file:../mclang-parser",
+=======
+    "@minity/parser": "^1.0.0-alpha.13",
+>>>>>>> main
     "chalk": "^4.1.2",
     "enquirer": "^2.3.6",
     "minimist": "^1.2.5",
