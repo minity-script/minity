@@ -3,6 +3,30 @@ import "./throwables"
 
 tag teleporter
 
+function primes() {
+  var $found = 0
+  var $cur = 2
+  var $index
+  var $rem
+  var $sqr
+
+  repeat {
+    $index = 1 
+    repeat {
+      $index ++ 
+      $rem = $cur
+      $rem %= $index
+      $sqr = $index
+      $sqr *= $index 
+    } while ($rem) and while ($sqr<$cur) 
+    if ($rem) {
+      $found ++
+      print @a {$cur} is the {$found}th prime
+    }
+    $cur++
+  } while ($found<100)
+}
+
 for @a throwables:give_throwable(slime_ball,"{.teleporter}","Throwable Teleporter")
 
 function teleporter #throwables:dropped  {
@@ -47,28 +71,4 @@ function teleporter #throwables:dropped  {
       @s::Item.tag.OldRotation = @@OldRotation
     }
   }
-}
-
-tag captured
-
-every 5t {
-  at @a for @chicken.captured[distance<6] {
-    facing @p eyes /tp @s ~ ~ ~ ~ ~
-  }
-}
-
-every 10t {
-  at @a for @chicken.captured[distance<10] {
-    //kill {@item[distance<20]{Item:{id:"minecraft:egg"}}}
-    for @item[distance<20]{Item:{id:"minecraft:egg"}} {
-      @s::Fire=100b
-    }
-  }
-}
-
-for @chicken.captured {
-  tag survivor
-  tag @s survivor
-  /kill {@chicken!survivor[distance<0.1]}
-  untag @s survivor
 }
