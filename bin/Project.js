@@ -103,33 +103,43 @@ module.exports = {
       assert(project.isProject, "not a project path " + path);
       project.tryBuild(buildDirectory);
     },
-    watch: ({path}) => {
-      return new Promise(async (resolve,reject)=>{
-        const project = projectFromPath(path);
-        assert(project?.isProject, "not a project path " + path);
-        const watchers = [];
-
-        function start() {
-          for (const dir of project.watchDirectories) {
-            watchers.push(watch(dir, {
-              persistent: true,
-              recursive: true
-            }, build));
-          }
-        }
-        function stop() {
-          for (const watcher of watchers) {
-            watcher.close();
-          }
+    watch: ({path:dir,paths}) => {
+      let first = true
+      const watchers = [];
+      const projects = [];
+      function start(project) {
+        projects.push(project)
+        for (const dir of project.watchDirectories) {
+          watchers.push(watch(dir, {
+            persistent: true,
+            recursive: true
+          },build));
         }
         function build() {
           project.tryBuild();
-          console.error("  Waiting for change ...")
+          console.error(chalk`{cyan ?} {bold Press ^C to stop watching, or enter to rebuild at any time.} {dim ‣} `)
         }
-        start();
+      }
+      function stop() {
+        for (const watcher of watchers) {
+          watcher.close();
+        }
+      }
+      function build_all() {
+        for (const project of projects) {
+          project.tryBuild();
+        }
+        first = false;
+      }
+      return new Promise(async (resolve,reject)=>{
+        for (const path of [dir,...paths]) {
+          const project = projectFromPath(path);
+          assert(project?.isProject, "not a project path " + path);
+          start(project);
+        }
         do {
           try {
-            build();
+            build_all();
             await prompt({
               type:"input",
               format:()=>"",
@@ -147,7 +157,6 @@ module.exports = {
         } while(1)
       })
     }
-    
   },
 }
 

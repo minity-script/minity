@@ -1,14 +1,12 @@
 namespace colored_keys
 tag book
 
-give_book()
-
 function give_book {
-  clear @a written_book{
+  clear @s written_book{
     "{.book}": 1b,
   }
 
-  give @a[gamemode=creative] written_book{
+  give @s[gamemode=creative] written_book{
     "{.book}": 1b,
     pages: [
       json <div> 

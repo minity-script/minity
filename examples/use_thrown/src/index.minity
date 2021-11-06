@@ -6,10 +6,12 @@ tag sand_eater
 tag sand_zapper
 tag sand_looper
 
-for @a throwables:give_throwable(music_disc_cat,"{.sand_builder}","Sand Builder")
-for @a throwables:give_throwable(music_disc_13,"{.sand_eater}","Sand Eater")
-for @a throwables:give_throwable(music_disc_blocks,"{.sand_zapper}","Sand Zapper")
-for @a throwables:give_throwable(music_disc_pigstep,"{.sand_looper}","Sand Looper")
+function master #minity:master {
+  throwables:give_throwable(music_disc_cat,"{.sand_builder}","Sand Builder")
+  throwables:give_throwable(music_disc_13,"{.sand_eater}","Sand Eater")
+  throwables:give_throwable(music_disc_blocks,"{.sand_zapper}","Sand Zapper")
+  throwables:give_throwable(music_disc_pigstep,"{.sand_looper}","Sand Looper")
+}
 
 function sand_builder #throwables:dropped  {
   if (@s.sand_builder) {

@@ -88,8 +88,8 @@ specific location.`,
     describe:
       `Watches files in your Minity project directory, and rebuilds your datapack on every change, either in the project build directory (the default), or in a 
 specific location.`,
-    async exec([dir = "."], {target}) {
-      actions.watch({path:dir,buildDirectory:target})
+    async exec([path = ".",...paths], {target}) {
+      actions.watch({path,paths,buildDirectory:target})
     },
   },
   menu: {

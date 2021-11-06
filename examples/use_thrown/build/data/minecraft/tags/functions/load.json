@@ -1,10 +1,11 @@
 {
   "values": [
-    "zzz_minity:zzz_minity/objectives_fi3eauvkgpn",
-    "zzz_minity:zzz_minity/constants_xbg58m7n8sk",
-    "zzz_minity:throwables/objectives_1vqtjc1kgx7",
-    "zzz_minity:throwables/load_8z17fiarlqm",
-    "zzz_minity:use_thrown/objectives_htbxqkhsc2m",
-    "zzz_minity:use_thrown/load_da965eatxwb"
+    "zzz_minity:zzz_minity/objectives_0",
+    "zzz_minity:zzz_minity/constants_1",
+    "zzz_minity:throwables/objectives_2",
+    "zzz_minity:throwables/load_5",
+    "zzz_minity:use_thrown/objectives_10",
+    "zzz_minity:minity/objectives_11",
+    "zzz_minity:use_thrown/load_65"
   ]
 }

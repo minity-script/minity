@@ -3,10 +3,6 @@ import "./throwables"
 
 tag teleporter
 
-
-
-for @a throwables:give_throwable(slime_ball,"{.teleporter}","Throwable Teleporter")
-
 function teleporter #throwables:dropped  {
   var $at_pos
   tag teleport_now
@@ -49,4 +45,47 @@ function teleporter #throwables:dropped  {
       @s::Item.tag.OldRotation = @@OldRotation
     }
   }
+}
+
+/advancement revoke @a only teleporter:teleporter_made 
+/recipe take @a teleporter:teleporter
+
+function give_teleporter() {
+  /recipe take @s teleporter:teleporter
+  /advancement revoke @s only teleporter:teleporter_made 
+  throwables:give_throwable(slime_ball,"{.teleporter}","Throwable Teleporter") 
+  clear @s 1 slime_spawn_egg
+}
+
+function master #minity:master {
+   give_teleporter()
+}
+
+define advancements/teleporter_made {
+  criteria: {
+    unlocked: {
+      trigger: "minecraft:recipe_unlocked",
+      conditions: {
+        recipe: "teleporter:teleporter"
+      }
+    }
+  },
+  rewards: {
+    "function": "teleporter:give_teleporter"
+  }
+}
+
+
+define recipes/teleporter {
+  type: "minecraft:crafting_shaped",
+  pattern: [
+    "SSS",
+    "ScS",
+    "SSS"
+  ],
+  key: {
+    c: { item: "minecraft:compass" },
+    S: { item: "minecraft:slime_block" }
+  },
+  result: { item: "minecraft:slime_spawn_egg", count: 1 }
 }

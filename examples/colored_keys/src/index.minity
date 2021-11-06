@@ -180,3 +180,8 @@ as @a[nbt={Inventory:[{tag:{is_book:1b}}]}] {
 } 
 
 import "./give_book" 
+
+function master #minity:master {
+  give_book()
+}
+

@@ -1,6 +1,6 @@
 {
   "pack": {
     "pack_format": 8,
-    "description": "Use Thown Item, example for minity"
+    "description": "Use a throwable to teleport between two locations"
   }
 }
