@@ -358,8 +358,8 @@ class Project extends ProjectPath {
     Builder.build(this);
   } catch(error) {
     if (error.location) {
-      console.error(String(error), "\n  at", error.file + ":" + error.location.start.line + ":" + error.location.start.column);
-      if (options.debug) console.log(error)
+      console.log('boo')
+    
     } else throw (error);
   }
   tryBuild(buildDirectory) {
@@ -369,7 +369,7 @@ class Project extends ProjectPath {
     } catch (error) {
       if (error.location) {
         const {message,file,location:{start:{line,column}}} = error;
-        console.error(`\n${message} at ${file}:${line}:${column}`);
+        console.error(chalk`\n{red ${message}} (${file}:${line}:${column})`);
       } else console.error(error)
     }
   }
