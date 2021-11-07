@@ -1,11 +1,11 @@
-# ![logo](docs/minity-logo-small.png) &nbsp;&nbsp;<big>Minity</big>
+# ![logo](assets/minity-logo-small.png) &nbsp;&nbsp;<big>Minity</big>
 <big><b>Sane scripting for Vanilla Minecraft JE</b></big>
 
 For more info, [**go to project website**](https://minity-script.github.io)
 
 For questions, [**join our Discord server**](https://discord.gg/DnY7nDzdzm)
 
-![A sample of Minity code](docs/code-sample.png)
+![A sample of Minity code](assets/code-sample.png)
 
 ## License
 

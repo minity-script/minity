@@ -25,12 +25,12 @@ function teleporter #throwables:dropped  {
           @s::Pos = @@OldPosition
           @s::Rotation = @@OldRotation
           /tp {@e.teleport_now} @s
+          untag @e.teleport_now teleport_now
           /kill @s
         }
         /title @s title ""
         /title @s subtitle {=<t>Teleport position {$at_pos}</t>}
       }
-      untag @e.teleport_now teleport_now
       @s::Item.tag.OldPosition = @@CurrentPosition
       @s::Item.tag.OldRotation = @@CurrentRotation
     } else {
