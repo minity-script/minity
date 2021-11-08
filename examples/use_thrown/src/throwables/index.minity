@@ -33,18 +33,18 @@ macro find_owner(?distance=30) {
   var $changed = true
   var $found = false
   @@finder = @s::Owner
-  at (@player[distance<=10]) {
+  for (@player[distance<=10]) {
     unless ($found) {
       @@test = @@finder
-      $changed ?= @@test = @p::UUID
+      $changed ?= @@test = @s::UUID
       unless ($changed) {
         $found = true
-        unless(@p.has_thrown) {
-          print @p Bravo, you have used a throwable
+        unless(@s.has_thrown) {
+          print @s Bravo, you have used a throwable
           /advancement grant @p only throwables:thrower
-          tag @p has_thrown
+          tag @s has_thrown
         }
-        as @p resolve()
+        as @s resolve()
       }
     }
   } 
