@@ -2,14 +2,15 @@ namespace beekeeper
 ?init_hives = 3
 ?init_sunflowers = 6
 ?init_poppies = 9
-?init_bees = 12
+?init_bees = 8
 ?spread = 7
 
 
-kill_all()
-at @p summon_beekeeper()
+//kill_all()
+//at @p summon_beekeeper()
 
 tag ours
+tag home 
 tag golem
 tag solid
 tag plant
@@ -20,6 +21,8 @@ tag sunflower
 tag poppy
 tag target
 tag bee
+
+tag watching
 
 macro times(?n=1) {
   var $count = 0
@@ -34,6 +37,7 @@ macro summon_marker(?tag1,?tag2,?times=1) {
     summon marker{
       NoAI:true,
       Small:true,
+      PersistenceRequired:1b,
       Invulnerable: true,
       Tags:["{.ours}","{.summoned}","{.marker}","{.{?tag1}}","{.{?tag2}}"],
     } then {
@@ -45,6 +49,7 @@ macro summon_marker(?tag1,?tag2,?times=1) {
 macro summon_bee(?times) {
   when times(?times) then {
     summon bee{
+      PersistenceRequired:1b,
       DeathLootTable: "minecraft:empty",
       Tags:["{.ours}","{.summoned}","{.bee}"],
     } then {
@@ -55,29 +60,58 @@ macro summon_bee(?times) {
 
 function summon_beekeeper() {
   summon iron_golem{
-   // NoAI: true,
-    PlayerCreated: 0b,
+    PersistenceRequired:1b,
+    PlayerCreated:0b,
+    HandItems:[
+      {id:"minecraft:honeycomb",Count:1b},
+      {id:"minecraft:poppy",Count:1b}
+    ],
+    CustomName: json "Beekeper",
+    //CustomNameVisible: true,
+    ArmorItems:[{},{},{},{id:"minecraft:lead",Count:1b}],
     DeathLootTable: "minecraft:empty",
     //NoAI: true
   } then {
     tag @s golem
     tag @s ours
+    start_watching()
     summon_marker(hive,solid,?init_hives)
     summon_marker(sunflower,plant,?init_sunflowers)
     summon_marker(poppy,plant,?init_poppies)
     summon_marker(sunflower,plant,?init_sunflowers)
     summon_marker(poppy,plant,?init_poppies)
 
+    summon_marker(home,solid,1)
     var $count = 0
     repeat {
       $count++
-      print @a {$count}
+      //print @a {$count}
       /spreadplayers ~ ~ 1 {?spread} false {@e.marker.summoned}
+    
       for @e.summoned.solid {
         if (down 1 #beekeeper:opaque) {
           if @s.hive {
-            up 1 setblock beehive
+            //up 2 setblock weathered_cut_copper_slab[type=bottom]
+            up 1 setblock beehive{
+              Bees:[{
+                EntityData:{
+                  id:"minecraft:bee"
+                }
+              },              {
+                EntityData:{
+                  id:"minecraft:bee"
+                }
+              },{
+                EntityData:{
+                  id:"minecraft:bat"
+                }
+              }]
+            }
             setblock beehive
+          }
+          if @s.home {
+            setblock barrel
+            up 1 setblock bell
           }
           untag @s summoned
         }
@@ -99,80 +133,107 @@ function summon_beekeeper() {
       }
     } while @e.marker.summoned and until $count > 10
     summon_bee(?init_bees)
+    /spreadplayers ~ ~ 2 {?spread} false {@e.bee}
     /kill {@e.marker.summoned}
   }
 }
 
 function summon_target() {
+  tag current_marker
+  tag current_target
+  tag current_golem
+
+  tag @s current_marker
+
+  unless @e.golem.watching[distance<10] {
+    as nearest @e.golem!watching start_watching()
+  }
+  for nearest @e.golem.watching {
+    tag @s current_golem
+    stop_watching()
+    anchored eyes facing @e.current_marker /tp @s ~ ~ ~ ~ ~
+  }
   up 2 summon slime{
-      DeathLootTable:"minecraft:empty",
-      NoGravity:true,
-      NoAI:true,
-      Silent:true,
-      EctiveEffects:[{
-        Id:14,Amplifier:8,Duration:999999, ShowParticles:0b
-      }]
-    } then {
-      tag @s target
-      tag @s ours
-      nearest @e.golem::AngryAt = @s::UUID          
+    DeathLootTable:"minecraft:empty",
+    NoGravity:true,
+    NoAI:true,
+    //Silent:true,
+    ActiveEffects:[{
+      Id:14,Amplifier:0,Duration:999999, ShowParticles:0b
+    }]
+  } then {
+    tag @s target
+    tag @s ours
+    nearest @e.current_golem::AngryAt = @s::UUID 
+  }
       
-      //effect give @s minecraft:invisibility 127 1 true
+  untag @e.current_target current_target
+  untag @e.current_golem current_golem
+  untag @e.current_marker current_marker
+}
+
+function kill_target () {
+  for nearest @e.target {
+    @s::Invulnerable=true
+    /tp ~ 12 ~
+    /kill @s
   }
 }
 
 every 10s {
   for @e.golem {
-    //say next slime
-    for nearest @e.target {
-      @s::Invulnerable=true
-      /tp ~ 12 ~
-      /kill @s
+    kill_target()
+    if @e.hive[distance=4..10] {
+      for random @e.hive[distance=4..10] summon_target()
+    } else {
+      for nearest @e.hive summon_target()
     }
-    
-     if @e.hive[distance>4] {
-       at random @e.hive[distance>4] summon_target()
-     } else {
-       at furthest @e.hive summon_target()
-     }
-  
   }
 }
 
+
 every 2t {
-  for @e.target if @e.golem[distance<3] {
-    //say die slime die
-    @s::Invulnerable=true
-    /tp @s ~ 12 ~
-    /kill @s
+  for @e.target if @e.golem!watching[distance<3] {
+    kill_target()
+    as nearest @e.golem!watching start_watching()
+  }
+  for @e.watching {
+    anchored eyes facing nearest @e.bee /tp @s ~ ~ ~ ~ ~
   }
 }
 
 function kill_all() {
 
   at @e.marker setblock air
-  at @e.hive up 1 setblock air
+  at @e.hive {
+    up 1 setblock air
+    up 2 setblock air
+  }
   /kill {@e.ours}
   /kill {@e.golem}
 }
 
-tag trail
+function start_watching() {
+  //say start watching
+  tag @s watching
+  @s::NoAI = true
+  //@s::CustomName= json "watching"  
+}
+
+function stop_watching() {
+  //say stop watching
+  untag @s watching
+  @s::NoAI = false  
+  //@s::CustomName= json "angry"  
+}
+
 
 function placed_head() {
   var $count = 0
-  say placed head
   anchored eyes {
     
     repeat forward 0.2 {
       $count++
-      summon snowball{
-        NoGravity:true
-      } then  {
-        tag @s trail
-      }
-      after 2s {
-        /kill {@e.trail}
-      }
     } while air and while ($count<25) then {
       if (carved_pumpkin) down 1 {
         if (honey_block) and if (down 1 iron_block) and if (down 2 #beekeeper:opaque) {
@@ -193,13 +254,13 @@ function placed_head() {
           }
         }
       } else {
-        say Try again
+        say Nothing summoned
       }
     }
   }
-
   /advancement revoke @s only beekeeper:placed_head 
 }
+
 /advancement revoke @a only beekeeper:placed_head 
 
 define advancements/placed_head {
