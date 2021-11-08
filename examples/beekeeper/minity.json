@@ -1,0 +1,14 @@
+{
+  "name": "beekeeper",
+  "description": "Beekeeping golem",
+  "main": "src/index.minity",
+  "directories": {
+    "copy": [
+      "files"
+    ],
+    "watch": [
+      "files",
+      "src"
+    ]
+  }
+}
