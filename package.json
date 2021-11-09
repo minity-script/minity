@@ -1,6 +1,6 @@
 {
   "name": "minity",
-  "version": "1.0.0-alpha.24",
+  "version": "1.0.0-alpha.26",
   "description": "CLI for Minity, a scripting language for Vanilla Minecraft datapacks",
   "bin": {
     "minity": "bin/index.js"
@@ -14,7 +14,7 @@
     "datapack"
   ],
   "dependencies": {
-    "@minity/parser": "^1.0.0-alpha.17",
+    "@minity/parser": "^1.0.0-alpha.19",
     "chalk": "^4.1.2",
     "enquirer": "^2.3.6",
     "minimist": "^1.2.5",

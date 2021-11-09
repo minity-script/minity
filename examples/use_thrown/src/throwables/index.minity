@@ -21,6 +21,22 @@ macro locate_block(?max=20) {
   }
 }
 
+macro locate_entity(?max=20) {
+  tag found
+  var $count = 0
+  repeat forward 0.2 {
+    $count ++
+    tag nearest @e!thrown[distance<0.5] found
+  } while ($count<?max) and until(@e.found) then {
+    if @e.found {
+       as @e.found resolve()
+       untag @e.found found
+    } else reject()
+  }
+}
+
+tag thrown
+
 tag has_thrown
 untag @a has_thrown
 /advancement revoke @a only throwables:thrower
@@ -68,6 +84,16 @@ macro find_block(?max=25) {
   } 
 }
 
+macro find_entity(?max=25) {
+  when find_owner then {
+    anchored eyes when locate_entity(?max) then {
+      resolve() 
+    } catch {
+      reject() 
+    }
+  } 
+}
+
 
 function keep_stuff #minecraft:tick {
   tag processed
@@ -77,7 +103,11 @@ function keep_stuff #minecraft:tick {
       @s::Owner = @s::Thrower
       @s::PickupDelay = 0
       append @s::Tags @s::Item.tag.throwable_tag
-      if(@s::Thrower) #dropped()
+      if(@s::Thrower) {
+        tag @s thrown
+        #dropped()
+        untag @s thrown
+      }
     }
     tag @s processed
   }

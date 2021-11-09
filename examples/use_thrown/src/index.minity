@@ -5,12 +5,17 @@ tag sand_builder
 tag sand_eater
 tag sand_zapper
 tag sand_looper
+tag data_getter
+
 
 function master #minity:master {
-  throwables:give_throwable(music_disc_cat,"{.sand_builder}","Sand Builder")
-  throwables:give_throwable(music_disc_13,"{.sand_eater}","Sand Eater")
-  throwables:give_throwable(music_disc_blocks,"{.sand_zapper}","Sand Zapper")
-  throwables:give_throwable(music_disc_pigstep,"{.sand_looper}","Sand Looper")
+  
+  //  throwables:give_throwable(music_disc_cat,"{.sand_builder}","Sand Builder")
+  //  throwables:give_throwable(music_disc_13,"{.sand_eater}","Sand Eater")
+  //  throwables:give_throwable(music_disc_blocks,"{.sand_zapper}","Sand Zapper")
+  //  throwables:give_throwable(music_disc_pigstep,"{.sand_looper}","Sand Looper")
+  
+  throwables:give_throwable(structure_void,"{.data_getter}","Data Getter")
 }
 
 function sand_builder #throwables:dropped  {
@@ -76,3 +81,10 @@ every 20t {
   }
 }
 
+function data_getter #throwables:dropped  {
+  if (@s.data_getter) {
+    when throwables:find_entity then {
+      print @p {@s::{}}
+    }
+  }
+}
