@@ -26,6 +26,7 @@ function teleporter #throwables:dropped  {
           @s::Pos = @@OldPosition
           @s::Rotation = @@OldRotation
           /tp {@e.teleport_now} @s
+          untag @e.teleport_now teleport_now
           /kill @s
         } 
         /title @s title ""
@@ -33,15 +34,13 @@ function teleporter #throwables:dropped  {
       } catch {
         /kill @s
       }
-        
-      untag @e.teleport_now teleport_now
       @s::Item.tag.OldPosition = @@CurrentPosition
       @s::Item.tag.OldRotation = @@CurrentRotation
     } else {
       when throwables:find_owner then {
         say I dropped it
         /title @s title ""
-        /title @s subtitle "Teleport position 1 marked"
+        /title @s subtitle "Teleport position 2"
         @@OldPosition = @s::Pos
         @@OldRotation = @s::Rotation
       } catch {
@@ -64,8 +63,55 @@ function give_teleporter() {
   clear @s 1 slime_spawn_egg
 }
 
+function give_book() {
+  give @s written_book{
+    pages: [
+      json <div> 
+        <h>ON SLIME</h>
+        <p>
+          It has been long known that slime has interesting properties. It is used daily in everything from trampolining to equestrianism.
+        </p>
+        <p>
+          An ancient source claimed that a long distance traveling device could be
+        </p>
+      </div>,
+      json <div> 
+        <p>
+        crafted from a <dark_red>compass fully enclosed in slime blocks</dark_red>, but since nobody at the time knew what a compass was, this was largely ignored by contemporaries.
+        </p>
+        </div>,
+      json <div>
+        <p>
+          This is an example for Minity, a scripting language for Vanilla Minecraft.
+        </p>
+        <p>
+          <u 
+            color = blue 
+
+            text ="minity-script.github.io"
+            clickEvent= {
+              action: open_url,
+              value: "https://minity-script.github.io/minity/#/"
+            }
+          />
+        </p>
+      </div>
+    ],
+    title:"On Slime",
+    author:"Anonymous",
+    display:{
+      Name: json <t>On Slime</t>,
+      Lore: [
+        "A part of the Ancient Wisdoms series"
+      ]
+    }
+  }
+}
+
+
 function master #minity:master {
    give_teleporter()
+   give_book()
 }
 
 define advancements/teleporter_made {
@@ -81,7 +127,6 @@ define advancements/teleporter_made {
     "function": "teleporter:give_teleporter"
   }
 }
-
 
 define recipes/teleporter {
   type: "minecraft:crafting_shaped",

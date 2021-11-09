@@ -1,0 +1,16 @@
+Colored Keys is an example toolkit for Minecraft adventure map creators made with Minity,
+a scripting language for Vanilla Minecraft.
+
+Place "locks" that will watch for players and turn into redstone when they detect
+with the right colored "key", thus triggering any redstone contraption you create.
+
+The locks will remember which way you placed them initially, and detect player in that
+direction - look at the position of the slime within the glass block to see which way 
+the lock is turned.
+
+To destroy a lock, break its block and kill the slime within. If you don't kill it, the lock will
+reactivate after 3 seconds.
+
+More info about Minity: https://minity-script.github.io
+
+The source code of the example: https://github.com/minity-script/minity/tree/main/examples/colored_keys/src

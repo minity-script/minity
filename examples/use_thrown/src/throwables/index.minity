@@ -2,10 +2,6 @@ namespace throwables
 
 
 macro give_throwable(?type, ?tag,?name,?color=yellow) {
-
-  clear ?type{
-    throwable:true
-  }
   give ?type{
     display: {
       Name: json <reset bold=true color=?color>{?name}</reset>,
@@ -32,6 +28,7 @@ untag @a has_thrown
 macro find_owner(?distance=30) {
   var $changed = true
   var $found = false
+  var $destroyed = false
   @@finder = @s::Owner
   for (@player[distance<=10]) {
     unless ($found) {
@@ -39,17 +36,22 @@ macro find_owner(?distance=30) {
       $changed ?= @@test = @s::UUID
       unless ($changed) {
         $found = true
-        unless(@s.has_thrown) {
-          print @s Bravo, you have used a throwable
-          /advancement grant @p only throwables:thrower
-          tag @s has_thrown
+        anchored eyes if (forward 1 cactus) {
+          $destroyed = true
+        } else if (forward 1 air) and if (forward 1.4 cactus) {
+          $destroyed = true
+        } else {
+          at @s resolve()
         }
-        as @s resolve()
       }
     }
   } 
-  
-  unless ($found) {
+  if ($destroyed) {
+    say destroyed
+    /kill @s
+    reject()
+  } else unless ($found) {
+    say not found
     /kill @s
     reject()
   }
@@ -71,10 +73,11 @@ function keep_stuff #minecraft:tick {
   tag processed
   for @item!processed {
     if @s{Item:{tag:{throwable:true}}} {
+      @s::Silent = true
       @s::Owner = @s::Thrower
       @s::PickupDelay = 0
       append @s::Tags @s::Item.tag.throwable_tag
-      #dropped()
+      if(@s::Thrower) #dropped()
     }
     tag @s processed
   }

@@ -1,1 +1,12 @@
-This is the readme file for the users of the datapack.
+Throwable Teleporter is an example datapack made with Minity, a 
+scripting language for Vanilla Minecraft.
+
+You can craft a "Throwable Teleporter" from 8 slime blocks and a compass.
+It's a custom item which will instantly teleport you between two locations.
+Throw it at a cactus to destroy it.
+
+More info about Minity: https://minity-script.github.io
+
+The source code of the example: https://github.com/minity-script/minity/tree/main/examples/teleporter/src
+
+If you have any questions join our Discord: https://discord.gg/DnY7nDzdzm
