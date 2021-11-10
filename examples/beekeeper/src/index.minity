@@ -14,13 +14,15 @@ tag home
 tag golem
 tag solid
 tag plant
-tag summoned
 tag marker
 tag hive
 tag sunflower
 tag poppy
 tag target
 tag bee
+
+tag placed
+tag summoned
 
 tag watching
 
@@ -35,10 +37,6 @@ macro times(?n=1) {
 macro summon_marker(?tag1,?tag2,?times=1) {
   when times(?times) then {
     summon marker{
-      NoAI:true,
-      Small:true,
-      PersistenceRequired:1b,
-      Invulnerable: true,
       Tags:["{.ours}","{.summoned}","{.marker}","{.{?tag1}}","{.{?tag2}}"],
     } then {
       @s::Golem = nearest @e.golem.summoned::UUID
@@ -58,6 +56,61 @@ macro summon_bee(?times) {
   }
 }
 
+?beeData = { EntityData: { id:"minecraft:bee",Tags:["{.ours}","{.bee}"], PersistenceRequired:1b, DeathLootTable: "minecraft:empty" } }
+
+function build_hive() {
+  up 2 setblock weathered_cut_copper_slab[type=bottom]
+  up 1 setblock beehive{
+    Bees:[?beeData,?beeData,?beeData]
+  }
+  setblock beehive
+}
+
+macro spread_solid(?tag, ?range=8, ?spread=1) {
+  var $count = 0
+  repeat {
+    $count++
+    /spreadplayers ~ ~ {?spread} {?range} false {@e.summoned.?tag}
+    for @e.summoned.?tag {
+      if (down 1 #beekeeper:opaque) {
+        untag @s summoned
+        tag @s placed
+      }
+    }
+  } while @e.summoned.?tag and until $count > 10
+}
+
+function place_home() {
+  summon_marker(home,solid,1)
+  spread_solid(home,3,1)
+}
+
+function place_hives() {
+  summon_marker(hive,solid,?init_hives)
+  spread_solid(hive,6,4)
+}
+
+function build_home() {
+  setblock barrel
+  up 1 setblock bell
+}
+function build_plant() {
+  if @s.poppy setblock poppy 
+  if @s.sunflower setblock cornflower
+}
+
+
+function destroy_hive() {
+  up 2 setblock air
+  up 1 setblock air
+  setblock air
+}
+
+function destroy_home() {
+  up 1 setblock air
+  setblock air
+}
+
 function summon_beekeeper() {
   summon iron_golem{
     PersistenceRequired:1b,
@@ -75,66 +128,59 @@ function summon_beekeeper() {
     tag @s golem
     tag @s ours
     start_watching()
-    summon_marker(hive,solid,?init_hives)
-    summon_marker(sunflower,plant,?init_sunflowers)
-    summon_marker(poppy,plant,?init_poppies)
-    summon_marker(sunflower,plant,?init_sunflowers)
-    summon_marker(poppy,plant,?init_poppies)
 
-    summon_marker(home,solid,1)
-    var $count = 0
-    repeat {
-      $count++
-      //print @a {$count}
-      /spreadplayers ~ ~ 1 {?spread} false {@e.marker.summoned}
-    
-      for @e.summoned.solid {
-        if (down 1 #beekeeper:opaque) {
-          if @s.hive {
-            //up 2 setblock weathered_cut_copper_slab[type=bottom]
-            up 1 setblock beehive{
-              Bees:[{
-                EntityData:{
-                  id:"minecraft:bee"
-                }
-              },              {
-                EntityData:{
-                  id:"minecraft:bee"
-                }
-              },{
-                EntityData:{
-                  id:"minecraft:bat"
-                }
-              }]
-            }
-            setblock beehive
-          }
-          if @s.home {
-            setblock barrel
-            up 1 setblock bell
-          }
-          untag @s summoned
-        }
-      }
-      for @e.summoned.plant {
-        if (down 1 tall_grass) {
-          /tp @s ~ ~-1 ~
-        }
-        at @s if (down 1 tall_grass) {
-          /tp @s ~ ~-1 ~
-        }
-        at @s {
-          if (down 1 #dirt) {
-            if @s.poppy setblock poppy 
-            if @s.sunflower setblock cornflower
+    place_home()
+  
+    for @e.home.placed {
+      untag @s placed
+      place_hives()
+
+      summon_marker(sunflower,plant,?init_sunflowers)
+      summon_marker(poppy,plant,?init_poppies)
+
+           
+      var $count = 0
+
+      repeat {
+        $count++
+        //print @a {$count}
+        /spreadplayers ~ ~ 1 {?spread} false {@e.marker.summoned}
+      
+        for @e.summoned.solid {
+          if (down 1 #beekeeper:opaque) {
             untag @s summoned
           }
         }
+        for @e.summoned.plant {
+          if (down 1 tall_grass) {
+            /tp @s ~ ~-1 ~
+          }
+          at @s if (down 1 tall_grass) {
+            /tp @s ~ ~-1 ~
+          }
+          at @s {
+            if (down 1 #dirt) {
+              untag @s summoned
+            }
+          }
+        }
+      } while @e.marker.summoned and until $count > 10
+      for @e.marker {
+        if @s.home build_home()
+        if @s.hive build_hive()
+        if @s.plant build_plant()
       }
-    } while @e.marker.summoned and until $count > 10
-    summon_bee(?init_bees)
-    /spreadplayers ~ ~ 2 {?spread} false {@e.bee}
-    /kill {@e.marker.summoned}
+      
+      if @s.home {
+        setblock barrel
+        up 1 setblock bell
+      }
+
+
+      summon_bee(?init_bees)
+      /spreadplayers ~ ~ 2 {?spread} false {@e.bee}
+      /kill {@e.marker.summoned}
+    }
   }
 }
 
@@ -153,7 +199,7 @@ function summon_target() {
     stop_watching()
     anchored eyes facing @e.current_marker /tp @s ~ ~ ~ ~ ~
   }
-  up 2 summon slime{
+  up 2.5 summon slime{
     DeathLootTable:"minecraft:empty",
     NoGravity:true,
     NoAI:true,

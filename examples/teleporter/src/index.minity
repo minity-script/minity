@@ -57,51 +57,6 @@ function give_teleporter() {
   clear @s 1 slime_spawn_egg
 }
 
-function give_book() {
-  give @s written_book{
-    pages: [
-      json <div> 
-        <h>ON SLIME</h>
-        <p>
-          It has been long known that slime has interesting properties. It is used daily in everything from trampolining to equestrianism.
-        </p>
-        <p>
-          An ancient source claimed that a long distance traveling device could be
-        </p>
-      </div>,
-      json <div> 
-        <p>
-        crafted from a <dark_red>compass fully enclosed in slime blocks</dark_red>, but since nobody at the time knew what a compass was, this was largely ignored by contemporaries.
-        </p>
-        </div>,
-      json <div>
-        <p>
-          This is an example for Minity, a scripting language for Vanilla Minecraft.
-        </p>
-        <p>
-          <u 
-            color = blue 
-
-            text ="minity-script.github.io"
-            clickEvent= {
-              action: open_url,
-              value: "https://minity-script.github.io/minity/#/"
-            }
-          />
-        </p>
-      </div>
-    ],
-    title:"On Slime",
-    author:"Anonymous",
-    display:{
-      Name: json <t>On Slime</t>,
-      Lore: [
-        "A part of the Ancient Wisdoms series"
-      ]
-    }
-  }
-}
-
 
 function master #minity:master {
    give_teleporter()
@@ -134,4 +89,54 @@ define recipes/teleporter {
     S: { item: "minecraft:slime_block" }
   },
   result: { item: "minecraft:slime_spawn_egg", count: 1 }
+}
+
+
+
+function give_book() {
+  give @s written_book{
+    pages: [
+      json <div> 
+        <h>ON SLIME</h>
+        <p>
+          It has been long known that slime has interesting properties. 
+          It is used daily in everything from trampolining to equestrianism.
+        </p>
+        <p>
+          An ancient source claimed that a long distance traveling device could be ...
+        </p>
+      </div>,
+      json <div> 
+        <p>
+          ... crafted from a <dark_red>compass fully enclosed in slime blocks</dark_red>,
+          but since nobody at the time knew what a compass was, this was largely 
+          ignored by contemporaries.
+        </p>
+        </div>,
+      json <div>
+        <p>
+          This is an example for Minity, a scripting language for Vanilla Minecraft.
+        </p>
+        <p>
+          <u 
+            color = blue 
+
+            text ="minity-script.github.io"
+            clickEvent= {
+              action: open_url,
+              value: "https://minity-script.github.io/minity/#/"
+            }
+          />
+        </p>
+      </div>
+    ],
+    title:"On Slime",
+    author:"Anonymous",
+    display:{
+      Name: json <t>On Slime</t>,
+      Lore: [
+        "A part of the Ancient Wisdoms series"
+      ]
+    }
+  }
 }
