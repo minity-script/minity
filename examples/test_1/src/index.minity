@@ -1,9 +1,12 @@
 namespace test
 
 var $failed = 0
-var $foo = 0
+var $foo = 4
 score bar 
 
+every 1s {
+  say not yet
+} until $foo==0 then say NOW 0
 
 macro expect_foo(?value) {
   unless ($foo==?value) {
@@ -29,6 +32,7 @@ macro expect_baz(?value) {
   }
 }
 
+$foo=0
 
 function run() {
 
@@ -95,9 +99,8 @@ function run() {
   @@baz ?= test if $foo < 3
   expect_baz(1b)
 
-  $foo ?= test if $foo < 3
   
-  expect_foo(0)
+  $foo = 0
 
   print @a {$failed} tests failed
 }

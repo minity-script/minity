@@ -14,7 +14,7 @@
     "datapack"
   ],
   "dependencies": {
-    "@minity/parser": "^1.0.0-alpha.19",
+    "@minity/parser": "^1.0.0-alpha.22",
     "chalk": "^4.1.2",
     "enquirer": "^2.3.6",
     "minimist": "^1.2.5",
