@@ -14,7 +14,7 @@ bossbar add timer "Time Left"
 var $running = false
 var $chickens = 0
 var $time = 0
-
+score death
 score played
 score chickens_killed
 
