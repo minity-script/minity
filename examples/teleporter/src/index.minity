@@ -18,6 +18,7 @@ function teleporter #throwables:dropped  {
       }
       tag @s teleport_now
       when throwables:find_owner then {
+        say I dropped it again
         @@CurrentPosition = @s::Pos
         @@CurrentRotation = @s::Rotation
         tag @s teleport_now
@@ -27,18 +28,23 @@ function teleporter #throwables:dropped  {
           /tp {@e.teleport_now} @s
           untag @e.teleport_now teleport_now
           /kill @s
-        }
+        } 
         /title @s title ""
         /title @s subtitle {=<t>Teleport position {$at_pos}</t>}
+      } catch {
+        /kill @s
       }
       @s::Item.tag.OldPosition = @@CurrentPosition
       @s::Item.tag.OldRotation = @@CurrentRotation
     } else {
       when throwables:find_owner then {
+        say I dropped it
         /title @s title ""
         /title @s subtitle "Teleport position 2"
         @@OldPosition = @s::Pos
         @@OldRotation = @s::Rotation
+      } catch {
+        /kill @s
       }
       @s::Item.tag.CurrentState = 1b
       @s::Item.tag.OldPosition = @@OldPosition
