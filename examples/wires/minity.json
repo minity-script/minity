@@ -1,0 +1,15 @@
+{
+  "name": "wires",
+  "description": "Wire Logic",
+  "main": "src/index.minity",
+  "directories": {
+    "copy": [
+      "files"
+    ],
+    "watch": [
+      "files",
+      "src"
+    ]
+  },
+  "author": {}
+}

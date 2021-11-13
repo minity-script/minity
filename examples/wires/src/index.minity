@@ -1,0 +1,279 @@
+namespace wires
+?charge    = 3
+?green      = green_wool
+?red        = red_wool      
+?blue       = blue_wool     
+?cyan       = cyan_wool     
+?spark      = white_wool    
+?and        = orange_wool   
+?nand       = purple_wool   
+?led_on     = yellow_wool     
+?led_off    = gray_wool
+
+?switch_on     = yellow_stained_glass
+?switch_off    = gray_stained_glass
+
+?fiber      = light_gray_wool
+
+?tag_green        = "minecraft:{?green}"
+?tag_red          = "minecraft:{?red}"
+?tag_blue         = "minecraft:{?blue}"
+?tag_cyan        = "minecraft:{?cyan}"
+?tag_spark        = "minecraft:{?spark}"
+?tag_and          = "minecraft:{?and}"
+?tag_nand         = "minecraft:{?nand}"
+?tag_led_on       = "minecraft:{?led_on}"
+?tag_led_off      = "minecraft:{?led_off}"
+?tag_switch_on    = "minecraft:{?switch_on}"
+?tag_switch_off   = "minecraft:{?switch_off}"
+?tag_fiber        = "minecraft:{?fiber}"
+
+
+?tags = [ 
+  ?tag_spark, ?tag_green, ?tag_blue, ?tag_red, ?tag_cyan,
+  ?tag_led_on, ?tag_led_off, ?tag_and, ?tag_nand, ?tag_fiber, 
+  ?tag_switch_on, ?tag_switch_off ]
+
+define tags/blocks/wires {
+  values:?tags
+}
+
+define tags/items/wires {
+  values:?tags
+}
+
+define tags/blocks/accept_green {
+  values:[ ?tag_red, ?tag_green, ?switch_on ]
+}
+
+define tags/blocks/accept_blue {
+  values:[ ?tag_green, ?tag_led_on, ?tag_and, ?tag_nand, ?tag_fiber, ?switch_on, ?tag_cyan ]
+}
+
+define tags/blocks/accept_red {
+  values:[ ?tag_blue, ?tag_green, ?tag_red, ?tag_led_off, ?tag_and, ?tag_nand, ?tag_fiber, ?switch_off ]
+}
+
+tag orb
+tag wire
+
+tag green
+tag blue
+tag cyan
+tag red
+tag led_on
+tag led_off
+tag switch_off
+tag switch_on
+tag fiber
+tag nand
+tag and
+
+tag got_red
+tag got_blue
+tag got_green
+
+tag accept_green
+tag accept_red
+tag accept_blue
+
+tag charge_red
+tag charge_blue
+tag charge_green
+tag changed
+tag sparked
+
+score charge
+score next
+
+/advancement revoke @a only wires:placed_green
+/advancement revoke @a only wires:used
+
+function give_orb {
+  give @a slime_ball{
+    display: {
+      Name: json "Wire Master Orb"
+    },
+    "{.orb}":true
+  }
+}
+
+
+macro charge(?signal=charge_green) {
+  @s->next = ?charge
+  tag @s changed
+  tag @s ?signal
+  if (@s.red) {
+    setblock redstone_block
+  } else {
+    setblock white_wool
+  }
+}
+
+macro spark(?accept_tag,?got_tag) {
+  for  @e.?accept_tag[distance<1.5][->charge=0] {
+    tag @s sparked
+    tag @s ?got_tag
+  }
+}
+
+
+macro set_tags() {
+  @s::Tags=[]
+  tag @s wire
+  if (?red) tag @s red
+  if (?blue) tag @s blue
+  if (?cyan) tag @s cyan
+  if (?green) tag @s green
+  if (?led_on) tag @s led_on
+  if (?led_off) tag @s led_off
+  if (?switch_on) tag @s switch_on
+  if (?switch_off) tag @s switch_off
+  
+  if (?and) tag @s and
+  if (?nand) tag @s nand
+  if (?fiber) tag @s fiber
+  if (#wires:accept_blue) tag @s accept_blue
+  if (#wires:accept_red) tag @s accept_red
+  if (#wires:accept_green) tag @s accept_green
+}
+
+macro set_basic() {
+  if @s.red setblock ?red 
+  if @s.blue setblock ?blue
+  if @s.green setblock ?green
+  if @s.cyan setblock ?cyan
+  if @s.led_on setblock ?led_on
+  if @s.led_off setblock ?led_off
+  if @s.switch_on setblock ?switch_on
+  if @s.switch_off setblock ?switch_off
+  if @s.and setblock ?and
+  if @s.nand setblock ?nand
+  if @s.fiber setblock ?fiber
+}
+
+macro summon_marker() {
+  /kill {@e.wire[distance<0.5]}
+  summon marker then {
+    @s::PersistenceRequired=true
+    set_tags()
+    @s->charge=0
+  }
+}
+
+
+macro signal(?accept_tag, ?got_tag, ?charge_tag, ?trans_block) {
+  for @e.?charge_tag {
+    if (@s->charge==?charge) {
+      spark(?accept_tag,?got_tag)
+      setblock ?trans_block
+    } else if (@s->charge == 1) {
+      untag @s ?charge_tag
+      set_basic()
+    }
+    @s->next = @s->charge
+    @s->next --
+    tag @s changed
+      
+  }
+}
+macro red_signal () {
+  signal(accept_red,got_red,charge_red,pink_wool)
+}
+
+macro blue_signal () {
+  signal(accept_blue,got_blue,charge_blue,light_blue_wool,blue_wool)
+}
+macro green_signal () {
+  signal(accept_green,got_green,charge_green,lime_wool,green_wool)
+}
+
+macro placed_block (){
+  var $count=0
+  anchored eyes repeat forward 0.05 {
+    $count++
+  } until #wires:wires and until $count>100 then align xyz {
+    if ?spark {
+      spark(accept_green,got_green)
+      setblock air
+    } else if #wires:wires {
+      summon_marker()
+    } else {
+      say Something went wrong
+    }
+  }
+}
+
+
+on minecraft:placed_block{
+  player: {
+    equipment: {
+      offhand: {
+        nbt: snbt {"{.orb}":true}
+      }
+    }
+  },
+  item: {
+    tag: "wires:wires"
+  }
+} then {
+  placed_block()
+}
+
+every 1t {
+  for @e.wire if air /kill @s
+  green_signal()
+  red_signal()
+  blue_signal()  
+
+  for @e.sparked!changed.green charge(charge_green)
+
+  for @e.sparked!changed.blue charge(charge_blue)
+
+  for @e.sparked!changed.red charge(charge_red)
+
+  for @e.sparked!changed.got_blue!got_red.nand charge(charge_red)
+  for @e.sparked!changed.got_red.nand charge(charge_blue)
+
+  for @e.sparked!changed!got_blue.got_red.and charge(charge_red)
+  for @e.sparked!changed.got_blue.and charge(charge_blue)
+  
+  for @e.sparked!changed!got_blue.got_red.fiber charge(charge_red)
+  for @e.sparked!changed.got_blue!got_red.fiber charge(charge_blue)
+
+  for @e.sparked!changed.got_blue.cyan charge(charge_blue)
+
+  for @e.sparked!changed.got_red!got_blue.led_off {
+    setblock ?led_on
+    set_tags()
+    charge(charge_red)
+  }
+
+  for @e.sparked!changed.got_blue!got_red.led_on {
+    setblock ?led_off
+    set_tags()
+    charge(charge_blue)
+  }
+
+  for @e.sparked!changed!got_red!got_blue.got_green.switch_on charge(charge_green)
+
+
+  for @e.sparked!changed.got_red!got_blue.switch_off {
+    setblock ?switch_on
+    set_tags()
+  }
+
+  for @e.sparked!changed.got_blue!got_red.switch_on {
+    say off
+    setblock ?switch_off
+    set_tags()
+  }
+
+  for @e.changed @s->charge=@s->next
+
+  untag @e changed
+  untag @e sparked
+  untag @e got_blue
+  untag @e got_red
+  untag @e got_green
+}
