@@ -1,5 +1,5 @@
 namespace wires
-?charge    = 3
+?charge    = 2
 ?green      = green_wool
 ?red        = red_wool      
 ?blue       = blue_wool     
@@ -10,10 +10,8 @@ namespace wires
 ?led_on     = yellow_wool     
 ?led_off    = gray_wool
 
-?switch_on     = yellow_stained_glass
-?switch_off    = gray_stained_glass
 
-?fiber      = light_gray_wool
+?fiber      = white_stained_glass
 
 ?tag_green        = "minecraft:{?green}"
 ?tag_red          = "minecraft:{?red}"
@@ -24,15 +22,13 @@ namespace wires
 ?tag_nand         = "minecraft:{?nand}"
 ?tag_led_on       = "minecraft:{?led_on}"
 ?tag_led_off      = "minecraft:{?led_off}"
-?tag_switch_on    = "minecraft:{?switch_on}"
-?tag_switch_off   = "minecraft:{?switch_off}"
 ?tag_fiber        = "minecraft:{?fiber}"
 
 
 ?tags = [ 
   ?tag_spark, ?tag_green, ?tag_blue, ?tag_red, ?tag_cyan,
   ?tag_led_on, ?tag_led_off, ?tag_and, ?tag_nand, ?tag_fiber, 
-  ?tag_switch_on, ?tag_switch_off ]
+]
 
 define tags/blocks/wires {
   values:?tags
@@ -43,16 +39,33 @@ define tags/items/wires {
 }
 
 define tags/blocks/accept_green {
-  values:[ ?tag_red, ?tag_green, ?switch_on ]
+  values:[ ?tag_red, ?tag_green, ?led_on, ?led_off ]
 }
 
 define tags/blocks/accept_blue {
-  values:[ ?tag_green, ?tag_led_on, ?tag_and, ?tag_nand, ?tag_fiber, ?switch_on, ?tag_cyan ]
+  values:[ ?tag_blue, ?tag_green, ?tag_led_on, ?tag_and, ?tag_nand, ?tag_fiber, ?tag_cyan ]
 }
 
 define tags/blocks/accept_red {
-  values:[ ?tag_blue, ?tag_green, ?tag_red, ?tag_led_off, ?tag_and, ?tag_nand, ?tag_fiber, ?switch_off ]
+  values:[ ?tag_blue, ?tag_green, ?tag_red, ?tag_led_off, ?tag_and, ?tag_nand, ?tag_fiber]
 }
+
+define tags/blocks/accept_true {
+  values:[ ?tag_blue, ?tag_green, ?tag_red, ?tag_and, ?tag_nand, ?tag_fiber ]
+}
+
+define tags/blocks/accept_false {
+  values:[ ?tag_blue, ?tag_green, ?tag_and, ?tag_cyan, ?tag_nand, ?tag_fiber ]
+}
+
+define tags/blocks/accept_on {
+  values:[ ?tag_blue, ?tag_red, ?tag_cyan, ?tag_led_off ]
+}
+
+define tags/blocks/accept_off {
+  values:[ ?tag_blue, ?tag_cyan, ?tag_led_on ]
+}
+
 
 tag orb
 tag wire
@@ -69,19 +82,28 @@ tag fiber
 tag nand
 tag and
 
-tag got_red
-tag got_blue
-tag got_green
+tag sparked_red
+tag sparked_blue
+tag sparked_green
 
 tag accept_green
 tag accept_red
 tag accept_blue
+tag accept_true
+tag accept_false
+tag accept_on
+tag accept_off
 
-tag charge_red
-tag charge_blue
-tag charge_green
+tag signal_red
+tag signal_blue
+tag signal_green
+tag signal_true
+tag signal_false
+tag signal_on
+tag signal_off
 tag changed
 tag sparked
+tag busy
 
 score charge
 score next
@@ -99,9 +121,10 @@ function give_orb {
 }
 
 
-macro charge(?signal=charge_green) {
+macro charge(?signal=signal_green) {
   @s->next = ?charge
   tag @s changed
+  tag @s busy
   tag @s ?signal
   if (@s.red) {
     setblock redstone_block
@@ -110,13 +133,12 @@ macro charge(?signal=charge_green) {
   }
 }
 
-macro spark(?accept_tag,?got_tag) {
-  for  @e.?accept_tag[distance<1.5][->charge=0] {
+macro spark(?accept_tag,?sparked_tag) {
+  for  @e[distance<1.5].?accept_tag!busy {
     tag @s sparked
-    tag @s ?got_tag
+    tag @s ?sparked_tag
   }
 }
-
 
 macro set_tags() {
   @s::Tags=[]
@@ -127,8 +149,6 @@ macro set_tags() {
   if (?green) tag @s green
   if (?led_on) tag @s led_on
   if (?led_off) tag @s led_off
-  if (?switch_on) tag @s switch_on
-  if (?switch_off) tag @s switch_off
   
   if (?and) tag @s and
   if (?nand) tag @s nand
@@ -136,6 +156,10 @@ macro set_tags() {
   if (#wires:accept_blue) tag @s accept_blue
   if (#wires:accept_red) tag @s accept_red
   if (#wires:accept_green) tag @s accept_green
+  if (#wires:accept_true) tag @s accept_true
+  if (#wires:accept_false) tag @s accept_false
+  if (#wires:accept_on) tag @s accept_on
+  if (#wires:accept_off) tag @s accept_off
 }
 
 macro set_basic() {
@@ -145,8 +169,6 @@ macro set_basic() {
   if @s.cyan setblock ?cyan
   if @s.led_on setblock ?led_on
   if @s.led_off setblock ?led_off
-  if @s.switch_on setblock ?switch_on
-  if @s.switch_off setblock ?switch_off
   if @s.and setblock ?and
   if @s.nand setblock ?nand
   if @s.fiber setblock ?fiber
@@ -162,13 +184,15 @@ macro summon_marker() {
 }
 
 
-macro signal(?accept_tag, ?got_tag, ?charge_tag, ?trans_block) {
-  for @e.?charge_tag {
+macro signal(?signal_tag, ?accept_tag, ?sparked_tag, ?trans_block, ?trans_block_2) {
+  for @e.?signal_tag {
     if (@s->charge==?charge) {
-      spark(?accept_tag,?got_tag)
+      spark(?accept_tag,?sparked_tag)
       setblock ?trans_block
     } else if (@s->charge == 1) {
-      untag @s ?charge_tag
+      setblock ?trans_block_2
+      untag @s ?signal_tag
+      untag @s busy
       set_basic()
     }
     @s->next = @s->charge
@@ -177,30 +201,72 @@ macro signal(?accept_tag, ?got_tag, ?charge_tag, ?trans_block) {
       
   }
 }
-macro red_signal () {
-  signal(accept_red,got_red,charge_red,pink_wool)
+
+macro signal_red () {
+  signal(signal_red,accept_red,sparked_red,pink_wool,red_wool)
 }
 
-macro blue_signal () {
-  signal(accept_blue,got_blue,charge_blue,light_blue_wool,blue_wool)
-}
-macro green_signal () {
-  signal(accept_green,got_green,charge_green,lime_wool,green_wool)
+macro signal_blue () {
+  signal(signal_blue,accept_blue,sparked_blue,light_blue_wool,blue_wool)
 }
 
-macro placed_block (){
+macro signal_green () {
+  signal(signal_green,accept_green,sparked_green,lime_wool,green_wool)
+}
+
+macro signal_true () {
+  signal(signal_true,accept_true,sparked_red,pink_wool,red_wool)
+}
+
+macro signal_false () {
+  signal(signal_false,accept_false,sparked_blue,light_blue_wool,blue_wool)
+}
+
+macro signal_on () {
+  signal(signal_on,accept_on,sparked_red,pink_wool,red_wool)
+}
+
+macro signal_off () {
+  signal(signal_off,accept_off,sparked_blue,light_blue_wool,blue_wool)
+}
+
+
+macro locate_block() {
   var $count=0
-  anchored eyes repeat forward 0.05 {
+  repeat forward 0.09 {
     $count++
-  } until #wires:wires and until $count>100 then align xyz {
-    if ?spark {
-      spark(accept_green,got_green)
+  } until #wires:wires and until $count>55 then {
+    if #wires:wires resolve() else reject()
+  }
+}
+
+macro find_block() {
+  var $found = false
+  anchored eyes when locate_block then {
+    $found = true
+    resolve()
+  }
+  unless $found anchored eyes forward 0.03 when locate_block then {
+    $found = true
+    resolve()
+  }
+  unless $found anchored eyes forward 0.06 when locate_block then {
+    $found = true
+    resolve()
+  }
+  unless $found reject()
+}
+
+macro placed_block () {
+  when find_block then {
+    align xyz if ?spark {
+      spark(accept_green,sparked_green)
       setblock air
-    } else if #wires:wires {
-      summon_marker()
     } else {
-      say Something went wrong
+      summon_marker()
     }
+  } catch {
+    say Something went wrong. Break the block and try again.
   }
 }
 
@@ -220,60 +286,96 @@ on minecraft:placed_block{
   placed_block()
 }
 
-every 1t {
-  for @e.wire if air /kill @s
-  green_signal()
-  red_signal()
-  blue_signal()  
+macro update () {  
+  for @e.wire if air {
+    say dead
+    /kill @s
+    /kill {@marker[distance<0.5]}
+  }
+  signal_green()
+  signal_red()
+  signal_blue()  
+  signal_true()  
+  signal_false()  
+  signal_on()  
+  signal_off()  
 
-  for @e.sparked!changed.green charge(charge_green)
+  for @e.sparked.green!changed charge(signal_green)
 
-  for @e.sparked!changed.blue charge(charge_blue)
+  for @e.sparked.blue!changed charge(signal_blue)
 
-  for @e.sparked!changed.red charge(charge_red)
+  for @e.sparked.red!changed charge(signal_red)
 
-  for @e.sparked!changed.got_blue!got_red.nand charge(charge_red)
-  for @e.sparked!changed.got_red.nand charge(charge_blue)
-
-  for @e.sparked!changed!got_blue.got_red.and charge(charge_red)
-  for @e.sparked!changed.got_blue.and charge(charge_blue)
   
-  for @e.sparked!changed!got_blue.got_red.fiber charge(charge_red)
-  for @e.sparked!changed.got_blue!got_red.fiber charge(charge_blue)
+  for @e.sparked_blue.nand!changed charge(signal_red)
+  for @e.sparked_red.nand!changed charge(signal_blue)
+  
+  for @e.sparked_blue.and!changed charge(signal_blue)
+  for @e.sparked_red.and!changed charge(signal_red)
+  
+  for @e.sparked_red.fiber!sparked_blue!changed charge(signal_red)
+  for @e.sparked_blue.fiber!sparked_red!changed charge(signal_blue)
+  
+  for @e.sparked_blue.cyan!changed charge(signal_blue)
 
-  for @e.sparked!changed.got_blue.cyan charge(charge_blue)
-
-  for @e.sparked!changed.got_red!got_blue.led_off {
+  for @e.sparked_red.led_off!changed {
     setblock ?led_on
     set_tags()
-    charge(charge_red)
+    charge(signal_on)
   }
 
-  for @e.sparked!changed.got_blue!got_red.led_on {
+  for @e.sparked_blue.led_on!changed {
     setblock ?led_off
     set_tags()
-    charge(charge_blue)
+    charge(signal_off)
   }
 
-  for @e.sparked!changed!got_red!got_blue.got_green.switch_on charge(charge_green)
-
-
-  for @e.sparked!changed.got_red!got_blue.switch_off {
-    setblock ?switch_on
-    set_tags()
+  for @e.sparked_green.led_on!changed {
+    charge(signal_true)
   }
 
-  for @e.sparked!changed.got_blue!got_red.switch_on {
-    say off
-    setblock ?switch_off
-    set_tags()
+  for @e.sparked_green.led_off!changed {
+    charge(signal_false)
   }
 
   for @e.changed @s->charge=@s->next
 
   untag @e changed
   untag @e sparked
-  untag @e got_blue
-  untag @e got_red
-  untag @e got_green
+  untag @e sparked_blue
+  untag @e sparked_red
+  untag @e sparked_green
 }
+
+var $speed = 1 
+var $ticks = 0
+every 1t {
+  var $skip
+  $ticks++
+  $skip = $ticks
+  $skip %= $speed
+  unless ($skip) update()
+}
+
+function faster() {
+  $speed /= 2
+  $speed >= 1
+}
+
+function slower() {
+  $speed *= 2
+  $speed <= 32
+}
+
+function reset {
+  for @e.wire {
+    //say setting tags
+    @s->charge=0
+    set_basic()
+    set_tags()
+    untag @e.wire changed
+    untag @e.wire busy
+  }
+}
+
+reset()
