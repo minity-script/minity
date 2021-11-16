@@ -1,0 +1,66 @@
+namespace wires
+import "./tags"
+
+function give_book () {
+  give @s written_book{
+    "{.orb}":true,
+    pages: [
+      json <div> 
+        <h>WireWool</h>
+        <p>
+          Place wool (and a few other blocks) while holding
+          the WireMaster Orb to build WireWool circuits.
+        </p>
+        <p>
+          <green>WIRE</green>
+        </p>
+      </div>,
+      json <div>
+        <p>
+          This is an example for Minity, a scripting language for Vanilla Minecraft.
+        </p>
+        <p>
+          <u 
+            color = blue 
+
+            text ="minity-script.github.io"
+            clickEvent= {
+              action: open_url,
+              value: "https://minity-script.github.io/minity/#/"
+            }
+          />
+        </p>
+      </div>
+    ],
+    title:"WireCraft",
+    author:"yockz",
+    display:{
+      Name: json <t>WireCraft</t>,
+      Lore: [
+        "Create wire contraptions"
+      ]
+    }
+  }
+}
+
+
+function give_orb {
+  give @s slime_ball{
+    Enchantments:[{}],
+    display: {
+      Name: json "Wire Master Orb"
+    },
+    "{.orb}":true
+  }
+}
+for @a {
+  if @s::Inventory{tag:{"{.orb}":true}} {
+    /clear @s #wires:orb{tag:{"{.orb}":true}}
+    give_book()
+    give_orb()
+  }
+}
+function master #minity:master {
+  give_book()
+  give_orb() 
+}

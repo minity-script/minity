@@ -1,0 +1,57 @@
+namespace wires
+
+macro locate_block() {
+  var $count=0
+  repeat forward 0.09 {
+    $count++
+  } until #wires:wires and until $count>55 then {
+    if #wires:wires resolve() else reject()
+  }
+}
+
+macro find_block() {
+  var $found = false
+  anchored eyes when locate_block then {
+    $found = true
+    resolve()
+  }
+  unless $found anchored eyes forward 0.03 when locate_block then {
+    $found = true
+    resolve()
+  }
+  unless $found anchored eyes forward 0.06 when locate_block then {
+    $found = true
+    resolve()
+  }
+  unless $found reject()
+  print @a found {$found}
+}
+
+macro placed_block () {
+  when find_block then {
+    if ?spark {
+      spark(accept_green,sparked_green)
+      setblock air
+    } else {
+      summon_marker()
+    }
+  } catch {
+    say Something went wrong. Break the block and try again.
+  }
+}
+
+
+on minecraft:placed_block{
+  player: {
+    equipment: {
+      offhand: {
+        nbt: snbt {"{.orb}":true}
+      }
+    }
+  },
+  item: {
+    tag: "wires:wires"
+  }
+} then {
+  placed_block()
+}

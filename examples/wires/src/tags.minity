@@ -1,0 +1,48 @@
+namespace wires 
+
+tag orb
+
+tag wire
+
+tag green
+tag blue
+tag cyan
+tag red
+tag fiber
+tag nand
+tag and
+tag lamp
+tag tx
+tag rx 
+tag radio
+tag button
+
+tag sparked_red
+tag sparked_blue
+tag sparked_green
+
+tag accept_green
+tag accept_red
+tag accept_blue
+tag accept_true
+tag accept_false
+tag accept_on
+tag accept_off
+
+tag state_on
+tag state_off
+
+tag is_led
+tag is_stone
+
+tag signal_red
+tag signal_blue
+tag signal_green
+tag signal_true
+tag signal_false
+tag signal_on
+tag signal_off
+
+tag changed
+tag sparked
+tag busy

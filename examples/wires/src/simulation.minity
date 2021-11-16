@@ -1,0 +1,178 @@
+namespace wires
+
+macro charge(?signal=signal_green) {
+  @s->next = ?charge
+  tag @s changed
+  tag @s busy
+  tag @s ?signal
+  if (@s.red) {
+    setblock redstone_block
+  } else if (@s.radio) {
+    at @s (~ ~ ~)::GlowingText = true
+  } else {
+    setblock white_wool
+  }
+}
+
+macro spark(?accept_tag,?sparked_tag) {
+  for  @e[distance<1.05].?accept_tag!busy {
+    tag @s sparked
+    tag @s ?sparked_tag
+  }
+}
+
+macro signal(?signal_tag, ?accept_tag, ?sparked_tag, ?trans_block, ?trans_block_2) {
+  for @e.?signal_tag {
+    if (@s->charge==?charge) {
+      spark(?accept_tag,?sparked_tag)
+      if (@s.red) setblock ?red 
+      unless @s.radio setblock ?trans_block
+    } else if (@s->charge == 1) {
+      untag @s ?signal_tag
+      untag @s busy
+      set_basic()
+    }
+    @s->next = @s->charge
+    @s->next --
+    tag @s changed
+  }
+}
+
+macro signal_red () {
+  signal(signal_red,accept_red,sparked_red,pink_wool,red_wool)
+}
+
+macro signal_blue () {
+  signal(signal_blue,accept_blue,sparked_blue,light_blue_wool,blue_wool)
+}
+
+macro signal_green () {
+  signal(signal_green,accept_green,sparked_green,lime_wool,green_wool)
+}
+
+macro signal_true () {
+  signal(signal_true,accept_true,sparked_red,pink_wool,red_wool)
+}
+
+macro signal_false () {
+  signal(signal_false,accept_false,sparked_blue,light_blue_wool,blue_wool)
+}
+
+macro signal_on () {
+  signal(signal_on,accept_on,sparked_red,pink_wool,red_wool)
+}
+
+macro signal_off () {
+  signal(signal_off,accept_off,sparked_blue,light_blue_wool,blue_wool)
+}
+
+
+function update () {  
+  for @e.wire if air {
+    //say dead
+    /kill @s
+    /kill {@e.wire[distance<0.5]}
+  }
+  signal_green()
+  signal_red()
+  signal_blue()  
+  signal_true()  
+  signal_false()  
+  signal_on()  
+  signal_off()  
+
+  for @e.sparked.green!changed charge(signal_green)
+
+  for @e.sparked.blue!changed charge(signal_blue)
+
+  for @e.sparked.red!changed charge(signal_red)
+  
+  for @e.sparked_blue.nand!changed charge(signal_red)
+  for @e.sparked_red.nand!changed charge(signal_blue)
+  
+  for @e.sparked_blue.and!changed charge(signal_blue)
+  for @e.sparked_red.and!changed charge(signal_red)
+  
+  for @e.sparked_red.fiber!sparked_blue!changed charge(signal_red)
+  for @e.sparked_blue.fiber!sparked_red!changed charge(signal_blue)
+  
+  for @e.sparked_blue.cyan!changed charge(signal_blue)
+
+  for @e.sparked_red.state_off!changed {
+    untag @s state_off
+    untag @s accept_on
+    untag @s accept_red
+    tag @s state_on
+    tag @s accept_off
+    tag @s accept_blue
+    charge(signal_on)
+  }
+
+  for @e.sparked_blue.state_on!changed {
+    untag @s state_on
+    untag @s accept_off
+    untag @s accept_blue
+    tag @s state_off
+    tag @s accept_on
+    tag @s accept_red
+    charge(signal_off)
+  }
+
+  for @e.sparked_green.state_on!changed {
+    charge(signal_true)
+  }
+
+  for @e.sparked_green.state_off!changed {
+    charge(signal_false)
+  }
+
+  for @e.sparked_blue.lamp!changed {
+    if redstone_lamp[lit=true] {
+      charge(signal_blue)
+    }
+  }
+
+  for @e.sparked_green.lamp!changed {
+    if redstone_lamp[lit=true] {
+      charge(signal_true)
+    } else {
+      charge(signal_false)
+    }
+  }
+
+  for @e.sparked_red!sparked_blue.tx!changed {
+    tag @s changed
+    when find_rx then {
+      charge(signal_red)
+    }
+  }
+
+  for @e.sparked_blue!sparked_red.tx!changed {
+    tag @s changed
+    when find_rx then {
+      charge(signal_blue)
+    }
+  }
+
+  for @e.changed @s->charge=@s->next
+
+  untag @e changed
+  untag @e sparked
+  untag @e sparked_blue
+  untag @e sparked_red
+  untag @e sparked_green
+}
+
+on item_used_on_block{
+  location: {
+    block: {
+      tag: "minecraft:buttons"
+    }
+  }
+} then {
+  for @e.button {
+    if #wires:button[powered=true] {
+      spark(accept_green,sparked_green)
+    }
+  }
+}

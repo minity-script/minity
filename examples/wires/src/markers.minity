@@ -1,0 +1,121 @@
+namespace wires
+
+macro set_tags() {
+  @s::Tags=[]
+  tag @s wire
+  if (?green) {
+    tag @s green 
+  } else if (?fiber) {
+    tag @s fiber
+  } else {
+    if (?red) tag @s red
+    if (?blue) tag @s blue
+    if (?cyan) tag @s cyan
+    if (?green) tag @s green
+    if (?lamp) tag @s lamp
+    
+    if (?and) tag @s and
+    if (?nand) tag @s nand
+    if (#wires:radio) {
+      tag @s radio
+      if (?tx) tag @s tx
+      if (?rx) tag @s rx
+    }
+    if #wires:state {
+      if #wires:is_led    tag @s is_led
+      if #wires:is_stone  tag @s is_stone
+      if #wires:state_on  tag @s state_on
+      if #wires:state_off tag @s state_off
+    }
+    if #wires:button tag @s button
+  }
+  
+  if (#wires:accept_blue) tag @s accept_blue
+  if (#wires:accept_red) tag @s accept_red
+  if (#wires:accept_green) tag @s accept_green
+  if (#wires:accept_true) tag @s accept_true
+  if (#wires:accept_false) tag @s accept_false
+  if (#wires:accept_on) tag @s accept_on
+  if (#wires:accept_off) tag @s accept_off
+
+}
+
+macro set_basic() {
+  if @s.red setblock ?red 
+  if @s.blue setblock ?blue
+  if @s.green setblock ?green
+  if @s.cyan setblock ?cyan
+  if @s.is_led.state_on setblock ?led_on
+  if @s.is_led.state_off setblock ?led_off
+  if @s.is_stone.state_on setblock ?stone_on
+  if @s.is_stone.state_off setblock ?stone_off
+  if @s.and setblock ?and
+  if @s.nand setblock ?nand
+  if @s.fiber setblock ?fiber
+  if @s.lamp setblock ?lamp
+  if @s.tx (~ ~ ~)::GlowingText=false
+  if @s.rx (~ ~ ~)::GlowingText=false
+}
+
+
+macro summon_marker() {
+  tag summoner
+  tag summoned
+  /kill {@e.wire[distance<0.5]}
+
+  align xyz east 0.5 south 0.5 up 0.5 summon (~ ~ ~) marker then {
+    @s::NoGravity = true
+    @s::PersistenceRequired=true
+    @s::CustomName = json "My Marker"
+    @s::CustomNameVisible = true
+    set_tags()
+    @s->charge=0
+
+    if (@s.radio) at @s tag @s edited
+    if #wires:oriented {
+      say oriented
+      if (#wires:oriented[facing=north])  south 0.4 /tp @s ~ ~ ~
+      if (#wires:oriented[facing=east])   west  0.4 /tp @s ~ ~ ~
+      if (#wires:oriented[facing=south])  north 0.4 /tp @s ~ ~ ~
+      if (#wires:oriented[facing=west])   east  0.4 /tp @s ~ ~ ~
+      if (#wires:button[face=ceiling])  up    0.4 /tp @s ~ ~ ~
+      if (#wires:button[face=floor])    down  0.4 /tp @s ~ ~ ~
+      
+    } else {
+      tag @s summoned 
+      setblock white_wool
+      after 3t {
+        for @e.summoned {
+          set_basic()
+          untag @s summoned
+        }
+      }
+    }
+    print @a {@s::Tags}
+  }
+}
+
+function reset {
+  for @e.wire {
+    //say setting tags
+    @s->charge=0
+    align xyz east 0.5 south 0.5 up 0.5 {
+      /tp @s ~ ~ ~
+      if (#wires:radio[facing=north])  /tp @s {(south 0.4)}
+      if (#wires:radio[facing=east])   /tp @s {(west 0.4)}
+      if (#wires:radio[facing=south])  /tp @s {(north 0.4)}
+      if (#wires:radio[facing=west])   /tp @s {(east 0.4)}
+    }
+    set_basic()
+    untag @e.wire changed
+    untag @e.wire busy
+    untag @e.wire sparked
+    untag @e.wire signal_red
+    untag @e.wire signal_blue
+    untag @e.wire signal_green
+    untag @e.wire signal_on
+    untag @e.wire signal_off
+    untag @e.wire signal_true
+    untag @e.wire signal_false
+  }
+}

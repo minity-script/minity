@@ -1,0 +1,81 @@
+namespace wires
+
+score radio_id
+var $rx_search
+var $radio_count
+
+define predicates/find_rx {
+  condition: "minecraft:value_check",
+  value: {
+    type: "minecraft:score",
+    target: {
+      type: "minecraft:fixed",
+      name: "--wires-rx_search"
+    },
+    "score": "--wires--vars"
+  },
+  range: {
+    min: {
+      type: "minecraft:score",
+      target: "this",
+      score: "{->radio_id}"
+    },
+    max: {
+      type: "minecraft:score",
+      target: "this",
+      score: "{->radio_id}"
+    }
+  }
+}
+
+
+macro find_radio_score() {
+  @@test_radio_ids = @@radio_ids
+  var $test
+  var $found = 0
+  if @@test_radio_ids[0] repeat {
+    $test ?= @@test_radio_ids[0].id = (~ ~ ~)::Text1
+    unless $test {
+      $found = @@test_radio_ids[0].score
+    }
+    remove @@test_radio_ids[0]
+  } until $found and while @@test_radio_ids[0]
+  if ($found) {
+    @s->radio_id = $found
+  } else {
+    $radio_count++
+    append @@radio_ids {id:"",score:0}
+    @@radio_ids[-1].id = (~ ~ ~)::Text1
+    @@radio_ids[-1].score = $radio_count
+    @s->radio_id=$radio_count
+    $found = $radio_count
+  }
+  (~ ~ ~)::Text4 = json <t>#{$found}</t>
+}
+macro find_rx () {
+  $rx_search = @s->radio_id
+  for @e.rx[distance<50,predicate=wires:find_rx] {
+    resolve()
+  }
+}
+
+
+tag edited
+macro check_editors() {
+  var $test = true
+  for @e.edited {
+    @s::GlowingText=false
+    @@check_edited = json {text:""}
+    $test ?= @@check_edited = (~ ~ ~)::Text1
+    if $test {
+      untag @s edited
+      find_radio_score()
+    } else unless @player[distance<6] {
+      setblock air
+    }
+  }
+  
+}
+untag @e edited
+
+every 5t check_editors()

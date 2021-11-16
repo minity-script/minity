@@ -1,0 +1,119 @@
+namespace wires
+
+import "./settings"
+
+?tx         = "{?tx_wood}_wall_sign"
+?rx         = "{?rx_wood}_wall_sign"
+
+?tag_green        = "minecraft:{?green}"
+?tag_red          = "minecraft:{?red}"
+?tag_blue         = "minecraft:{?blue}"
+?tag_cyan         = "minecraft:{?cyan}"
+?tag_spark        = "minecraft:{?spark}"
+?tag_and          = "minecraft:{?and}"
+?tag_nand         = "minecraft:{?nand}"
+?tag_led_on       = "minecraft:{?led_on}"
+?tag_led_off      = "minecraft:{?led_off}"
+?tag_stone_on     = "minecraft:{?stone_on}"
+?tag_stone_off    = "minecraft:{?stone_off}"
+?tag_fiber        = "minecraft:{?fiber}"
+?tag_lamp         = "minecraft:{?lamp}"
+?tag_tx           = "minecraft:{?tx}"
+?tag_rx           = "minecraft:{?rx}"
+?tag_item_tx      = "minecraft:{?tx_wood}_sign"
+?tag_item_rx      = "minecraft:{?rx_wood}_sign"
+?tag_button       = "#minecraft:buttons"
+
+?tags = [ 
+  ?tag_spark, ?tag_green, ?tag_blue, ?tag_red, ?tag_cyan,
+  ?tag_led_on, ?tag_led_off, ?tag_and, ?tag_nand, ?tag_fiber, 
+  ?tag_lamp, ?stone_on, ?stone_off, ?tag_button
+]
+
+
+define tags/items/wires {
+  values:[... ?tags, ?tag_item_tx, ?tag_item_rx]
+}
+
+define tags/items/orb {
+  values:["minecraft:written_book","minecraft:slime_ball"]
+}
+
+define tags/blocks/wires {
+  values:[... ?tags, ?tag_tx, ?tag_rx]
+}
+
+define tags/blocks/radio {
+  values:[?tag_rx, ?tag_tx]
+}
+
+define tags/blocks/button {
+  values:[?tag_button]
+}
+
+define tags/blocks/oriented {
+  values:["#wires:radio", "#wires:button" ]
+}
+
+define tags/blocks/is_led {
+  values:[?tag_led_on,?tag_led_off]
+}
+
+define tags/blocks/is_stone {
+  values:[?tag_stone_on,?tag_stone_off]
+}
+
+define tags/blocks/state_on {
+  values:[?tag_led_on,?tag_stone_on]
+}
+
+define tags/blocks/state_off {
+  values:[?tag_led_off,?tag_stone_off]
+}
+
+define tags/blocks/state {
+  values:["#wires:state_on","#wires:state_off"]
+}
+
+define tags/blocks/accept_test {
+  values:["#wires:state", ?tag_lamp]
+}
+
+define tags/blocks/accept_logic {
+  values:[?tag_fiber, ?tag_and, ?tag_nand, ?tag_tx]
+}
+
+define tags/blocks/accept_positive {
+  values:[?tag_red, ?tag_blue]
+}
+define tags/blocks/accept_negative {
+  values:[?tag_cyan, ?tag_blue]
+}
+
+define tags/blocks/accept_green {
+  values:[ ?tag_red, ?tag_green, "#wires:accept_test"]
+}
+
+define tags/blocks/accept_red {
+  values:[ ?tag_green, "#wires:accept_positive", "#wires:state_off", "#wires:accept_logic" ]
+}
+
+define tags/blocks/accept_blue {
+  values:[ ?tag_green, ?tag_lamp, "#wires:accept_negative", "#wires:state_on", "#wires:accept_logic" ]
+}
+
+define tags/blocks/accept_true {
+  values:[ "#wires:accept_positive", "#wires:accept_logic", ?tag_green ]
+}
+
+define tags/blocks/accept_false {
+  values:[ "#wires:accept_negative", "#wires:accept_logic", ?tag_green ]
+}
+
+define tags/blocks/accept_on {
+  values:[ "#wires:accept_positive", "#wires:state_off", ?tag_tx ]
+}
+
+define tags/blocks/accept_off {
+  values:[ "#wires:accept_negative", "#wires:state_on", ?tag_tx ]
+}

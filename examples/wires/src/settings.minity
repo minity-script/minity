@@ -1,0 +1,19 @@
+namespace wires
+
+?charge    = 2
+?green      = green_wool
+?red        = red_wool      
+?blue       = blue_wool     
+?cyan       = cyan_wool     
+?spark      = white_wool    
+?and        = orange_wool   
+?nand       = purple_wool   
+?led_on     = yellow_wool     
+?led_off    = black_wool
+?fiber      = light_gray_wool
+?lamp       = redstone_lamp
+?stone_on   = redstone_block
+?stone_off  = blackstone
+
+?tx_wood    = acacia
+?rx_wood    = warped
