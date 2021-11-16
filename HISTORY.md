@@ -1,4 +1,4 @@
-# Release notes
+# Release history
 
 ## v1.0.0-alpha.30
 * macro calls with equal arguments no longer produce duplicate functions
