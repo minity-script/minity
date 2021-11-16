@@ -238,7 +238,7 @@ function createProject({ createPath, starter, example, info = {} }) {
 }
 
 class ProjectPath {
-  get defeaultMinecraftPath() {
+  get defaultMinecraftPath() {
     if (process.platform=="win32") return resolve(os.homedir(), "AppData", "Roaming", ".minecraft");
     if (process.platform == 'darwin') return resolve(process.env.HOME, "Library", "Application Support", "minecraft");
     if (process.platform == 'android') return resolve("/", "sdcard", "games", "com.mojang");
@@ -266,7 +266,7 @@ class Project extends ProjectPath {
       },
       author = {},
       entryPoint = "src/index.minity",
-      minecraftPath = this.defeaultMinecraftPath,
+      minecraftPath = this.defaultMinecraftPath,
       description
     } = settings;
     Object.assign(this, {
@@ -368,6 +368,7 @@ class Project extends ProjectPath {
       this.build(buildDirectory);
     } catch (error) {
       if (error.location) {
+        console.log(error)
         const {message,file,location:{start:{line,column}}} = error;
         console.error(chalk`\n{red ${message}} (${file}:${line}:${column})`);
       } else console.error(error)
@@ -377,7 +378,7 @@ class Project extends ProjectPath {
 
 class NoProject extends ProjectPath {
   isProject = false;
-  minecraftPath = this.defeaultMinecraftPath;
+  minecraftPath = this.defaultMinecraftPath;
   get isEmpty() {
     return !exists(this.path) || readdir(this.path).length == 0;
   }
@@ -391,7 +392,7 @@ class NoProject extends ProjectPath {
 class CorruptProject extends ProjectPath {
   isProject = false;
   isCorrupt = true;
-  minecraftPath = this.defeaultMinecraftPath;
+  minecraftPath = this.defaultMinecraftPath;
   constructor(path, error) {
     super(path);
     this.error = error;
